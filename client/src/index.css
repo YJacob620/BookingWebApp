@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+#root {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+/* Change from 'button' to be more specific */
+button:not([role="checkbox"]) {
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  border-color: #363636;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  color: #ffffff;
+}
+
+button:not([role="checkbox"]):hover {
+  border-color: #ffffff;
+}
+
+input {
+  @apply bg-gray-700 border-gray-600;
+}
+
+input:hover {
+  border-color: #ffffff;
+}
+
+textarea {
+  @apply bg-gray-700 border-gray-600;
+}
+
+textarea:hover {
+  border-color: #ffffff;
+}
+
+.general-container {
+  @apply bg-gray-900 p-8 rounded-lg;
+}
+
+.explanation-text1 {
+  @apply text-gray-500;
+}
+
+.card1 {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.card1-hover {
+  @apply hover:bg-gray-700 transition-colors duration-200 cursor-pointer flex flex-col;
+}
+
+.checkbox1 {
+  @apply bg-gray-700 border-gray-600 text-white;
+}
+
+.checkbox1:hover {
+  @apply border-white;
+}
+
+.sort-button {
+  @apply !bg-transparent !p-0 !border-none;
+}
+
+.alert-error {
+  @apply bg-red-900 text-red-100;
+}
+
+.alert-success {
+  @apply bg-green-800 text-green-100;
+}
+
+@layer base {
+  * {
+    @apply border-gray-400;
+  }
+
+  body {
+    @apply bg-zinc-950 text-white;
+  }
+}
