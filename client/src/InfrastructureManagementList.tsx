@@ -21,13 +21,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface Infrastructure {
-    id: number;
-    name: string;
-    description: string;
-    location: string | null;
-    is_active: boolean;
-}
+import { Infrastructure } from '@/types';
 
 interface SortConfig {
     key: keyof Infrastructure | null;

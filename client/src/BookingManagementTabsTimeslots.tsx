@@ -29,20 +29,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-interface Infrastructure {
-  id: number;
-  name: string;
-  max_booking_duration?: number;
-}
-
-interface Timeslot {
-  id: number;
-  infrastructure_id: number;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  status: 'available' | 'canceled' | 'expired';
-}
+import { formatDate, formatTimeString } from '@/utils';
+import { Infrastructure, Timeslot } from '@/types';
 
 interface TimeslotListProps {
   infrastructureId: number;
@@ -201,26 +189,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   const isOverMaxDuration = (duration: number): boolean => {
     return !!selectedInfrastructure?.max_booking_duration &&
       duration > selectedInfrastructure.max_booking_duration;
-  };
-
-  // Format time string to be displayed
-  const formatTimeString = (timeString: string): string => {
-    const time = new Date(`1970-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-UK', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-UK', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric'
-    });
   };
 
   // Get color for status badge

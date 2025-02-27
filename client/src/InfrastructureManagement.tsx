@@ -5,29 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeftCircle } from "lucide-react";
-
-// Import our new components
 import InfrastructureManagementForm from './InfrastructureManagementForm';
 import InfrastructureManagementList from './InfrastructureManagementList';
 
-interface Infrastructure {
-    id: number;
-    name: string;
-    description: string;
-    location: string | null;
-    is_active: boolean;
-}
+import { Infrastructure, Message } from '@/types';
 
-interface FormData {
+export interface InfrastFormData {
     name: string;
     description: string;
     location: string;
     is_active: boolean;
-}
-
-interface Message {
-    type: 'success' | 'error' | '';
-    text: string;
 }
 
 const InfrastructureManagement: React.FC = () => {
@@ -68,7 +55,7 @@ const InfrastructureManagement: React.FC = () => {
         }
     };
 
-    const handleSubmit = async (formData: FormData) => {
+    const handleSubmit = async (formData: InfrastFormData) => {
         try {
             const token = localStorage.getItem('token');
             let url = 'http://localhost:3001/api/infrastructures';

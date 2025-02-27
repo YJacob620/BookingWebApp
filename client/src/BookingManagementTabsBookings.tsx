@@ -31,24 +31,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-interface Infrastructure {
-  id: number;
-  name: string;
-  location?: string;
-}
-
-interface Booking {
-  id: number;
-  infrastructure_id: number;
-  user_email: string;
-  user_role?: string;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'expired' | 'canceled';
-  purpose: string;
-  created_at: string;
-}
+import { Booking, Infrastructure } from '@/types';
+import { formatDate, formatTimeString } from '@/utils';
 
 interface BookingListProps {
   infrastructureId: number;
@@ -121,22 +105,30 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
     // Apply date filter
     const now = new Date();
-    now.setHours(0, 0, 0, 0); // Start of today
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
 
-    if (dateFilter === 'today') {
-      const today = now.toISOString().split('T')[0];
-      filtered = filtered.filter(booking => booking.booking_date === today);
-    } else if (dateFilter === 'upcoming') {
-      filtered = filtered.filter(booking => {
-        const bookingDateTime = new Date(`${booking.booking_date}T${booking.end_time}`);
-        return bookingDateTime >= now;
+    console.log("now", now);
+
+    const filterBookings = (bookings: typeof filtered, dateFilter: string) => {
+      return bookings.filter(({ booking_date }) => {
+        const bookingDate = new Date(booking_date);
+
+        switch (dateFilter) {
+          case 'today':
+            return bookingDate.toISOString().split('T')[0] === now.toISOString().split('T')[0]; // Exact match
+          case 'upcoming':
+            return bookingDate >= startOfToday; // Include today and future dates
+          case 'past':
+            return bookingDate < startOfToday; // Only past dates
+          default:
+            return true; // No filtering applied
+        }
       });
-    } else if (dateFilter === 'past') {
-      filtered = filtered.filter(booking => {
-        const bookingDateTime = new Date(`${booking.booking_date}T${booking.end_time}`);
-        return bookingDateTime < now;
-      });
-    }
+    };
+
+    filtered = filterBookings(filtered, dateFilter);
+
 
     // Apply search query
     if (searchQuery) {
@@ -194,26 +186,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       console.error('Error updating booking status:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');
     }
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-UK', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric'
-    });
-  };
-
-  // Format time string to be displayed
-  const formatTimeString = (timeString: string): string => {
-    const time = new Date(`1970-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-UK', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
   };
 
   // Get color for status badge

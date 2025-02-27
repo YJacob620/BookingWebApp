@@ -5,16 +5,7 @@ import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-interface CalendarItem {
-  type: 'timeslot' | 'booking';
-  id: number;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  user_email?: string;
-  purpose?: string;
-}
+import { CalendarItem } from "@/types"
 
 interface BookingsCalendarViewProps {
   items: CalendarItem[];

@@ -22,17 +22,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface Booking {
-  id: number;
-  infrastructure_name: string;
-  infrastructure_location: string | null;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'expired' | 'canceled';
-  purpose: string;
-  created_at: string;
-}
+// Import types and utilities from shared files
+import { Booking, BookingStatus } from '@/types';
+import {
+  formatDate,
+  formatTimeString,
+  isWithin24Hours,
+  getStatusColor,
+  getBookingStatusOptions,
+  fetchAllUserBookings,
+  cancelBooking
+} from '@/utils';
 
 const BookingHistory = () => {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ const BookingHistory = () => {
       return;
     }
 
-    fetchBookings(token);
+    fetchBookings();
   }, [navigate]);
 
   // Apply filters when bookings, status filter, or search query changes
@@ -59,21 +59,11 @@ const BookingHistory = () => {
     applyFilters();
   }, [bookings, statusFilter, searchQuery]);
 
-  const fetchBookings = async (token: string) => {
+  const fetchBookings = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3001/api/bookings/user/all', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch bookings');
-      }
-
-      const data = await response.json();
-
+      const data = await fetchAllUserBookings();
       setBookings(data);
     } catch (err) {
       console.error('Error fetching bookings:', err);
@@ -95,69 +85,12 @@ const BookingHistory = () => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(booking =>
-        booking.infrastructure_name.toLowerCase().includes(query) ||
+        booking.infrastructure_name?.toLowerCase().includes(query) ||
         (booking.infrastructure_location && booking.infrastructure_location.toLowerCase().includes(query)) ||
         booking.purpose.toLowerCase().includes(query)
       );
     }
     setFilteredBookings(filtered);
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-UK', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric'
-    });
-  };
-
-  // Format time string to be displayed
-  const formatTimeString = (timeString: string): string => {
-    const time = new Date(`1970-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-UK', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  };
-
-  // Get color for status badge
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-700 text-yellow-100';
-      case 'approved':
-        return 'bg-green-700 text-green-100';
-      case 'rejected':
-        return 'bg-red-700 text-red-100';
-      case 'completed':
-        return 'bg-blue-700 text-blue-100';
-      case 'expired':
-        return 'bg-gray-700 text-gray-100';
-      case 'canceled':
-        return 'bg-purple-700 text-purple-100';
-      default:
-        return 'bg-gray-700 text-gray-100';
-    }
-  };
-
-  // Check if a booking is within 24 hours
-  const isWithin24Hours = (bookingDate: string, startTime: string): boolean => {
-    // Ensure we're using the format returned by the server (YYYY-MM-DD)
-    // MySQL's DATE_FORMAT will return dates in this format
-    const bookingDateTime = new Date(`${bookingDate}T${startTime}`);
-    const now = new Date();
-
-    // Double-check valid date object
-    if (isNaN(bookingDateTime.getTime())) {
-      console.error("Invalid date created from:", bookingDate, startTime);
-      return true; // Fail safely - treat invalid dates as within 24 hours to prevent cancellation
-    }
-
-    const differenceInHours = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-    return differenceInHours <= 24;
   };
 
   const handleCancelBooking = async (bookingId: number, status: string) => {
@@ -170,24 +103,13 @@ const BookingHistory = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3001/api/bookings/${bookingId}/cancel`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to cancel booking');
-      }
+      await cancelBooking(bookingId);
 
       // Update the booking status locally
       setBookings(prevBookings =>
         prevBookings.map(booking =>
           booking.id === bookingId
-            ? { ...booking, status: 'canceled' }
+            ? { ...booking, status: 'canceled' as BookingStatus }
             : booking
         )
       );
@@ -253,13 +175,11 @@ const BookingHistory = () => {
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent className="card1">
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="expired">Expired</SelectItem>
-                    <SelectItem value="canceled">Canceled</SelectItem>
+                    {getBookingStatusOptions().map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
 // Interface for form data
-interface FormData {
+interface LoginFormData {
     email: string;
     password: string;
 }
@@ -31,7 +31,7 @@ interface LoginError {
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState<FormData>({
+    const [formData, setFormData] = useState<LoginFormData>({
         email: '',
         password: ''
     });

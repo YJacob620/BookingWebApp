@@ -11,17 +11,7 @@ import InfrastructureSelector from './InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
 
-interface Infrastructure {
-    id: number;
-    name: string;
-    location?: string;
-    max_booking_duration?: number;
-}
-
-interface Message {
-    type: 'success' | 'error' | 'warning';
-    text: string;
-}
+import { Infrastructure, Message } from '@/types';
 
 const BookingManagement: React.FC = () => {
     const navigate = useNavigate();

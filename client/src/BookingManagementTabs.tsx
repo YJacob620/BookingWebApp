@@ -9,12 +9,8 @@ import BookingManagementTabsBookings from './BookingManagementTabsBookings';
 import BookingManagementTabsTimeslots from './BookingManagementTabsTimeslots';
 import BookingManagementTabsCreate from './BookingManagementTabsCreate';
 
-interface Infrastructure {
-  id: number;
-  name: string;
-  location?: string;
-  max_booking_duration?: number;
-}
+import { Infrastructure } from '@/types';
+
 
 interface BookingManagementTabsProps {
   infrastructureId: number;

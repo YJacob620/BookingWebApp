@@ -13,16 +13,9 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-interface CalendarItem {
-  type: 'timeslot' | 'booking';
-  id: number;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  user_email?: string;
-  purpose?: string;
-}
+import { formatDate, formatTimeString } from '@/utils';
+import { CalendarItem } from '@/types';
+
 
 interface BookingsListViewProps {
   items: CalendarItem[];
@@ -35,25 +28,6 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
   onStatusChange,
   onError
 }) => {
-  // Format date for display
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-UK', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric'
-    });
-  };
-
-  // Format time string to be displayed
-  const formatTimeString = (timeString: string): string => {
-    const time = new Date(`1970-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-UK', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  };
 
   // Get color for status badge
   const getStatusColor = (type: string, status: string): string => {

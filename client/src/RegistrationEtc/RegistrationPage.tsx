@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-interface FormData {
+interface RegistrationFormData {
     name: string;
     email: string;
     password: string;
@@ -32,7 +32,7 @@ interface FormErrors {
 
 const RegistrationPage: React.FC = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState<FormData>({
+    const [formData, setFormData] = useState<RegistrationFormData>({
         name: '',
         email: '',
         password: '',

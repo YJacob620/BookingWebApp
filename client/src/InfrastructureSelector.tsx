@@ -15,12 +15,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 
-interface Infrastructure {
-  id: number;
-  name: string;
-  location?: string;
-  max_booking_duration?: number;
-}
+import { Infrastructure } from '@/types';
 
 interface InfrastructureSelectorProps {
   onSelectInfrastructure: (infrastructureId: number, infrastructure: Infrastructure) => void;

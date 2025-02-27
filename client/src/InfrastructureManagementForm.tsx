@@ -3,28 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface Infrastructure {
-    id: number;
-    name: string;
-    description: string;
-    location: string | null;
-    is_active: boolean;
-}
+import { Infrastructure } from '@/types';
+import { InfrastFormData } from './InfrastructureManagement';
 
-interface FormData {
-    name: string;
-    description: string;
-    location: string;
-    is_active: boolean;
-}
 
 interface InfrastructureFormProps {
     isEditMode: boolean;
     editingInfrastructure: Infrastructure | null;
-    onSubmit: (formData: FormData) => Promise<void>;
+    onSubmit: (formData: InfrastFormData) => Promise<void>;
     onCancelEdit: () => void;
 }
 
@@ -34,7 +22,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
     onSubmit,
     onCancelEdit
 }) => {
-    const [formData, setFormData] = useState<FormData>({
+    const [formData, setFormData] = useState<InfrastFormData>({
         name: '',
         description: '',
         location: '',
@@ -46,7 +34,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
         if (isEditMode && editingInfrastructure) {
             setFormData({
                 name: editingInfrastructure.name,
-                description: editingInfrastructure.description,
+                description: editingInfrastructure.description || '',
                 location: editingInfrastructure.location || '',
                 is_active: !!editingInfrastructure.is_active, // Convert to boolean properly
             });

@@ -14,16 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Booking {
-  id: number;
-  infrastructure_name: string;
-  infrastructure_location: string | null;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'expired' | 'canceled';
-  purpose: string;
-}
+import { Booking } from '@/types';
+import { formatDate, formatTimeString } from '@/utils';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -80,26 +72,6 @@ const UserDashboard = () => {
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-UK', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric'
-    });
-  };
-
-  // Format time string to be displayed
-  const formatTimeString = (timeString: string): string => {
-    const time = new Date(`1970-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-UK', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
   };
 
   // Get color for status badge

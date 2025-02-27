@@ -22,21 +22,7 @@ import {
 } from "@/components/ui/popover";
 import { format, isBefore, startOfDay, parseISO } from "date-fns";
 
-interface Infrastructure {
-  id: number;
-  name: string;
-  description: string;
-  location: string | null;
-}
-
-interface Timeslot {
-  id: number;
-  infrastructure_id: number;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  status: 'available';
-}
+import { Infrastructure, Timeslot } from '@/types';
 
 const CreateBooking = () => {
   const navigate = useNavigate();

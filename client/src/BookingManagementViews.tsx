@@ -10,22 +10,8 @@ import { Calendar, List } from "lucide-react";
 import BookingManagementViewsCalendar from './BookingManagementViewsCalendar';
 import BookingManagementViewsList from './BookingManagementViewsList';
 
-interface Infrastructure {
-  id: number;
-  name: string;
-  location?: string;
-}
+import { Infrastructure, CalendarItem } from '@/types';
 
-interface CalendarItem {
-  type: 'timeslot' | 'booking';
-  id: number;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  user_email?: string;
-  purpose?: string;
-}
 
 interface CalendarListViewProps {
   infrastructureId: number;
