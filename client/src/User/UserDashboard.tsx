@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 
 import { Booking } from '@/types';
-import { formatDate, formatTimeString } from '@/utils';
+import { formatDate, formatTimeString, getStatusColor } from '@/utils';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -72,26 +72,6 @@ const UserDashboard = () => {
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
-  };
-
-  // Get color for status badge
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-700 text-yellow-100';
-      case 'approved':
-        return 'bg-green-700 text-green-100';
-      case 'rejected':
-        return 'bg-red-700 text-red-100';
-      case 'completed':
-        return 'bg-blue-700 text-blue-100';
-      case 'expired':
-        return 'bg-gray-700 text-gray-100';
-      case 'canceled':
-        return 'bg-purple-700 text-purple-100';
-      default:
-        return 'bg-gray-700 text-gray-100';
-    }
   };
 
   if (isLoading) {

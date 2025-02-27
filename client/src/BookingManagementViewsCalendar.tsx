@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { CalendarItem } from "@/types"
+import { getStatusColor } from "@/utils"
 
 interface BookingsCalendarViewProps {
   items: CalendarItem[];
@@ -109,21 +110,6 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
     });
   };
 
-  // Determine color for status
-  const getStatusColor = (type: string, status: string): string => {
-    if (type === 'timeslot') return 'bg-blue-700 text-blue-100';
-
-    switch (status) {
-      case 'pending': return 'bg-yellow-700 text-yellow-100';
-      case 'approved': return 'bg-green-700 text-green-100';
-      case 'rejected': return 'bg-red-700 text-red-100';
-      case 'completed': return 'bg-blue-700 text-blue-100';
-      case 'expired': return 'bg-gray-700 text-gray-100';
-      case 'canceled': return 'bg-purple-700 text-purple-100';
-      default: return 'bg-gray-700 text-gray-100';
-    }
-  };
-
   // Format date for filtering
   const formatDateForFilter = (day: number): string => {
     const year = currentMonth.getFullYear();
@@ -204,7 +190,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
                             {dayItems.map((item) => (
                               <div key={`${item.type}-${item.id}`} className="p-2 border-b border-gray-700 last:border-0">
                                 <div className="flex justify-between items-center mb-1">
-                                  <Badge className={getStatusColor(item.type, item.status)}>
+                                  <Badge className={getStatusColor(item.status)}>
                                     {item.type === 'timeslot' ? 'Available' : item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                   </Badge>
                                   <span className="text-sm text-gray-400">
@@ -249,7 +235,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
                             <Badge
                               key={status}
                               variant="outline"
-                              className={`text-xs ${getStatusColor(status === 'available' ? 'timeslot' : 'booking', status)}`}
+                              className={`text-xs ${getStatusColor(status)}`}
                             >
                               {status === 'available' ? (
                                 <><Clock className="h-3 w-3 mr-1" />{count}</>

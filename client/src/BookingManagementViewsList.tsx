@@ -13,9 +13,14 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-import { formatDate, formatTimeString } from '@/utils';
+import {
+  formatDate,
+  formatTimeString,
+  getStatusColor,
+  calculateDuration,
+  formatStatus
+} from '@/utils';
 import { CalendarItem } from '@/types';
-
 
 interface BookingsListViewProps {
   items: CalendarItem[];
@@ -28,34 +33,6 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
   onStatusChange,
   onError
 }) => {
-
-  // Get color for status badge
-  const getStatusColor = (type: string, status: string): string => {
-    if (type === 'timeslot') return 'bg-blue-700 text-blue-100';
-
-    switch (status) {
-      case 'pending': return 'bg-yellow-700 text-yellow-100';
-      case 'approved': return 'bg-green-700 text-green-100';
-      case 'rejected': return 'bg-red-700 text-red-100';
-      case 'completed': return 'bg-blue-700 text-blue-100';
-      case 'expired': return 'bg-gray-700 text-gray-100';
-      case 'canceled': return 'bg-purple-700 text-purple-100';
-      default: return 'bg-gray-700 text-gray-100';
-    }
-  };
-
-  // Format status for display
-  const formatStatus = (type: string, status: string): string => {
-    if (type === 'timeslot') return 'Available';
-    return status.charAt(0).toUpperCase() + status.slice(1);
-  };
-
-  // Calculate duration in minutes
-  const calculateDuration = (startTime: string, endTime: string): number => {
-    const start = new Date(`1970-01-01T${startTime}`);
-    const end = new Date(`1970-01-01T${endTime}`);
-    return (end.getTime() - start.getTime()) / 60000;
-  };
 
   return (
     <div className="">
@@ -102,7 +79,7 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
                     {calculateDuration(item.start_time, item.end_time)} min
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge className={getStatusColor(item.type, item.status)}>
+                    <Badge className={getStatusColor(item.status)}>
                       {formatStatus(item.type, item.status)}
                     </Badge>
                   </TableCell>

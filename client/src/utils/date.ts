@@ -5,13 +5,15 @@
  */
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-UK', {
-    weekday: 'long',
+  const formattedDate = date.toLocaleDateString('en-UK', {
     year: 'numeric',
     month: 'numeric',
-    day: 'numeric'
+    day: 'numeric',
   });
+  const weekday = date.toLocaleDateString('en-GB', { weekday: 'long' });
+  return `${formattedDate} ${weekday}`;
 };
+
 
 /**
  * Formats a time string into a localized time format
@@ -37,16 +39,6 @@ export const calculateDuration = (startTime: string, endTime: string): number =>
   const start = new Date(`1970-01-01T${startTime}`);
   const end = new Date(`1970-01-01T${endTime}`);
   return (end.getTime() - start.getTime()) / 60000;
-};
-
-/**
- * Converts time string to minutes since midnight
- * @param time - Time string in format HH:MM
- * @returns Minutes since midnight
- */
-export const timeToMinutes = (time: string): number => {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
 };
 
 /**
@@ -77,12 +69,14 @@ export const isWithin24Hours = (bookingDate: string, startTime: string): boolean
  */
 export const isEndTimeAfterStartTime = (start: string, end: string): boolean => {
   if (!isTimeFormatValid(start) || !isTimeFormatValid(end)) {
-    return false;
+    throw new Error("Invalid time format. Expected HH:MM or HH:MM:SS.");
   }
   const startDate = new Date(`1970-01-01T${start}`);
   const endDate = new Date(`1970-01-01T${end}`);
+
   return endDate > startDate;
 };
+
 
 /**
  * Validates time format (HH:MM)

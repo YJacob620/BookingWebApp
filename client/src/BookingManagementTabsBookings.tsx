@@ -31,8 +31,16 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
+// Updated imports from shared types and utilities
 import { Booking, Infrastructure } from '@/types';
-import { formatDate, formatTimeString } from '@/utils';
+import {
+  formatDate,
+  formatTimeString,
+  getStatusColor,
+  getBookingStatusOptions,
+  getDateFilterOptions,
+  updateBookingStatus
+} from '@/utils';
 
 interface BookingListProps {
   infrastructureId: number;
@@ -72,12 +80,11 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const fetchBookings = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('token');
 
-      // Fetch all bookings for this infrastructure
+      // Use apiRequest from utilities instead of direct fetch
       const response = await fetch(`http://localhost:3001/api/bookings/infrastructure/${infrastructureId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
 
@@ -108,8 +115,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
 
-    console.log("now", now);
-
     const filterBookings = (bookings: typeof filtered, dateFilter: string) => {
       return bookings.filter(({ booking_date }) => {
         const bookingDate = new Date(booking_date);
@@ -129,7 +134,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
     filtered = filterBookings(filtered, dateFilter);
 
-
     // Apply search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -144,8 +148,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
   const handleStatusChange = async (bookingId: number, newStatus: string) => {
     try {
-      const token = localStorage.getItem('token');
-
       let confirmMessage = '';
       if (newStatus === 'approved') {
         confirmMessage = 'Are you sure you want to approve this booking? All other pending bookings for this time slot will be automatically rejected.';
@@ -159,21 +161,9 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         return;
       }
 
-      const response = await fetch(`http://localhost:3001/api/bookings/${bookingId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
+      // Use updateBookingStatus utility instead of direct fetch
+      const data = await updateBookingStatus(bookingId, newStatus);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to update booking status to ${newStatus}`);
-      }
-
-      const data = await response.json();
       let successMessage = `Booking status updated to ${newStatus}`;
 
       if (data.rejectedCount && data.rejectedCount > 0) {
@@ -185,26 +175,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     } catch (error) {
       console.error('Error updating booking status:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');
-    }
-  };
-
-  // Get color for status badge
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-700 text-yellow-100';
-      case 'approved':
-        return 'bg-green-700 text-green-100';
-      case 'rejected':
-        return 'bg-red-600 text-red-100';
-      case 'completed':
-        return 'bg-blue-700 text-blue-100';
-      case 'expired':
-        return 'bg-gray-700 text-gray-100';
-      case 'canceled':
-        return 'bg-purple-700 text-purple-100';
-      default:
-        return 'bg-gray-700 text-gray-100';
     }
   };
 
@@ -239,12 +209,12 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
               <SelectValue placeholder="Select Status" />
             </SelectTrigger>
             <SelectContent className="card1">
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="canceled">Canceled</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
+              {/* Use shared utility to get status options */}
+              {getBookingStatusOptions().map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -259,10 +229,12 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
               <SelectValue placeholder="Select Date Filter" />
             </SelectTrigger>
             <SelectContent className="card1">
-              <SelectItem value="all">All Dates</SelectItem>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="upcoming">Upcoming</SelectItem>
-              <SelectItem value="past">Past</SelectItem>
+              {/* Use shared utility to get date filter options */}
+              {getDateFilterOptions().map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -314,7 +286,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge className={`${getStatusColor(booking.status)}`}>
+                      {/* Use shared utility for status color */}
+                      <Badge className={getStatusColor(booking.status)}>
                         {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                       </Badge>
                     </TableCell>

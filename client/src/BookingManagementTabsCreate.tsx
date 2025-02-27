@@ -9,6 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, CalendarRange } from "lucide-react";
 import { format } from "date-fns";
 
+import { calculateDuration, isEndTimeAfterStartTime, isTimeFormatValid } from "@/utils";
+
 interface BookingManagementTabsCreateProps {
   infrastructureId: number;
   onSuccess: (message: string) => void;
@@ -34,21 +36,6 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
   const [dailyStartTime, setDailyStartTime] = useState("09:00");
   const [slotDuration, setSlotDuration] = useState("60");
   const [slotsPerDay, setSlotsPerDay] = useState("8");
-
-  // Validate time format (HH:MM)
-  const isTimeFormatValid = (time: string): boolean => {
-    return /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time);
-  };
-
-  // Validate that end time is after start time
-  const isEndTimeAfterStartTime = (start: string, end: string): boolean => {
-    if (!isTimeFormatValid(start) || !isTimeFormatValid(end)) {
-      return false;
-    }
-    const startDate = new Date(`1970-01-01T${start}`);
-    const endDate = new Date(`1970-01-01T${end}`);
-    return endDate > startDate;
-  };
 
   // Create a single slot using the batch API endpoint
   const handleSingleSlotSubmit = async (e: React.FormEvent) => {
@@ -86,19 +73,6 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
     };
 
     await createBatchSlots(payload);
-  };
-
-  // Calculate duration in minutes between two times
-  const calculateDuration = (start: string, end: string): number => {
-    const startMinutes = timeToMinutes(start);
-    const endMinutes = timeToMinutes(end);
-    return endMinutes - startMinutes;
-  };
-
-  // Convert time string to minutes since midnight
-  const timeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
   };
 
   // Create batch slots

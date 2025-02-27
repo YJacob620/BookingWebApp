@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 
-// Import tab content components
 import BookingManagementTabsBookings from './BookingManagementTabsBookings';
 import BookingManagementTabsTimeslots from './BookingManagementTabsTimeslots';
 import BookingManagementTabsCreate from './BookingManagementTabsCreate';
@@ -29,7 +28,7 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
   onError,
   onUpdatePastBookings
 }) => {
-  const [activeTab, setActiveTab] = useState<string>("timeslots");
+  const [activeTab, setActiveTab] = useState<string>("bookings");
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleForceUpdate = async () => {
@@ -42,19 +41,18 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
   };
 
   return (
-    <Card className="card1 mb-8">
+    <Card className="card1 mb-8 min-w-270">
       <div className="p-6">
-        {/* Add the button above the tabs */}
-        <div className="flex justify-center mb-4 grid grid-cols-1 w-[calc(100%-10rem)] mx-auto">
+        <div className="flex flex-col items-center mb-4 mx-auto">
           <Button
             onClick={handleForceUpdate}
-            className="apply h-8"
+            className="apply h-8 w-135"
             disabled={isUpdating}
           >
             <RefreshCcw className="mr-2 h-4 w-4" />
             {isUpdating ? "Updating..." : "Force Update Past Bookings/Timeslots Statuses"}
           </Button>
-          <p className="explanation-text1 text-sm">
+          <p className="explanation-text1 text-sm text-center">
             Normally an update occurs automatically every few minutes, but you can force an update at any time.
           </p>
         </div>
@@ -65,7 +63,6 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
             <TabsTrigger value="timeslots">Manage Timeslots</TabsTrigger>
             <TabsTrigger value="create">Create Timeslots</TabsTrigger>
           </TabsList>
-
           <TabsContent value="bookings">
             <BookingManagementTabsBookings
               infrastructureId={infrastructureId}
@@ -75,7 +72,6 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
               refreshTrigger={refreshTrigger}
             />
           </TabsContent>
-
           <TabsContent value="timeslots">
             <BookingManagementTabsTimeslots
               infrastructureId={infrastructureId}
@@ -84,7 +80,6 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
               onError={onError}
             />
           </TabsContent>
-
           <TabsContent value="create">
             <BookingManagementTabsCreate
               infrastructureId={infrastructureId}

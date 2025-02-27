@@ -11,26 +11,30 @@ export const API_BASE_URL = 'http://localhost:3001/api';
  */
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
-  
-  const headers = {
+
+  // const headers = {
+  //   'Content-Type': 'application/json',
+  //   ...options.headers,
+  // };
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>)
   };
-  
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || `Request failed with status ${response.status}`);
   }
-  
+
   return response.json();
 };
 
@@ -118,17 +122,17 @@ export const forceUpdatePastBookings = () => {
  */
 export const fetchAvailableTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
   let url = `/bookings/available/${infrastructureId}`;
-  
+
   if (params) {
     const queryParams = new URLSearchParams();
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
-    
+
     if (queryParams.toString()) {
       url += `?${queryParams.toString()}`;
     }
   }
-  
+
   return apiRequest(url);
 };
 
@@ -137,17 +141,17 @@ export const fetchAvailableTimeslots = (infrastructureId: number, params?: { sta
  */
 export const fetchAllTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
   let url = `/bookings/timeslots/${infrastructureId}`;
-  
+
   if (params) {
     const queryParams = new URLSearchParams();
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
-    
+
     if (queryParams.toString()) {
       url += `?${queryParams.toString()}`;
     }
   }
-  
+
   return apiRequest(url);
 };
 

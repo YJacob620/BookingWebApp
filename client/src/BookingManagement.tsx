@@ -109,7 +109,7 @@ const BookingManagement: React.FC = () => {
                         <p className="text-xl">View Bookings and Timeslots</p>
                         <p className="explanation-text1 pb-1">
                             View future timeslots and bookings. Toggle between calendar-view and list-view to see details.
-                            <br />In calendar-view, clicking on active dates will take you to a filtered list-view.
+                            <br />In calendar-view, clicking on an active date will take you to a filtered list-view of this date.
                         </p>
                         <BookingManagementViews
                             infrastructureId={selectedInfraId}

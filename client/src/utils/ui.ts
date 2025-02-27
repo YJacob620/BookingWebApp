@@ -1,5 +1,3 @@
-import { BookingStatus } from '../types';
-
 /**
  * Get CSS class for status badge based on booking status
  * @param status - Status string
@@ -27,17 +25,6 @@ export const getStatusColor = (status: string): string => {
 };
 
 /**
- * Get color for calendar view items based on type and status
- * @param type - Item type ('timeslot' or 'booking')
- * @param status - Status string
- * @returns CSS class string for the badge
- */
-export const getCalendarItemStatusColor = (type: string, status: string): string => {
-  if (type === 'timeslot') return 'bg-blue-700 text-blue-100';
-  return getStatusColor(status);
-};
-
-/**
  * Format status string for display (capitalize first letter)
  * @param type - Item type ('timeslot' or 'booking')
  * @param status - Status string
@@ -59,14 +46,11 @@ export const getBookingStatusOptions = (includeAll: boolean = true): { value: st
     { value: 'approved', label: 'Approved' },
     { value: 'rejected', label: 'Rejected' },
     { value: 'completed', label: 'Completed' },
-    { value: 'expired', label: 'Expired' },
     { value: 'canceled', label: 'Canceled' }
   ];
-
   if (includeAll) {
     return [{ value: 'all', label: 'All Statuses' }, ...statuses];
   }
-
   return statuses;
 };
 
@@ -81,11 +65,9 @@ export const getTimeslotStatusOptions = (includeAll: boolean = true): { value: s
     { value: 'canceled', label: 'Canceled' },
     { value: 'expired', label: 'Expired' }
   ];
-
   if (includeAll) {
     return [{ value: 'all', label: 'All Statuses' }, ...statuses];
   }
-
   return statuses;
 };
 

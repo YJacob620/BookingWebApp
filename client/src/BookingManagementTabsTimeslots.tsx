@@ -29,8 +29,14 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-import { formatDate, formatTimeString } from '@/utils';
 import { Infrastructure, Timeslot } from '@/types';
+import {
+  formatDate,
+  formatTimeString,
+  getStatusColor,
+  calculateDuration,
+  getTimeslotStatusOptions
+} from '@/utils';
 
 interface TimeslotListProps {
   infrastructureId: number;
@@ -178,31 +184,10 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     }
   };
 
-  // Calculate duration in minutes between start and end time
-  const calculateDuration = (startTime: string, endTime: string): number => {
-    const start = new Date(`1970-01-01T${startTime}`);
-    const end = new Date(`1970-01-01T${endTime}`);
-    return (end.getTime() - start.getTime()) / 60000;
-  };
-
   // Check if duration exceeds max booking duration
   const isOverMaxDuration = (duration: number): boolean => {
     return !!selectedInfrastructure?.max_booking_duration &&
       duration > selectedInfrastructure.max_booking_duration;
-  };
-
-  // Get color for status badge
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'available':
-        return 'bg-blue-700 text-blue-100';
-      case 'canceled':
-        return 'bg-purple-700 text-purple-100';
-      case 'expired':
-        return 'bg-gray-700 text-gray-100';
-      default:
-        return 'bg-gray-700 text-gray-100';
-    }
   };
 
   return (
@@ -248,11 +233,19 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
             <SelectTrigger id="status-filter" className="w-[180px]">
               <SelectValue placeholder="Select Status" />
             </SelectTrigger>
-            <SelectContent className="card1">
+            {/* <SelectContent className="card1">
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="available">Available</SelectItem>
               <SelectItem value="canceled">Canceled</SelectItem>
               <SelectItem value="expired">Expired</SelectItem>
+            </SelectContent> */}
+            <SelectContent className="card1">
+              {/* Use shared utility to get status options */}
+              {getTimeslotStatusOptions().map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
