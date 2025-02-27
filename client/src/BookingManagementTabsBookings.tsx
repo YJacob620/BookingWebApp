@@ -169,7 +169,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Description section without the update button */}
       <div className="mb-4">
         <p className="explanation-text1">
           Manage booking requests and approvals.

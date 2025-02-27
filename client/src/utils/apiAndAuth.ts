@@ -121,10 +121,23 @@ export const forceUpdatePastBookings = () => {
 /**
  * Gets bookings for a specific infrastructure (admin only)
  * @param infrastructureId - ID of the infrastructure
+ * @param params - Optional parameters for filtering (startDate, endDate)
  * @returns Promise with bookings data
  */
-export const getInfrastructureBookings = (infrastructureId: number) => {
-  return apiRequest(`/bookings/${infrastructureId}/all-bookings`);
+export const getInfrastructureBookings = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+  let url = `/bookings/${infrastructureId}/all-bookings`;
+
+  if (params) {
+    const queryParams = new URLSearchParams();
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    if (queryParams.toString()) {
+      url += `?${queryParams.toString()}`;
+    }
+  }
+
+  return apiRequest(url);
 };
 
 /**

@@ -224,7 +224,7 @@ router.post('/force-bookings-status-update', authenticateToken, verifyAdmin, asy
 });
 
 // Get all bookings for an infrastructure (admin only). Can be within a specified date range.
-router.get(':infrastructureId/all-bookings/', authenticateToken, verifyAdmin, async (req, res) => {
+router.get('/:infrastructureId/all-bookings', authenticateToken, verifyAdmin, async (req, res) => {
     try {
         const { infrastructureId } = req.params;
         const { startDate, endDate } = req.query;
