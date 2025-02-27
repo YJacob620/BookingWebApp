@@ -14,13 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-interface RegistrationFormData {
-    name: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-    role: string;
-}
+import { register, RegistrationFormData } from '@/utils';
 
 interface FormErrors {
     name?: string;
@@ -125,23 +119,15 @@ const RegistrationPage: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3001/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: formData.name,
-                    email: formData.email,
-                    password: formData.password,
-                    role: formData.role
-                }),
-            });
+            // Use the imported register utility
+            const result = await register(formData);
 
-            const data = await response.json();
+            if (result.success) {
+                setSuccessMessage(
+                    result.data.message ||
+                    'Registration successful! Please check your email to verify your account.'
+                );
 
-            if (response.ok) {
-                setSuccessMessage(data.message || 'Registration successful! Please check your email to verify your account.');
                 // Clear form
                 setFormData({
                     name: '',
@@ -156,12 +142,12 @@ const RegistrationPage: React.FC = () => {
                     navigate('/verification-pending', {
                         state: {
                             email: formData.email,
-                            message: data.message
+                            message: result.data.message
                         }
                     });
                 }, 3000);
             } else {
-                setApiError(data.message || 'Registration failed. Please try again.');
+                setApiError(result.data.message || 'Registration failed. Please try again.');
             }
         } catch (error) {
             console.error('Registration error:', error);

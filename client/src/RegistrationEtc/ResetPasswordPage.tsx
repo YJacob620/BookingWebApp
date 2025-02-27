@@ -7,6 +7,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Info, Loader } from 'lucide-react';
 
+import { resetPassword } from '@/utils';
+
+
 const ResetPasswordPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
@@ -23,6 +26,37 @@ const ResetPasswordPage: React.FC = () => {
 
   const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setConfirmPassword(e.target.value);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Use the imported resetPassword utility
+      const result = await resetPassword(token!, password);
+
+      if (result.success) {
+        setIsSuccess(true);
+
+        // Redirect to login after a delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } else {
+        setErrorMessage(result.data.message || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Password reset error:', error);
+      setErrorMessage('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -42,44 +76,6 @@ const ResetPasswordPage: React.FC = () => {
     }
 
     return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`http://localhost:3001/api/reset-password/${token}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setIsSuccess(true);
-
-        // Redirect to login after a delay
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-      } else {
-        setErrorMessage(data.message || 'Failed to reset password');
-      }
-    } catch (error) {
-      console.error('Password reset error:', error);
-      setErrorMessage('An unexpected error occurred. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // If no token is provided, redirect to forgot password page

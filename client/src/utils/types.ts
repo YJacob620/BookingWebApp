@@ -8,6 +8,14 @@ export interface User {
   role: 'admin' | 'faculty' | 'student' | 'guest';
 }
 
+export interface RegistrationFormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: string;
+}
+
 // Infrastructure related
 export interface Infrastructure {
   id: number;

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 
+import { verifyEmailWithToken } from '@/utils';
+
 const EmailVerificationPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
@@ -22,26 +24,20 @@ const EmailVerificationPage: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:3001/api/verify-email/${token}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+        // Use a new utility function for email verification
+        const result = await verifyEmailWithToken(token);
 
-        const data = await response.json();
-
-        if (response.ok) {
+        if (result.success) {
           setIsVerified(true);
 
           // Store login information if provided
-          if (data.token && data.user) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+          if (result.data.token && result.data.user) {
+            localStorage.setItem('token', result.data.token);
+            localStorage.setItem('user', JSON.stringify(result.data.user));
 
             // Redirect after a delay
             setTimeout(() => {
-              if (data.user.role === 'admin') {
+              if (result.data.user.role === 'admin') {
                 navigate('/admin-dashboard');
               } else {
                 navigate('/user-dashboard');
@@ -49,7 +45,7 @@ const EmailVerificationPage: React.FC = () => {
             }, 3000);
           }
         } else {
-          setErrorMessage(data.message || 'Email verification failed');
+          setErrorMessage(result.data.message || 'Email verification failed');
         }
       } catch (error) {
         console.error('Verification error:', error);

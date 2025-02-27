@@ -20,7 +20,14 @@ import {
 } from "@/components/ui/popover";
 import { format, isBefore, startOfDay, parseISO } from "date-fns";
 
-import { Infrastructure, Timeslot } from '@/utils';
+import {
+  Infrastructure,
+  Timeslot,
+  fetchActiveInfrastructures,
+  createBooking,
+  fetchInfrastAvailTimeslots
+} from '@/utils';
+
 
 const CreateBooking = () => {
   const navigate = useNavigate();
@@ -50,17 +57,9 @@ const CreateBooking = () => {
   const fetchInfrastructures = async (token: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3001/api/infrastructures/active', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch infrastructures');
-      }
-
-      const data = await response.json();
+      // Use the imported fetchActiveInfrastructures utility
+      const data = await fetchActiveInfrastructures();
       setInfrastructures(data);
     } catch (error) {
       console.error('Error fetching infrastructures:', error);
@@ -85,22 +84,9 @@ const CreateBooking = () => {
 
     try {
       setIsLoadingTimeslots(true);
-      const token = localStorage.getItem('token');
 
-      const response = await fetch(
-        `http://localhost:3001/api/bookings/available/${selectedInfrastructureId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch available timeslots');
-      }
-
-      const data = await response.json();
+      // Use the imported fetchInfrastAvailTimeslots utility
+      const data = await fetchInfrastAvailTimeslots(selectedInfrastructureId);
       setAllTimeslots(data);
     } catch (error) {
       console.error('Error fetching available timeslots:', error);
@@ -147,23 +133,11 @@ const CreateBooking = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3001/api/bookings/request`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          timeslot_id: selectedTimeslotId,
-          purpose: purpose
-        })
+      // Use the imported createBooking utility
+      const response = await createBooking({
+        timeslot_id: selectedTimeslotId,
+        purpose: purpose
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create booking');
-      }
 
       setMessage({ type: 'success', text: 'Booking request submitted successfully' });
 

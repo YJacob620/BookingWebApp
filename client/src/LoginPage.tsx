@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
+import { resendVerification, login } from '@/utils';
+
+
 // Interface for form data
 interface LoginFormData {
     email: string;
@@ -56,20 +59,13 @@ const LoginPage: React.FC = () => {
         setResendSuccess(false);
 
         try {
-            const response = await fetch('http://localhost:3001/api/resend-verification', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email: formData.email }),
-            });
+            // Use the imported resendVerification utility
+            const result = await resendVerification(formData.email);
 
-            const data = await response.json();
-
-            if (response.ok) {
+            if (result.success) {
                 setResendSuccess(true);
             } else {
-                setError(data.message || 'Failed to resend verification email');
+                setError(result.data.message || 'Failed to resend verification email');
             }
         } catch (err) {
             console.error('Resend verification error:', err);
@@ -87,32 +83,23 @@ const LoginPage: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3001/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
+            // Use the imported login utility
+            const result = await login(formData.email, formData.password);
 
-            const data = await response.json();
+            if (result.success) {
+                const successData = result.data;
 
-            if (response.ok) {
-                const successData = data as LoginSuccess;
-                localStorage.setItem('user', JSON.stringify(successData.user));
-                localStorage.setItem('token', successData.token);
-
+                // The login utility already handles storing user and token
                 if (successData.user.role === 'admin') {
                     navigate('/admin-dashboard');
                 } else {
                     navigate('/user-dashboard');
                 }
             } else {
-                const errorData = data as LoginError;
-                setError(errorData.message);
+                setError(result.data.message);
 
                 // Check if the account needs verification
-                if (errorData.needsVerification) {
+                if (result.data.needsVerification) {
                     setNeedsVerification(true);
                 }
             }

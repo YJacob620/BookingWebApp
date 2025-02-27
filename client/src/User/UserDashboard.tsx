@@ -14,7 +14,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { formatDate, formatTimeString, getStatusColor, Booking } from '@/utils';
+import {
+  formatDate,
+  formatTimeString,
+  getStatusColor,
+  Booking,
+  fetchUserBookings as fetchRecentUserBookings
+} from '@/utils';
 
 
 const UserDashboard = () => {
@@ -36,7 +42,7 @@ const UserDashboard = () => {
 
       try {
         setUser(JSON.parse(userString));
-        fetchUserBookings(token);
+        getRecentBookings(token);
       } catch (err) {
         console.error('Error parsing user data:', err);
         navigate('/login');
@@ -46,20 +52,12 @@ const UserDashboard = () => {
     checkAuth();
   }, [navigate]);
 
-  const fetchUserBookings = async (token: string) => {
+  const getRecentBookings = async (token: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3001/api/bookings/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch bookings');
-      }
-
-      const data = await response.json();
+      // Use the imported fetchUserBookings utility
+      const data = await fetchRecentUserBookings();
       setBookings(data);
     } catch (err) {
       console.error('Error fetching bookings:', err);

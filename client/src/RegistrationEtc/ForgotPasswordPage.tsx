@@ -7,6 +7,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Loader } from 'lucide-react';
 
+import { requestPasswordReset } from '@/utils';
+
+
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -29,20 +32,13 @@ const ForgotPasswordPage: React.FC = () => {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:3001/api/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      // Use the imported requestPasswordReset utility
+      const result = await requestPasswordReset(email);
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (result.success) {
         setIsSuccess(true);
       } else {
-        setErrorMessage(data.message || 'Failed to process password reset request');
+        setErrorMessage(result.data.message || 'Failed to process password reset request');
       }
     } catch (error) {
       console.error('Password reset request error:', error);

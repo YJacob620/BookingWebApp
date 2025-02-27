@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, Loader } from 'lucide-react';
 
+import { resendVerification } from '@/utils';
+
+
 interface LocationState {
   email?: string;
   message?: string;
@@ -39,20 +42,13 @@ const VerificationPendingPage: React.FC = () => {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:3001/api/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      // Use the imported resendVerification utility
+      const result = await resendVerification(email);
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (result.success) {
         setResendSuccess(true);
       } else {
-        setErrorMessage(data.message || 'Failed to resend verification email');
+        setErrorMessage(result.data.message || 'Failed to resend verification email');
       }
     } catch (error) {
       console.error('Resend verification error:', error);

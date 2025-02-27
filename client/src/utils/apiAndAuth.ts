@@ -1,6 +1,11 @@
 /* API and authentication functions to be used by the client for communicating with the server */
 
-import { User, InfrastFormData, BatchCreationPayload } from './index'
+import {
+  User,
+  InfrastFormData,
+  BatchCreationPayload,
+  RegistrationFormData
+} from './index'
 /**
  * Base URL for API calls
  */
@@ -301,12 +306,7 @@ export const login = async (email: string, password: string) => {
  * @param userData - User registration data
  * @returns Promise with registration response
  */
-export const register = async (userData: {
-  name: string;
-  email: string;
-  password: string;
-  role: string;
-}) => {
+export const register = async (userData: RegistrationFormData) => {
   return authApiRequest('/register', {
     method: 'POST',
     body: JSON.stringify(userData),
@@ -365,4 +365,10 @@ export const resendVerification = async (email: string) => {
 export const verifyAdmin = async (): Promise<boolean> => {
   const result = await authApiRequest('/admin/verify');
   return result.success;
+};
+
+export const verifyEmailWithToken = async (token: string) => {
+  return authApiRequest(`/verify-email/${token}`, {
+    method: 'GET'
+  });
 };

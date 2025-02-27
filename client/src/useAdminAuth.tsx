@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { verifyAdmin } from '@/utils';
+
+
 export const useAdminAuth = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const verifyAdmin = async () => {
+    const checkAdminAuthorization = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -15,17 +18,14 @@ export const useAdminAuth = () => {
           return;
         }
 
-        const response = await fetch('http://localhost:3001/api/admin/verify', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        // Use the imported verifyAdmin utility
+        const isAdminVerified = await verifyAdmin();
 
-        if (!response.ok) {
-          throw new Error('Not authorized');
+        if (isAdminVerified) {
+          setIsAuthorized(true);
+        } else {
+          navigate('/login');
         }
-
-        setIsAuthorized(true);
       } catch (error) {
         console.error('Authorization error:', error);
         navigate('/login');
@@ -34,7 +34,7 @@ export const useAdminAuth = () => {
       }
     };
 
-    verifyAdmin();
+    checkAdminAuthorization();
   }, [navigate]);
 
   return { isAuthorized, isLoading };
