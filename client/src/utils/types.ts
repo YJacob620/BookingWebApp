@@ -1,4 +1,4 @@
-// Common interfaces shared across components
+/* Common interfaces shared across components */
 
 // User related
 export interface User {

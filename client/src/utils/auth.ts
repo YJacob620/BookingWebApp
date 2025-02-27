@@ -1,5 +1,4 @@
-import { User, apiRequest, API_BASE_URL } from './index'
-
+import { User, apiRequest } from './index'
 
 /**
  * Check if user is authenticated
@@ -26,29 +25,45 @@ export const getCurrentUser = (): User | null => {
 };
 
 /**
+ * Helper function to adapt apiRequest to the return format used by auth functions
+ * @param endpoint - API endpoint
+ * @param options - Request options
+ * @returns Promise with { success, data } format
+ */
+const authApiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  try {
+    const data = await apiRequest(endpoint, options);
+    return { success: true, data };
+  } catch (error) {
+    console.error(`API error for ${endpoint}:`, error);
+    // Try to extract the error message
+    let message = 'An unexpected error occurred';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return { success: false, data: { message } };
+  }
+};
+
+/**
  * Login user
  * @param email - User email
  * @param password - User password
  * @returns Promise with login response
  */
 export const login = async (email: string, password: string) => {
-  const response = await fetch('http://localhost:3001/api/login', {
+  const result = await authApiRequest('/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ email, password }),
   });
 
-  const data = await response.json();
-
-  if (response.ok) {
+  if (result.success) {
     // Store user and token in localStorage
-    localStorage.setItem('user', JSON.stringify(data.user));
-    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(result.data.user));
+    localStorage.setItem('token', result.data.token);
   }
 
-  return { success: response.ok, data };
+  return result;
 };
 
 /**
@@ -62,15 +77,10 @@ export const register = async (userData: {
   password: string;
   role: string;
 }) => {
-  const response = await fetch('http://localhost:3001/api/register', {
+  return authApiRequest('/register', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(userData),
   });
-
-  return { success: response.ok, data: await response.json() };
 };
 
 /**
@@ -87,15 +97,10 @@ export const logout = () => {
  * @returns Promise with password reset response
  */
 export const requestPasswordReset = async (email: string) => {
-  const response = await fetch('http://localhost:3001/api/forgot-password', {
+  return authApiRequest('/forgot-password', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ email }),
   });
-
-  return { success: response.ok, data: await response.json() };
 };
 
 /**
@@ -105,15 +110,10 @@ export const requestPasswordReset = async (email: string) => {
  * @returns Promise with password reset response
  */
 export const resetPassword = async (token: string, password: string) => {
-  const response = await fetch(`http://localhost:3001/api/reset-password/${token}`, {
+  return authApiRequest(`/reset-password/${token}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ password }),
   });
-
-  return { success: response.ok, data: await response.json() };
 };
 
 /**
@@ -122,15 +122,10 @@ export const resetPassword = async (token: string, password: string) => {
  * @returns Promise with resend verification response
  */
 export const resendVerification = async (email: string) => {
-  const response = await fetch('http://localhost:3001/api/resend-verification', {
+  return authApiRequest('/resend-verification', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ email }),
   });
-
-  return { success: response.ok, data: await response.json() };
 };
 
 /**
