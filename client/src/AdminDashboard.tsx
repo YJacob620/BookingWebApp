@@ -21,16 +21,10 @@ const AdminDashboard = () => {
             icon: <Database className="h-6 w-6" />
         },
         {
-            title: 'Bookings Management',
+            title: 'Bookings & Timeslots',
             link: '/booking-management',
-            description: 'View and manage all bookings',
+            description: 'Manage bookings and available time slots',
             icon: <Calendar className="h-6 w-6" />
-        },
-        {
-            title: 'Time-slots Management',
-            link: '/time-slots-management',
-            description: 'Manage booking time slots',
-            icon: <Settings className="h-6 w-6" />
         }
     ];
 
@@ -48,13 +42,11 @@ const AdminDashboard = () => {
 
     return (
         <Card className="general-container">
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                {/* Logout button in top-right corner */}
+            <div className="max-w-7xl mx-auto">
                 <div className="flex justify-end mb-6">
                     <Button
-                        variant="destructive"
                         onClick={handleLogout}
-                        className="gap-2 bg-red-600 hover:!border-red-700"
+                        className="bg-zinc-950 h-8 discard"
                     >
                         <LogOut className="h-4 w-4" />
                         Logout
@@ -81,7 +73,7 @@ const AdminDashboard = () => {
                             to={item.link}
                             className="block no-underline"
                         >
-                            <Card className="card1 card1-hover">
+                            <Card className="card2">
                                 <CardHeader>
                                     <CardTitle className="text-gray-100 text-2xl font-medium">
                                         {item.title}

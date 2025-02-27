@@ -28,7 +28,7 @@ h1 {
 }
 
 /* Change from 'button' to be more specific */
-button:not([role="checkbox"]) {
+/* button:not([role="checkbox"]) {
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
@@ -43,7 +43,7 @@ button:not([role="checkbox"]) {
 
 button:not([role="checkbox"]):hover {
   border-color: #ffffff;
-}
+} */
 
 input {
   @apply bg-gray-700 border-gray-600;
@@ -62,7 +62,8 @@ textarea:hover {
 }
 
 .general-container {
-  @apply bg-gray-900 p-8 rounded-lg;
+  /* @apply bg-gray-900 p-8 rounded-lg; */
+  @apply bg-gradient-to-br from-slate-950 to-zinc-950 p-8 rounded-lg;
 }
 
 .explanation-text1 {
@@ -70,11 +71,17 @@ textarea:hover {
 }
 
 .card1 {
-  @apply bg-gray-800 border-gray-700;
+  /* @apply bg-gray-800 border-gray-700; */
+  @apply bg-gradient-to-tr from-gray-800 to-gray-900 border-gray-400 rounded-md;
 }
 
-.card1-hover {
-  @apply hover:bg-gray-700 transition-colors duration-200 cursor-pointer flex flex-col;
+.card2 {
+  /* @apply bg-gray-800 border-gray-700; */
+  @apply bg-gradient-to-tr from-gray-800 to-gray-900 border-gray-400;
+}
+
+.card2:hover {
+  @apply border-white bg-gradient-to-tr from-gray-700 to-gray-800 transition-all cursor-pointer;
 }
 
 .checkbox1 {
@@ -85,8 +92,12 @@ textarea:hover {
   @apply border-white;
 }
 
-.sort-button {
+/* .sort-button {
   @apply !bg-transparent !p-0 !border-none;
+} */
+
+.back-button {
+  @apply bg-zinc-950 h-8;
 }
 
 .alert-error {
@@ -97,12 +108,56 @@ textarea:hover {
   @apply bg-green-800 text-green-100;
 }
 
+.discard {
+  /* @apply text-red-700; */
+}
+
+.discard:hover {
+  @apply border-red-700;
+}
+
+.apply {
+  /* @apply text-green-600; */
+}
+
+.apply:hover {
+  @apply border-green-700;
+}
+
+.def-hover:hover {
+  @apply bg-gray-700;
+}
+
+.small-title {
+  @apply text-sm mb-1;
+}
+
+.calendar-popover {
+  @apply w-auto p-0 bg-gray-900;
+}
+
 @layer base {
   * {
     @apply border-gray-400;
   }
 
   body {
-    @apply bg-zinc-950 text-white;
+    @apply bg-gradient-to-br from-sky-950 to-slate-950 text-white;
+    /* background-size: 200% 200%;
+    animation: subtleGradient 15s ease-in-out infinite; */
+  }
+}
+
+@keyframes subtleGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
   }
 }

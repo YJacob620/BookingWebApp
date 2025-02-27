@@ -1,9 +1,10 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import { useNavigate, Link } from 'react-router-dom';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info, Loader } from 'lucide-react';
 
 // Interface for form data
 interface FormData {
@@ -24,6 +25,8 @@ interface LoginSuccess {
 
 interface LoginError {
     message: string;
+    needsVerification?: boolean;
+    email?: string;
 }
 
 const LoginPage: React.FC = () => {
@@ -34,6 +37,9 @@ const LoginPage: React.FC = () => {
     });
     const [error, setError] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [needsVerification, setNeedsVerification] = useState<boolean>(false);
+    const [isResendingVerification, setIsResendingVerification] = useState<boolean>(false);
+    const [resendSuccess, setResendSuccess] = useState<boolean>(false);
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -43,9 +49,41 @@ const LoginPage: React.FC = () => {
         }));
     };
 
+    const handleResendVerification = async () => {
+        if (!formData.email) return;
+
+        setIsResendingVerification(true);
+        setResendSuccess(false);
+
+        try {
+            const response = await fetch('http://localhost:3001/api/resend-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: formData.email }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setResendSuccess(true);
+            } else {
+                setError(data.message || 'Failed to resend verification email');
+            }
+        } catch (err) {
+            console.error('Resend verification error:', err);
+            setError('An error occurred. Please try again later.');
+        } finally {
+            setIsResendingVerification(false);
+        }
+    };
+
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError('');
+        setNeedsVerification(false);
+        setResendSuccess(false);
         setIsLoading(true);
 
         try {
@@ -72,6 +110,11 @@ const LoginPage: React.FC = () => {
             } else {
                 const errorData = data as LoginError;
                 setError(errorData.message);
+
+                // Check if the account needs verification
+                if (errorData.needsVerification) {
+                    setNeedsVerification(true);
+                }
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -84,9 +127,7 @@ const LoginPage: React.FC = () => {
     return (
         <Card className="general-container">
             <CardHeader className="space-y-1">
-                <h1 className="">
-                    Login
-                </h1>
+                <CardTitle className="text-3xl">Login</CardTitle>
                 <CardDescription className="explanation-text1 pt-3">
                     Sign in to access the scheduling system
                 </CardDescription>
@@ -101,7 +142,38 @@ const LoginPage: React.FC = () => {
                                 </Alert>
                             )}
 
-                            <div className="">
+                            {needsVerification && (
+                                <Alert className="bg-amber-800 text-amber-100 mb-4">
+                                    <AlertDescription className="flex flex-col gap-2">
+                                        <p>Your email address hasn't been verified yet.</p>
+                                        {!resendSuccess && !isResendingVerification && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full md:w-auto"
+                                                onClick={handleResendVerification}
+                                            >
+                                                Resend Verification Email
+                                            </Button>
+                                        )}
+                                        {isResendingVerification && (
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Loader className="h-4 w-4 animate-spin" />
+                                                Sending verification email...
+                                            </div>
+                                        )}
+                                        {resendSuccess && (
+                                            <div className="text-green-300 text-sm flex items-center gap-2">
+                                                <Info className="h-4 w-4" />
+                                                Verification email sent! Please check your inbox.
+                                            </div>
+                                        )}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+
+                            <div className="space-y-2">
                                 <label htmlFor="email" className="">
                                     Email
                                 </label>
@@ -117,9 +189,14 @@ const LoginPage: React.FC = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="password" className="">
-                                    Password
-                                </label>
+                                <div className="flex justify-between items-center">
+                                    <label htmlFor="password" className="">
+                                        Password
+                                    </label>
+                                    <Link to="/forgot-password" className="text-xs text-blue-400 hover:underline">
+                                        Forgot password?
+                                    </Link>
+                                </div>
                                 <Input
                                     id="password"
                                     name="password"
@@ -134,12 +211,29 @@ const LoginPage: React.FC = () => {
                             <Button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full"
+                                className="w-full apply"
                             >
-                                {isLoading ? 'Logging in...' : 'Log in'}
+                                {isLoading ? (
+                                    <>
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                        Logging in...
+                                    </>
+                                ) : (
+                                    'Log in'
+                                )}
                             </Button>
                         </form>
                     </CardContent>
+                    <CardFooter className="flex flex-col">
+                        <div className="text-center mt-4">
+                            <p className="text-gray-400">
+                                Don't have an account?{" "}
+                                <Link to="/register" className="text-blue-400 hover:underline">
+                                    Register here
+                                </Link>
+                            </p>
+                        </div>
+                    </CardFooter>
                 </Card>
             </div>
         </Card>

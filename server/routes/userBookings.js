@@ -1,0 +1,167 @@
+const express = require('express');
+const router = express.Router();
+const pool = require('../config/db');
+const { authenticateToken } = require('../middleware/authMiddleware');
+
+// Get recent bookings for the current user
+router.get('/user', authenticateToken, async (req, res) => {
+    try {
+        const userEmail = req.user.email;
+
+        // Get recent bookings with infrastructure details
+        const [bookings] = await pool.execute(
+            `SELECT b.*, i.name as infrastructure_name, i.location as infrastructure_location
+             FROM bookings b
+             JOIN infrastructures i ON b.infrastructure_id = i.id
+             WHERE b.user_email = ?
+             AND b.booking_type = 'booking'
+             ORDER BY b.booking_date DESC, b.start_time DESC
+             LIMIT 10`,
+            [userEmail]
+        );
+
+        res.json(bookings);
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ message: 'Error fetching user bookings' });
+    }
+});
+
+// Get all bookings for the current user
+router.get('/user/all', authenticateToken, async (req, res) => {
+    try {
+        const userEmail = req.user.email;
+
+        // Get all bookings with infrastructure details
+        const [bookings] = await pool.execute(
+            `SELECT b.*, i.name as infrastructure_name, i.location as infrastructure_location
+             FROM bookings b
+             JOIN infrastructures i ON b.infrastructure_id = i.id
+             WHERE b.user_email = ?
+             AND b.booking_type = 'booking'
+             ORDER BY b.booking_date DESC, b.start_time DESC`,
+            [userEmail]
+        );
+
+        res.json(bookings);
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ message: 'Error fetching user bookings' });
+    }
+});
+
+// Request a booking (user)
+router.post('/request', authenticateToken, async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const { timeslot_id, purpose } = req.body;
+        const userEmail = req.user.email;
+
+        if (!timeslot_id) {
+            return res.status(400).json({ message: 'Timeslot ID is required' });
+        }
+
+        // First, check if the timeslot exists and is available
+        const [timeslots] = await connection.execute(
+            `SELECT * FROM bookings 
+             WHERE id = ? 
+             AND booking_type = 'timeslot' 
+             AND status = 'available'`,
+            [timeslot_id]
+        );
+
+        if (timeslots.length === 0) {
+            return res.status(404).json({ message: 'Timeslot not found or not available' });
+        }
+
+        const timeslot = timeslots[0];
+
+        // Book the timeslot by updating its record
+        await connection.execute(
+            `UPDATE bookings
+             SET booking_type = 'booking',
+                 user_email = ?,
+                 status = 'pending',
+                 purpose = ?
+             WHERE id = ?`,
+            [userEmail, purpose, timeslot_id]
+        );
+
+        await connection.commit();
+
+        res.status(201).json({
+            message: 'Booking request submitted successfully',
+            booking_id: timeslot_id,
+            infrastructure_id: timeslot.infrastructure_id,
+            booking_date: timeslot.booking_date,
+            start_time: timeslot.start_time,
+            end_time: timeslot.end_time
+        });
+
+    } catch (err) {
+        await connection.rollback();
+        console.error('Database error:', err);
+        res.status(500).json({ message: 'Error creating booking request', error: err.message });
+    } finally {
+        connection.release();
+    }
+});
+
+// Cancel a booking (user can cancel their own pending bookings or approved bookings not within 24 hours)
+router.post('/:id/cancel', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userEmail = req.user.email;
+
+        // Check if the booking exists and belongs to the user
+        const [bookings] = await pool.execute(
+            `SELECT * FROM bookings 
+             WHERE id = ? 
+             AND user_email = ? 
+             AND booking_type = 'booking'`,
+            [id, userEmail]
+        );
+
+        if (bookings.length === 0) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        const booking = bookings[0];
+
+        // Verify booking can be canceled
+        if (booking.status !== 'pending' && booking.status !== 'approved') {
+            return res.status(400).json({
+                message: 'Only pending or approved bookings can be canceled by the user'
+            });
+        }
+
+        // For approved bookings, check if within 24 hours
+        if (booking.status === 'approved') {
+            const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
+            const now = new Date();
+            const differenceInHours = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+            if (differenceInHours <= 24) {
+                return res.status(400).json({
+                    message: 'Approved bookings within 24 hours of start time cannot be canceled'
+                });
+            }
+        }
+
+        // Update the booking status to 'canceled'
+        await pool.execute(
+            'UPDATE bookings SET status = ? WHERE id = ?',
+            ['canceled', id]
+        );
+
+        res.json({ message: 'Booking canceled successfully' });
+
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ message: 'Error canceling booking' });
+    }
+});
+
+module.exports = router;

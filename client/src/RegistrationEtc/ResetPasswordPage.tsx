@@ -1,0 +1,178 @@
+import React, { useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Info, Loader } from 'lucide-react';
+
+const ResetPasswordPage: React.FC = () => {
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
+
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value);
+  };
+
+  const validateForm = (): boolean => {
+    // Clear previous errors
+    setErrorMessage('');
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match');
+      return false;
+    }
+
+    // Check password length
+    if (password.length < 8) {
+      setErrorMessage('Password must be at least 8 characters');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/reset-password/${token}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsSuccess(true);
+
+        // Redirect to login after a delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } else {
+        setErrorMessage(data.message || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Password reset error:', error);
+      setErrorMessage('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // If no token is provided, redirect to forgot password page
+  if (!token) {
+    navigate('/forgot-password');
+    return null;
+  }
+
+  return (
+    <Card className="general-container">
+      <CardHeader>
+        <CardTitle className="text-3xl">Reset Password</CardTitle>
+        <CardDescription className="explanation-text1 pt-3">
+          Enter your new password
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isSuccess ? (
+          <div className="text-center p-6">
+            <Alert className="alert-success mb-6">
+              <AlertDescription>
+                Your password has been reset successfully!
+              </AlertDescription>
+            </Alert>
+            <p className="mb-2">You will be redirected to the login page shortly.</p>
+            <p className="text-sm explanation-text1">
+              If you're not redirected, you can manually return to the login page.
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {errorMessage && (
+              <Alert className="alert-error">
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="password">New Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={password}
+                onChange={handlePasswordChange}
+                placeholder="Enter new password"
+              />
+              <p className="text-xs text-gray-400">
+                <Info className="inline mr-1 h-3 w-3" />
+                Password must be at least 8 characters
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={handleConfirmPasswordChange}
+                placeholder="Confirm new password"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  Resetting...
+                </>
+              ) : (
+                'Reset Password'
+              )}
+            </Button>
+          </form>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-center">
+        <Link to="/login">
+          <Button variant="ghost">
+            Back to Login
+          </Button>
+        </Link>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default ResetPasswordPage;

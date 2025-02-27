@@ -19,4 +19,4 @@ async function generateHash(password) {
 }
 
 // Replace 'your-admin-password' with the actual password you want to use
-generateHash('620620620');
+generateHash('1234');
