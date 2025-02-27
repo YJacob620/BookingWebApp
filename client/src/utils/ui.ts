@@ -14,7 +14,7 @@ export const getStatusColor = (status: string): string => {
     case 'rejected':
       return 'bg-red-700 text-red-100';
     case 'completed':
-      return 'bg-blue-700 text-blue-100';
+      return 'bg-green-900 text-green-100';
     case 'expired':
       return 'bg-gray-700 text-gray-100';
     case 'canceled':

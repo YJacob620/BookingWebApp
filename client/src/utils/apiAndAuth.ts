@@ -102,8 +102,8 @@ export const cancelBooking = (id: number) => {
 /**
  * Update booking status (admin only)
  */
-export const updateBookingStatus = (id: number, status: string) => {
-  return apiRequest(`/bookings/${id}/status`, {
+export const updateBookingStatus = (bookingId: number, status: string) => {
+  return apiRequest(`/bookings/${bookingId}/booking-status`, {
     method: 'PUT',
     body: JSON.stringify({ status }),
   });
@@ -119,12 +119,12 @@ export const forceUpdatePastBookings = () => {
 };
 
 /**
- * Fetch bookings for a specific infrastructure (admin only)
+ * Gets bookings for a specific infrastructure (admin only)
  * @param infrastructureId - ID of the infrastructure
  * @returns Promise with bookings data
  */
 export const getInfrastructureBookings = (infrastructureId: number) => {
-  return apiRequest(`/bookings/infrastructure/${infrastructureId}`);
+  return apiRequest(`/bookings/${infrastructureId}/all-bookings`);
 };
 
 /**
@@ -134,9 +134,7 @@ export const getInfrastructureBookings = (infrastructureId: number) => {
  * @returns Promise with API response
  */
 export const createOrUpdateInfrastructure = (formData: InfrastFormData, infrastructureId?: number) => {
-  const url = infrastructureId
-    ? `/infrastructures/${infrastructureId}`
-    : '/infrastructures';
+  const url = infrastructureId ? `/infrastructures/${infrastructureId}` : '/infrastructures';
 
   const method = infrastructureId ? 'PUT' : 'POST';
 
@@ -160,10 +158,10 @@ export const toggleInfrastructureStatus = (id: number) => {
 // Timeslots API
 
 /**
- * Fetch available timeslots for an infrastructure
+ * Gets only available timeslots for an infrastructure (user and admin)
  */
-export const fetchAvailableTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
-  let url = `/bookings/available/${infrastructureId}`;
+export const getInfrastAvailTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+  let url = `/bookings/${infrastructureId}/available-timeslots`;
 
   if (params) {
     const queryParams = new URLSearchParams();
@@ -179,10 +177,10 @@ export const fetchAvailableTimeslots = (infrastructureId: number, params?: { sta
 };
 
 /**
- * Fetch all timeslots for an infrastructure (admin only)
+ * Gets all timeslots for an infrastructure (admin only)
  */
-export const fetchAllTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
-  let url = `/bookings/timeslots/${infrastructureId}`;
+export const getInfrastAllTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+  let url = `/bookings/${infrastructureId}/all-timeslots`;
 
   if (params) {
     const queryParams = new URLSearchParams();
