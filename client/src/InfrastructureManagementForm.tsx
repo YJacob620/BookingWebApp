@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { Infrastructure } from '@/types';
 import { InfrastFormData } from './InfrastructureManagement';
+import { Infrastructure } from '@/utils';
 
 
 interface InfrastructureFormProps {
@@ -59,14 +59,11 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
         }));
     };
 
-    const handleCheckboxChange = (checked: boolean | 'indeterminate') => {
-        // Only update if it's a boolean value
-        if (typeof checked === 'boolean') {
-            setFormData(prev => ({
-                ...prev,
-                is_active: checked
-            }));
-        }
+    const handleCheckboxChange = (checked: boolean) => {
+        setFormData(prev => ({
+            ...prev,
+            is_active: checked
+        }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {

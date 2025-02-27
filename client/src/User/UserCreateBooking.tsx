@@ -1,10 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { ArrowLeftCircle, CalendarCheck } from "lucide-react";
@@ -22,7 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { format, isBefore, startOfDay, parseISO } from "date-fns";
 
-import { Infrastructure, Timeslot } from '@/types';
+import { Infrastructure, Timeslot } from '@/utils';
 
 const CreateBooking = () => {
   const navigate = useNavigate();

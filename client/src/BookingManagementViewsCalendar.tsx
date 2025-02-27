@@ -5,8 +5,7 @@ import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { CalendarItem } from "@/types"
-import { getStatusColor } from "@/utils"
+import { getStatusColor, CalendarItem } from "@/utils"
 
 interface BookingsCalendarViewProps {
   items: CalendarItem[];

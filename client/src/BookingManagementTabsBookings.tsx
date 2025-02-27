@@ -31,15 +31,15 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-// Updated imports from shared types and utilities
-import { Booking, Infrastructure } from '@/types';
 import {
   formatDate,
   formatTimeString,
   getStatusColor,
   getBookingStatusOptions,
   getDateFilterOptions,
-  updateBookingStatus
+  updateBookingStatus,
+  Booking,
+  Infrastructure
 } from '@/utils';
 
 interface BookingListProps {

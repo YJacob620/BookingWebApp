@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/select";
 
 // Import types and utilities from shared files
-import { Booking, BookingStatus } from '@/types';
 import {
   formatDate,
   formatTimeString,
@@ -31,8 +30,11 @@ import {
   getStatusColor,
   getBookingStatusOptions,
   fetchAllUserBookings,
-  cancelBooking
+  cancelBooking,
+  Booking,
+  BookingStatus
 } from '@/utils';
+
 
 const BookingHistory = () => {
   const navigate = useNavigate();

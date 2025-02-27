@@ -1,7 +1,4 @@
-/**
- * Base URL for API calls
- */
-export const API_BASE_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from './index'
 
 /**
  * Generic API request function with authentication
@@ -32,13 +29,11 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Request failed with status ${response.status}`);
+    throw new Error(errorData.message || `API request failed with status ${response.status}`);
   }
 
   return response.json();
 };
-
-// Infrastructure API
 
 /**
  * Fetch all infrastructures (admin only)

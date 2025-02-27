@@ -29,13 +29,14 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-import { Infrastructure, Timeslot } from '@/types';
 import {
   formatDate,
   formatTimeString,
   getStatusColor,
   calculateDuration,
-  getTimeslotStatusOptions
+  getTimeslotStatusOptions,
+  Infrastructure,
+  Timeslot
 } from '@/utils';
 
 interface TimeslotListProps {

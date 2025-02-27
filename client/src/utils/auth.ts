@@ -1,5 +1,5 @@
-import { User } from '../types';
-import { apiRequest } from './api';
+import { User, apiRequest, API_BASE_URL } from './index'
+
 
 /**
  * Check if user is authenticated

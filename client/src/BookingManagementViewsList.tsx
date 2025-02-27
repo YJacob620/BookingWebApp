@@ -18,9 +18,9 @@ import {
   formatTimeString,
   getStatusColor,
   calculateDuration,
-  formatStatus
+  formatStatus,
+  CalendarItem
 } from '@/utils';
-import { CalendarItem } from '@/types';
 
 interface BookingsListViewProps {
   items: CalendarItem[];

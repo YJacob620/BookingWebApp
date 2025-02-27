@@ -8,7 +8,13 @@ import { ArrowLeftCircle } from "lucide-react";
 import InfrastructureManagementForm from './InfrastructureManagementForm';
 import InfrastructureManagementList from './InfrastructureManagementList';
 
-import { Infrastructure, Message } from '@/types';
+// Import types and API utilities
+import {
+    fetchInfrastructures,
+    apiRequest,
+    Infrastructure,
+    Message
+} from '@/utils';
 
 export interface InfrastFormData {
     name: string;
@@ -28,25 +34,16 @@ const InfrastructureManagement: React.FC = () => {
 
     useEffect(() => {
         if (isAuthorized) {
-            fetchInfrastructures();
+            getInfrastructures();
         }
     }, [isAuthorized]);
 
-    const fetchInfrastructures = async () => {
+    const getInfrastructures = async () => {
         try {
             setIsLoading(true);
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:3001/api/infrastructures', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setInfrastructures(data);
-            } else {
-                setMessage({ type: 'error', text: 'Failed to fetch infrastructures' });
-            }
+            // Use the fetchInfrastructures utility instead of direct fetch
+            const data = await fetchInfrastructures();
+            setInfrastructures(data);
         } catch (error) {
             console.error('Error fetching infrastructures:', error);
             setMessage({ type: 'error', text: 'Failed to fetch infrastructures' });
@@ -55,10 +52,10 @@ const InfrastructureManagement: React.FC = () => {
         }
     };
 
+    // Create or update infrastructure
     const handleSubmit = async (formData: InfrastFormData) => {
         try {
-            const token = localStorage.getItem('token');
-            let url = 'http://localhost:3001/api/infrastructures';
+            let url = '/infrastructures';
             let method = 'POST';
 
             if (isEditMode && editingInfrastructure) {
@@ -66,38 +63,29 @@ const InfrastructureManagement: React.FC = () => {
                 method = 'PUT';
             }
 
-            const response = await fetch(url, {
+            // Use the apiRequest utility instead of direct fetch
+            await apiRequest(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(formData)
             });
 
-            if (response.ok) {
-                setMessage({
-                    type: 'success',
-                    text: `Infrastructure ${isEditMode ? 'updated' : 'added'} successfully!`
-                });
+            setMessage({
+                type: 'success',
+                text: `Infrastructure ${isEditMode ? 'updated' : 'added'} successfully!`
+            });
 
-                if (isEditMode) {
-                    handleCancelEdit();
-                }
-
-                fetchInfrastructures();
-            } else {
-                const data = await response.json();
-                setMessage({
-                    type: 'error',
-                    text: data.message || `Failed to ${isEditMode ? 'update' : 'add'} infrastructure`
-                });
+            if (isEditMode) {
+                handleCancelEdit();
             }
+
+            getInfrastructures();
         } catch (error) {
             console.error(`Error ${isEditMode ? 'updating' : 'adding'} infrastructure:`, error);
             setMessage({
                 type: 'error',
-                text: `An error occurred while ${isEditMode ? 'updating' : 'adding'} the infrastructure`
+                text: error instanceof Error
+                    ? error.message
+                    : `An error occurred while ${isEditMode ? 'updating' : 'adding'} the infrastructure`
             });
         }
     };
@@ -113,6 +101,7 @@ const InfrastructureManagement: React.FC = () => {
         setEditingInfrastructure(null);
     };
 
+    // Toggle infrastructure status (active/inactive)
     const toggleStatus = async (id: number, currentStatus: boolean) => {
         if (!confirm(currentStatus
             ? 'Warning: Setting an infrastructure as inactive will not cancel existing bookings. Continue?'
@@ -121,23 +110,21 @@ const InfrastructureManagement: React.FC = () => {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:3001/api/infrastructures/${id}/toggle-status`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            // Use the apiRequest utility instead of direct fetch
+            await apiRequest(`/infrastructures/${id}/toggle-status`, {
+                method: 'POST'
             });
 
-            if (response.ok) {
-                setMessage({ type: 'success', text: 'Status updated successfully!' });
-                fetchInfrastructures();
-            } else {
-                setMessage({ type: 'error', text: 'Failed to update status' });
-            }
+            setMessage({ type: 'success', text: 'Status updated successfully!' });
+            getInfrastructures();
         } catch (error) {
             console.error('Error toggling status:', error);
-            setMessage({ type: 'error', text: 'An error occurred while updating the status' });
+            setMessage({
+                type: 'error',
+                text: error instanceof Error
+                    ? error.message
+                    : 'An error occurred while updating the status'
+            });
         }
     };
 

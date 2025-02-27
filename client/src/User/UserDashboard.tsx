@@ -14,8 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { Booking } from '@/types';
-import { formatDate, formatTimeString, getStatusColor } from '@/utils';
+import { formatDate, formatTimeString, getStatusColor, Booking } from '@/utils';
+
 
 const UserDashboard = () => {
   const navigate = useNavigate();

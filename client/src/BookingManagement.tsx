@@ -11,7 +11,7 @@ import InfrastructureSelector from './InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
 
-import { Infrastructure, Message } from '@/types';
+import { Infrastructure, Message } from '@/utils';
 
 const BookingManagement: React.FC = () => {
     const navigate = useNavigate();

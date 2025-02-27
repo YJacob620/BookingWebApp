@@ -8,7 +8,7 @@ import BookingManagementTabsBookings from './BookingManagementTabsBookings';
 import BookingManagementTabsTimeslots from './BookingManagementTabsTimeslots';
 import BookingManagementTabsCreate from './BookingManagementTabsCreate';
 
-import { Infrastructure } from '@/types';
+import { Infrastructure } from '@/utils';
 
 
 interface BookingManagementTabsProps {

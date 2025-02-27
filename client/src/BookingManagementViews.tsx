@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Calendar, List } from "lucide-react";
 
-// Import sub-components
 import BookingManagementViewsCalendar from './BookingManagementViewsCalendar';
 import BookingManagementViewsList from './BookingManagementViewsList';
 
-import { Infrastructure, CalendarItem } from '@/types';
+import { Infrastructure, CalendarItem } from '@/utils';
 
 
 interface CalendarListViewProps {
