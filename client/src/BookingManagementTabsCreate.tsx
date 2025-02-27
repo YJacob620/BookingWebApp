@@ -9,7 +9,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, CalendarRange } from "lucide-react";
 import { format } from "date-fns";
 
-import { calculateDuration, isEndTimeAfterStartTime, isTimeFormatValid } from "@/utils";
+import {
+  calculateDuration,
+  isEndTimeAfterStartTime,
+  isTimeFormatValid,
+  createTimeslots,
+  BatchCreationPayload
+} from "@/utils";
 
 interface BookingManagementTabsCreateProps {
   infrastructureId: number;
@@ -63,8 +69,8 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
     }
 
     // Use the batch endpoint with single day parameters
-    const payload = {
-      infrastructure_id: infrastructureId,
+    const payload: BatchCreationPayload = {
+      infrastructureID: infrastructureId,
       startDate: format(singleDate, "yyyy-MM-dd"),
       endDate: format(singleDate, "yyyy-MM-dd"),
       dailyStartTime: startTime,
@@ -105,8 +111,8 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
       return;
     }
 
-    const payload = {
-      infrastructure_id: infrastructureId,
+    const payload: BatchCreationPayload = {
+      infrastructureID: infrastructureId,
       startDate: format(startDate, "yyyy-MM-dd"),
       endDate: format(endDate, "yyyy-MM-dd"),
       dailyStartTime,
@@ -118,26 +124,12 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
   };
 
   // Shared function to create slots
-  const createBatchSlots = async (payload: any) => {
+  const createBatchSlots = async (payload: BatchCreationPayload) => {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/bookings/create-timeslots', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create timeslots');
-      }
-
-      const data = await response.json();
+      // Call the imported createTimeslots utility function instead of direct fetch
+      const data = await createTimeslots(payload);
 
       // Create success message based on created/skipped counts
       let successMessage = `Successfully created ${data.created} timeslot(s)`;
@@ -149,7 +141,6 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
       // Reset forms
       resetForms();
-
     } catch (error) {
       console.error('Error creating timeslots:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');

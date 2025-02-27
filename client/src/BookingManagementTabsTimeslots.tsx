@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -35,9 +36,12 @@ import {
   getStatusColor,
   calculateDuration,
   getTimeslotStatusOptions,
+  fetchAllTimeslots,
+  cancelTimeslots,
   Infrastructure,
   Timeslot
 } from '@/utils';
+
 
 interface TimeslotListProps {
   infrastructureId: number;
@@ -128,22 +132,9 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
 
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('token');
 
-      // New endpoint to fetch all timeslots instead of just available ones
-      const url = `http://localhost:3001/api/bookings/timeslots/${infrastructureId}`;
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
-      }
-
-      const data = await response.json();
+      // Use the imported API function instead of direct fetch
+      const data = await fetchAllTimeslots(infrastructureId);
       setTimeslots(data);
     } catch (error) {
       console.error('Error fetching timeslots:', error);
@@ -157,20 +148,8 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     if (ids.length === 0) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/bookings/timeslots', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ ids })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to cancel timeslots');
-      }
+      // Use the imported API function instead of direct fetch
+      await cancelTimeslots(ids);
 
       onDelete(`Successfully canceled ${ids.length} timeslot(s)`);
 
@@ -311,20 +290,21 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
                       key={slot.id}
                       className="border-gray-700 def-hover"
                     >
-                      <TableCell className="text-center">
-                        <input
-                          type="checkbox"
-                          className="checkbox1 mx-auto"
-                          checked={selectedSlots.includes(slot.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedSlots(prev => [...prev, slot.id]);
-                            } else {
-                              setSelectedSlots(prev => prev.filter(id => id !== slot.id));
-                            }
-                          }}
-                          disabled={slot.status !== 'available'}
-                        />
+                      <TableCell>
+                        <div className="pr-2">
+                          <Checkbox
+                            checked={selectedSlots.includes(slot.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedSlots(prev => [...prev, slot.id]);
+                              } else {
+                                setSelectedSlots(prev => prev.filter(id => id !== slot.id));
+                              }
+                            }}
+                            disabled={slot.status !== 'available'}
+                            className="checkbox1 h-5 w-5"
+                          />
+                        </div>
                       </TableCell>
                       <TableCell className="text-center">
                         {formatDate(slot.booking_date)}

@@ -18,6 +18,13 @@ export interface Infrastructure {
   max_booking_duration?: number;
 }
 
+export interface InfrastFormData {
+  name: string;
+  description: string;
+  location: string;
+  is_active: boolean;
+}
+
 // Booking related
 export interface Booking {
   id: number;
@@ -61,6 +68,15 @@ export interface CalendarItem {
   status: string;
   user_email?: string;
   purpose?: string;
+}
+
+export interface BatchCreationPayload {
+  infrastructureID: number;
+  startDate: string;
+  endDate: string;
+  dailyStartTime: string;
+  slotDuration: number;
+  slotsPerDay: number;
 }
 
 // Generic UI-related

@@ -11,7 +11,7 @@ import InfrastructureSelector from './InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
 
-import { Infrastructure, Message } from '@/utils';
+import { Infrastructure, Message, forceUpdatePastBookings } from '@/utils';
 
 const BookingManagement: React.FC = () => {
     const navigate = useNavigate();
@@ -44,28 +44,15 @@ const BookingManagement: React.FC = () => {
     // Handle batch updating of past bookings/timeslots statuses
     const handleUpdatePastBookings = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:3001/api/bookings/force-bookings-status-update', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const data = await forceUpdatePastBookings();
+            handleSuccess(
+                `${data.completedCount} bookings marked as completed, ` +
+                `${data.expiredBookingsCount} bookings marked as expired, and ` +
+                `${data.expiredTimeslotsCount} timeslots marked as expired.`
+            );
 
-            if (response.ok) {
-                const data = await response.json();
-                handleSuccess(
-                    `${data.completedCount} bookings marked as completed, ` +
-                    `${data.expiredBookingsCount} bookings marked as expired, and ` +
-                    `${data.expiredTimeslotsCount} timeslots marked as expired.`
-                );
-
-                // Refresh the data after status updates
-                setRefreshTrigger(prev => prev + 1);
-            } else {
-                const errorData = await response.json();
-                handleError(errorData.message || 'Failed to update past bookings');
-            }
+            // Refresh the data after status updates
+            setRefreshTrigger(prev => prev + 1);
         } catch (error) {
             console.error('Error updating past bookings:', error);
             handleError('An error occurred while updating past bookings');

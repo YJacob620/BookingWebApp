@@ -1,3 +1,5 @@
+/* Date related funcitons */
+
 /**
  * Formats a date string into a localized date format
  * @param dateString - ISO date string (YYYY-MM-DD)

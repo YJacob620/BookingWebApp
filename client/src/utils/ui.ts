@@ -1,3 +1,5 @@
+/* UI related functions */
+
 /**
  * Get CSS class for status badge based on booking status
  * @param status - Status string

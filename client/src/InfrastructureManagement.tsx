@@ -11,17 +11,13 @@ import InfrastructureManagementList from './InfrastructureManagementList';
 // Import types and API utilities
 import {
     fetchInfrastructures,
-    apiRequest,
+    createOrUpdateInfrastructure,
+    toggleInfrastructureStatus,
     Infrastructure,
-    Message
+    Message,
+    InfrastFormData
 } from '@/utils';
 
-export interface InfrastFormData {
-    name: string;
-    description: string;
-    location: string;
-    is_active: boolean;
-}
 
 const InfrastructureManagement: React.FC = () => {
     const navigate = useNavigate();
@@ -55,19 +51,10 @@ const InfrastructureManagement: React.FC = () => {
     // Create or update infrastructure
     const handleSubmit = async (formData: InfrastFormData) => {
         try {
-            let url = '/infrastructures';
-            let method = 'POST';
-
-            if (isEditMode && editingInfrastructure) {
-                url += `/${editingInfrastructure.id}`;
-                method = 'PUT';
-            }
-
-            // Use the apiRequest utility instead of direct fetch
-            await apiRequest(url, {
-                method,
-                body: JSON.stringify(formData)
-            });
+            await createOrUpdateInfrastructure(
+                formData,
+                isEditMode && editingInfrastructure ? editingInfrastructure.id : undefined
+            );
 
             setMessage({
                 type: 'success',
@@ -110,11 +97,7 @@ const InfrastructureManagement: React.FC = () => {
         }
 
         try {
-            // Use the apiRequest utility instead of direct fetch
-            await apiRequest(`/infrastructures/${id}/toggle-status`, {
-                method: 'POST'
-            });
-
+            await toggleInfrastructureStatus(id);
             setMessage({ type: 'success', text: 'Status updated successfully!' });
             getInfrastructures();
         } catch (error) {

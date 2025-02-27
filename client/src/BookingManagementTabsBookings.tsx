@@ -39,7 +39,8 @@ import {
   getDateFilterOptions,
   updateBookingStatus,
   Booking,
-  Infrastructure
+  Infrastructure,
+  getInfrastructureBookings
 } from '@/utils';
 
 interface BookingListProps {
@@ -52,7 +53,6 @@ interface BookingListProps {
 
 const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   infrastructureId,
-  selectedInfrastructure,
   onStatusChange,
   onError,
   refreshTrigger
@@ -80,19 +80,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const fetchBookings = async () => {
     try {
       setIsLoading(true);
+      const data = await getInfrastructureBookings(infrastructureId);
 
-      // Use apiRequest from utilities instead of direct fetch
-      const response = await fetch(`http://localhost:3001/api/bookings/infrastructure/${infrastructureId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
-      }
-
-      const data = await response.json();
       setBookings(data);
     } catch (error) {
       console.error('Error fetching bookings:', error);
