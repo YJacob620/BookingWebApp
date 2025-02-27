@@ -40,7 +40,7 @@ import {
   updateBookingStatus,
   Booking,
   Infrastructure,
-  getInfrastructureBookings
+  fetchInfrastructureBookings
 } from '@/utils';
 
 interface BookingListProps {
@@ -80,7 +80,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const fetchBookings = async () => {
     try {
       setIsLoading(true);
-      const data = await getInfrastructureBookings(infrastructureId);
+      const data = await fetchInfrastructureBookings(infrastructureId);
 
       setBookings(data);
     } catch (error) {

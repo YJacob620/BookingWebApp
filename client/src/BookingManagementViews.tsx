@@ -12,8 +12,8 @@ import BookingManagementViewsList from './BookingManagementViewsList';
 import {
   Infrastructure,
   CalendarItem,
-  getInfrastAvailTimeslots,
-  getInfrastructureBookings
+  fetchInfrastAllTimeslots,
+  fetchInfrastructureBookings
 } from '@/utils';
 
 
@@ -46,76 +46,6 @@ const BookingManagementViews: React.FC<CalendarListViewProps> = ({
     }
   }, [infrastructureId, refreshTrigger]);
 
-  // // Fetch both timeslots and bookings
-  // const fetchCalendarData = async () => {
-  //   try {
-  //     setIsLoading(true);
-  //     const token = localStorage.getItem('token');
-
-  //     // Calculate month range
-  //     const currentMonth = new Date();
-  //     const year = currentMonth.getFullYear();
-  //     const month = currentMonth.getMonth();
-  //     const firstDay = new Date(year, month, 1);
-  //     const lastDay = new Date(year, month + 1, 0);
-
-  //     const startDate = firstDay.toISOString().split('T')[0];
-  //     const endDate = lastDay.toISOString().split('T')[0];
-
-  //     // Fetch timeslots
-  //     const timeslotsResponse = await fetch(
-  //       `http://localhost:3001/api/bookings/available/${infrastructureId}?startDate=${startDate}&endDate=${endDate}`,
-  //       {
-  //         headers: { 'Authorization': `Bearer ${token}` }
-  //       }
-  //     );
-
-  //     // Fetch bookings
-  //     const bookingsResponse = await fetch(
-  //       `http://localhost:3001/api/bookings/infrastructure/${infrastructureId}?startDate=${startDate}&endDate=${endDate}`,
-  //       {
-  //         headers: { 'Authorization': `Bearer ${token}` }
-  //       }
-  //     );
-
-  //     if (!timeslotsResponse.ok || !bookingsResponse.ok) {
-  //       throw new Error('Failed to fetch calendar data');
-  //     }
-
-  //     const timeslots = await timeslotsResponse.json();
-  //     const bookings = await bookingsResponse.json();
-
-  //     // Transform data for unified display
-  //     const combinedItems: CalendarItem[] = [
-  //       ...timeslots.map((ts: any) => ({
-  //         type: 'timeslot' as const,
-  //         id: ts.id,
-  //         date: ts.booking_date,
-  //         start_time: ts.start_time,
-  //         end_time: ts.end_time,
-  //         status: 'available'
-  //       })),
-  //       ...bookings.map((booking: any) => ({
-  //         type: 'booking' as const,
-  //         id: booking.id,
-  //         date: booking.booking_date,
-  //         start_time: booking.start_time,
-  //         end_time: booking.end_time,
-  //         status: booking.status,
-  //         user_email: booking.user_email,
-  //         purpose: booking.purpose
-  //       }))
-  //     ];
-
-  //     setCalendarItems(combinedItems);
-  //   } catch (error) {
-  //     console.error('Error fetching calendar data:', error);
-  //     onError('Error loading calendar data');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   // Fetch both timeslots and bookings
   const fetchCalendarData = async () => {
     try {
@@ -132,12 +62,12 @@ const BookingManagementViews: React.FC<CalendarListViewProps> = ({
       const endDate = lastDay.toISOString().split('T')[0];
 
       // Use the API utilities with date parameters
-      const timeslots = await getInfrastAvailTimeslots(infrastructureId, {
+      const timeslots = await fetchInfrastAllTimeslots(infrastructureId, {
         startDate,
         endDate
       });
 
-      const bookings = await getInfrastructureBookings(infrastructureId, {
+      const bookings = await fetchInfrastructureBookings(infrastructureId, {
         startDate,
         endDate
       });

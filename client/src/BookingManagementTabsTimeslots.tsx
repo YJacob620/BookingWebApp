@@ -36,7 +36,7 @@ import {
   getStatusColor,
   calculateDuration,
   getTimeslotStatusOptions,
-  getInfrastAllTimeslots,
+  fetchInfrastAllTimeslots,
   cancelTimeslots,
   Infrastructure,
   Timeslot
@@ -134,7 +134,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       setIsLoading(true);
 
       // Use the imported API function instead of direct fetch
-      const data = await getInfrastAllTimeslots(infrastructureId);
+      const data = await fetchInfrastAllTimeslots(infrastructureId);
       setTimeslots(data);
     } catch (error) {
       console.error('Error fetching timeslots:', error);

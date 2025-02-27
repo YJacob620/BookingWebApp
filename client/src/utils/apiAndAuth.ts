@@ -119,12 +119,12 @@ export const forceUpdatePastBookings = () => {
 };
 
 /**
- * Gets bookings for a specific infrastructure (admin only)
+ * Fetches bookings for a specific infrastructure (admin only)
  * @param infrastructureId - ID of the infrastructure
  * @param params - Optional parameters for filtering (startDate, endDate)
  * @returns Promise with bookings data
  */
-export const getInfrastructureBookings = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+export const fetchInfrastructureBookings = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
   let url = `/bookings/${infrastructureId}/all-bookings`;
 
   if (params) {
@@ -171,9 +171,9 @@ export const toggleInfrastructureStatus = (id: number) => {
 // Timeslots API
 
 /**
- * Gets only available timeslots for an infrastructure (user and admin)
+ * Fetches only available timeslots for an infrastructure (user and admin)
  */
-export const getInfrastAvailTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+export const fetchInfrastAvailTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
   let url = `/bookings/${infrastructureId}/available-timeslots`;
 
   if (params) {
@@ -190,9 +190,9 @@ export const getInfrastAvailTimeslots = (infrastructureId: number, params?: { st
 };
 
 /**
- * Gets all timeslots for an infrastructure (admin only)
+ * Fetches all timeslots for an infrastructure (admin only)
  */
-export const getInfrastAllTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+export const fetchInfrastAllTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
   let url = `/bookings/${infrastructureId}/all-timeslots`;
 
   if (params) {
@@ -239,10 +239,10 @@ export const isAuthenticated = (): boolean => {
 };
 
 /**
- * Get current user from local storage
+ * Fetches current user from local storage
  * @returns User object or null if not authenticated
  */
-export const getCurrentUser = (): User | null => {
+export const fetchCurrentUser = (): User | null => {
   const userString = localStorage.getItem('user');
   if (!userString) return null;
 

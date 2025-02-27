@@ -15,7 +15,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 
-import { Infrastructure } from '@/utils';
+import { Infrastructure, fetchInfrastructures } from '@/utils';
 
 interface InfrastructureSelectorProps {
   onSelectInfrastructure: (infrastructureId: number, infrastructure: Infrastructure) => void;
@@ -32,7 +32,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    fetchInfrastructures();
+    getInfrastructures();
   }, []);
 
   // When selected infrastructure changes, notify parent component
@@ -45,25 +45,16 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
     }
   }, [selectedInfraId, infrastructures, onSelectInfrastructure]);
 
-  const fetchInfrastructures = async () => {
+  const getInfrastructures = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/infrastructures', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        setInfrastructures(data);
+      // Replace direct fetch with the imported utility function
+      const data = await fetchInfrastructures();
+      setInfrastructures(data);
 
-        if (data.length > 0) {
-          setSelectedInfraId(data[0].id);
-        }
-      } else {
-        onError('Failed to fetch infrastructures');
+      if (data.length > 0) {
+        setSelectedInfraId(data[0].id);
       }
     } catch (error) {
       console.error('Error fetching infrastructures:', error);
