@@ -86,7 +86,10 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
                   <TableCell className="text-center">
                     {item.user_email || 'N/A'}
                   </TableCell>
-                  <TableCell>
+                  <TableCell
+                    className="relative max-w-xs overflow-hidden text-ellipsis whitespace-nowrap"
+                    dir={/[\u0590-\u05FF]/.test(item.purpose ?? "") ? "rtl" : "ltr"}
+                  >
                     <div className="max-w-xs overflow-hidden text-ellipsis">
                       {item.purpose || 'N/A'}
                     </div>

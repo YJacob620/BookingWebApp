@@ -77,7 +77,6 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
       slotDuration: calculateDuration(startTime, endTime),
       slotsPerDay: 1
     };
-
     await createBatchSlots(payload);
   };
 
@@ -189,7 +188,7 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          className={`px-2 text-sm def-hover w-full h-9 justify-start text-left ${!singleDate && "text-gray-400"}`}
+                          className={`px-2 w-full h-9 justify-start text-left ${!singleDate && "text-gray-400"}`}
                           variant="outline"
                           id="date"
                         >
@@ -263,8 +262,8 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          className={`w-full h-9 justify-start text-left ${!startDate || !endDate ? "text-gray-400" : ""
-                            }`}
+                          className={`px-2 w-full h-9 justify-start text-left ${!startDate || !endDate ? "text-gray-400" : ""}`}
+                          variant="outline"
                         >
                           <CalendarRange className="mr-2 h-4 w-4" />
                           {startDate && endDate

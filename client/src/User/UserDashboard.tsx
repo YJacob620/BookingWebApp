@@ -42,7 +42,7 @@ const UserDashboard = () => {
 
       try {
         setUser(JSON.parse(userString));
-        getRecentBookings(token);
+        getRecentBookings();
       } catch (err) {
         console.error('Error parsing user data:', err);
         navigate('/login');
@@ -52,7 +52,7 @@ const UserDashboard = () => {
     checkAuth();
   }, [navigate]);
 
-  const getRecentBookings = async (token: string) => {
+  const getRecentBookings = async () => {
     try {
       setIsLoading(true);
 

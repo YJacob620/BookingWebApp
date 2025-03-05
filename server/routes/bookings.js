@@ -10,7 +10,7 @@ router.post('/create-timeslots', authenticateToken, verifyAdmin, async (req, res
         await connection.beginTransaction();
 
         const {
-            infrastructure_id,
+            infrastructureID,
             startDate,
             endDate,
             dailyStartTime,
@@ -19,8 +19,42 @@ router.post('/create-timeslots', authenticateToken, verifyAdmin, async (req, res
         } = req.body;
 
         // Validate input
-        if (!infrastructure_id || !startDate || !endDate || !dailyStartTime || !slotDuration || !slotsPerDay) {
-            return res.status(400).json({ message: 'All fields are required' });
+        {
+            if (!infrastructureID) {
+                return res.status(400).json({
+                    message: 'Infrastructure ID is required',
+                });
+            }
+
+            if (!startDate) {
+                return res.status(400).json({
+                    message: 'Start date is required',
+                });
+            }
+
+            if (!endDate) {
+                return res.status(400).json({
+                    message: 'End date is required',
+                });
+            }
+
+            if (!dailyStartTime) {
+                return res.status(400).json({
+                    message: 'Daily start time is required',
+                });
+            }
+
+            if (!slotDuration) {
+                return res.status(400).json({
+                    message: 'Slot duration is required',
+                });
+            }
+
+            if (!slotsPerDay) {
+                return res.status(400).json({
+                    message: 'Number of slots per day is required',
+                });
+            }
         }
 
         // Validate dates
@@ -59,7 +93,7 @@ router.post('/create-timeslots', authenticateToken, verifyAdmin, async (req, res
                      AND ((start_time <= ? AND end_time > ?)
                           OR (start_time < ? AND end_time >= ?)
                           OR (? <= start_time AND ? >= end_time))`,
-                    [infrastructure_id, currentDate, startTime, startTime, endTime, endTime, startTime, endTime]
+                    [infrastructureID, currentDate, startTime, startTime, endTime, endTime, startTime, endTime]
                 );
 
                 if (overlapping[0].count === 0) {
@@ -67,7 +101,7 @@ router.post('/create-timeslots', authenticateToken, verifyAdmin, async (req, res
                     await connection.execute(
                         `INSERT INTO bookings (infrastructure_id, booking_date, start_time, end_time, status, booking_type, user_email) 
                          VALUES (?, ?, ?, ?, 'available', 'timeslot', NULL)`,
-                        [infrastructure_id, currentDate, startTime, endTime]
+                        [infrastructureID, currentDate, startTime, endTime]
                     );
                     created++;
                 } else {

@@ -190,7 +190,8 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
                               <div key={`${item.type}-${item.id}`} className="p-2 border-b border-gray-700 last:border-0">
                                 <div className="flex justify-between items-center mb-1">
                                   <Badge className={getStatusColor(item.status)}>
-                                    {item.type === 'timeslot' ? 'Available' : item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                                    {item.type === 'timeslot' ?
+                                      'Available' : item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                   </Badge>
                                   <span className="text-sm text-gray-400">
                                     {formatTime(item.start_time)} - {formatTime(item.end_time)}

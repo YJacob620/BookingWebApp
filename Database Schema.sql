@@ -119,10 +119,10 @@ BEGIN
     
     -- Update pending bookings to expired
     UPDATE bookings 
-    SET status = 'expired' 
-    WHERE status = 'pending' 
-    AND booking_type = 'booking'
-    AND CONCAT(booking_date, ' ', end_time) < NOW();
+	SET status = 'expired' 
+	WHERE status = 'pending' 
+	AND booking_type = 'booking'
+	AND CONCAT(booking_date, ' ', start_time) < NOW();
     
     SET expired_count = ROW_COUNT();
     
