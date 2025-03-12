@@ -109,7 +109,7 @@ router.post('/request', authenticateToken, async (req, res) => {
     }
 });
 
-// Cancel a booking (user can cancel their own pending bookings or approved bookings not within 24 hours)
+// Cancel a booking (user can cancel their own pending or approved bookings not within 24 hours)
 router.post('/:id/cancel', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -137,23 +137,21 @@ router.post('/:id/cancel', authenticateToken, async (req, res) => {
             });
         }
 
-        // For approved bookings, check if within 24 hours
-        if (booking.status === 'approved') {
-            const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
-            const now = new Date();
-            const differenceInHours = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+        // Check if within 24 hours
+        const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
+        const now = new Date();
+        const differenceInHours = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-            if (differenceInHours <= 24) {
-                return res.status(400).json({
-                    message: 'Approved bookings within 24 hours of start time cannot be canceled'
-                });
-            }
+        if (differenceInHours <= 24) {
+            return res.status(400).json({
+                message: 'Bookings within 24 hours cannot be canceled'
+            });
         }
 
-        // Update the booking status to 'canceled'
-        await pool.execute(
-            'UPDATE bookings SET status = ? WHERE id = ?',
-            ['canceled', id]
+        // Call the stored procedure instead of executing multiple queries
+        const [results] = await pool.execute(
+            'CALL UserCancelBooking(?, ?, @success, @message)',
+            [id, userEmail]
         );
 
         res.json({ message: 'Booking canceled successfully' });

@@ -24,7 +24,7 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground shadow-xs"
           + " hover:bg-secondary/80",
-        ghost: "hover:text-accent-foreground cursor-pointer",
+        ghost: "hover:bg-accent hover:text-accent-foreground cursor-pointer",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -39,6 +39,7 @@ const buttonVariants = cva(
     },
   }
 );
+
 
 function Button({
   className,

@@ -28,7 +28,7 @@ const generateToken = () => {
  */
 const sendVerificationEmail = async (user, token) => {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
-    
+
     const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
         to: user.email,
@@ -61,7 +61,7 @@ const sendVerificationEmail = async (user, token) => {
  */
 const sendPasswordResetEmail = async (user, token) => {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
-    
+
     const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
         to: user.email,
@@ -91,10 +91,8 @@ const verifyEmailConfig = async () => {
     try {
         // Verify connection configuration
         await transporter.verify();
-        console.log('Email service is ready to send messages');
         return true;
     } catch (error) {
-        console.error('Email service configuration error:', error);
         return false;
     }
 };

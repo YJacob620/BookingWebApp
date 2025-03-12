@@ -6,30 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
-import { resendVerification, login } from '@/utils';
+import { resendVerification, login } from '@/_utils';
+import { ADMIN_DASHBOARD, USER_DASHBOARD } from './RoutePaths';
 
 
 // Interface for form data
 interface LoginFormData {
     email: string;
     password: string;
-}
-
-// Interfaces for API response
-interface LoginSuccess {
-    user: {
-        role: string;
-        id: number;
-        email: string;
-        name: string;
-    };
-    token: string;
-}
-
-interface LoginError {
-    message: string;
-    needsVerification?: boolean;
-    email?: string;
 }
 
 const LoginPage: React.FC = () => {
@@ -91,9 +75,9 @@ const LoginPage: React.FC = () => {
 
                 // The login utility already handles storing user and token
                 if (successData.user.role === 'admin') {
-                    navigate('/admin-dashboard');
+                    navigate(ADMIN_DASHBOARD);
                 } else {
-                    navigate('/user-dashboard');
+                    navigate(USER_DASHBOARD);
                 }
             } else {
                 setError(result.data.message);

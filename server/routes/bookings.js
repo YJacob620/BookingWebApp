@@ -155,20 +155,13 @@ router.delete('/timeslots', authenticateToken, verifyAdmin, async (req, res) => 
     }
 });
 
-// Update booking status (admin only)
-router.put('/:id/booking-status', authenticateToken, verifyAdmin, async (req, res) => {
+// Approve a booking request (admin only)
+router.put('/:id/approve', authenticateToken, verifyAdmin, async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
         const { id } = req.params;
-        const { status } = req.body;
-
-        // Validate status
-        const validStatuses = ['pending', 'approved', 'rejected', 'completed', 'expired', 'canceled'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: 'Invalid status' });
-        }
 
         // Get booking details
         const [bookings] = await connection.execute(
@@ -182,42 +175,68 @@ router.put('/:id/booking-status', authenticateToken, verifyAdmin, async (req, re
 
         const booking = bookings[0];
 
-        // Update the booking status
+        // Update the booking status to approved
         await connection.execute(
             'UPDATE bookings SET status = ? WHERE id = ?',
-            [status, id]
+            ['approved', id]
         );
-
-        let rejectedCount = 0;
-
-        // If approving, reject all other pending bookings for the same timeslot
-        if (status === 'approved') {
-            const [result] = await connection.execute(
-                `UPDATE bookings 
-                 SET status = 'rejected' 
-                 WHERE id != ? 
-                 AND infrastructure_id = ? 
-                 AND booking_date = ? 
-                 AND start_time = ? 
-                 AND end_time = ? 
-                 AND status = 'pending'`,
-                [id, booking.infrastructure_id, booking.booking_date, booking.start_time, booking.end_time]
-            );
-
-            rejectedCount = result.affectedRows;
-        }
 
         await connection.commit();
 
         res.json({
-            message: `Booking status updated to ${status}`,
-            rejectedCount
+            message: 'Booking approved successfully'
         });
 
     } catch (err) {
         await connection.rollback();
         console.error('Database error:', err);
-        res.status(500).json({ message: 'Error updating booking status' });
+        res.status(500).json({ message: 'Error approving booking' });
+    } finally {
+        connection.release();
+    }
+});
+
+// Reject or cancel a booking request / approved booking (admin only). 
+// This will also create a new available timeslot at the time of the old booking.
+router.put('/:id/reject-or-cancel', authenticateToken, verifyAdmin, async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const { id } = req.params;
+        const { status } = req.body;
+
+        // Validate status
+        if (status !== 'rejected' && status !== 'canceled') {
+            return res.status(400).json({ message: 'Invalid status. Must be "rejected" or "canceled"' });
+        }
+
+        // Get booking details
+        const [bookings] = await connection.execute(
+            'SELECT * FROM bookings WHERE id = ?',
+            [id]
+        );
+
+        if (bookings.length === 0) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Call the stored procedure for rejecting or canceling
+        await connection.execute(
+            'CALL AdminRejectOrCancelBooking(?, ?)',
+            [id, status]
+        );
+
+        await connection.commit();
+
+        res.json({
+            message: `Booking ${status} successfully`
+        });
+
+    } catch (err) {
+        await connection.rollback();
+        console.error('Database error:', err);
+        res.status(500).json({ message: `Error ${req.body.status === 'rejected' ? 'rejecting' : 'canceling'} booking` });
     } finally {
         connection.release();
     }

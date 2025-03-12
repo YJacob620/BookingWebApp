@@ -2,7 +2,6 @@ require('dotenv').config();
 
 // Ensure all required environment variables are present
 const requiredEnvVars = [
-    // Existing variables
     'JWT_SECRET',
     'DB_HOST',
     'DB_PORT',
@@ -11,7 +10,6 @@ const requiredEnvVars = [
     'DB_NAME',
     'FRONTEND_URL',
 
-    // New email-related variables
     'EMAIL_HOST',
     'EMAIL_PORT',
     'EMAIL_USERNAME',

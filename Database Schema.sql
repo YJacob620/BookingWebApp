@@ -94,6 +94,152 @@ BEGIN
 END //
 DELIMITER ;
 
+-- Procedure for when a user cancels a booking (it also creates a new timeslot)
+DROP PROCEDURE IF EXISTS UserCancelBooking;
+DELIMITER //
+CREATE PROCEDURE UserCancelBooking(
+    IN booking_id INT,
+    IN user_email_param VARCHAR(255),
+    OUT success BOOLEAN,
+    OUT message VARCHAR(255)
+)
+BEGIN
+    DECLARE booking_exists INT DEFAULT 0;
+    DECLARE valid_status BOOLEAN DEFAULT FALSE;
+    DECLARE hours_difference DECIMAL(10,2);
+    DECLARE booking_infrastructure_id INT;
+    DECLARE booking_date_val DATE;
+    DECLARE start_time_val TIME;
+    DECLARE end_time_val TIME;
+    SET success = FALSE; -- Check transaction isolation level
+    
+    START TRANSACTION;
+    -- First check if the booking exists
+    SELECT COUNT(*) INTO booking_exists
+    FROM bookings 
+    WHERE id = booking_id 
+      AND user_email = user_email_param
+      AND booking_type = 'booking';
+    
+    IF booking_exists = 0 THEN
+        SET message = 'Booking not found';
+        ROLLBACK;
+    ELSE
+        -- If it exists, get the booking details separately
+        SELECT infrastructure_id, booking_date, start_time, end_time, `status` INTO 
+            booking_infrastructure_id, booking_date_val, start_time_val, end_time_val, @status
+        FROM bookings 
+        WHERE id = booking_id;
+        
+        -- Check if status is valid for cancellation
+        SET valid_status = (@status = 'pending' OR @status = 'approved');
+        IF NOT valid_status THEN
+            SET message = 'Only pending or approved bookings can be canceled by the user';
+            ROLLBACK;
+        ELSE
+            -- Check if booking is within 24 hours
+            SET hours_difference = TIMESTAMPDIFF(HOUR, NOW(), CONCAT(booking_date_val, ' ', start_time_val));
+            IF hours_difference <= 24 THEN
+                SET message = 'Bookings within 24 hours cannot be canceled';
+                ROLLBACK;
+            ELSE
+                -- Update the booking status to 'canceled'
+                UPDATE bookings 
+                SET status = 'canceled' 
+                WHERE id = booking_id;
+                
+                -- Create a new timeslot with the same date and time but status 'available'
+                INSERT INTO bookings (
+                    booking_type, 
+                    infrastructure_id, 
+                    booking_date, 
+                    start_time, 
+                    end_time, 
+                    status
+                ) VALUES (
+                    'timeslot',
+                    booking_infrastructure_id,
+                    booking_date_val,
+                    start_time_val,
+                    end_time_val,
+                    'available'
+                );
+                
+                SET success = TRUE;
+                SET message = 'Booking canceled successfully';
+                COMMIT;
+            END IF;
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+
+-- Procedure for when an admin rejects or cancels a booking (it also creates a new timeslot)
+DROP PROCEDURE IF EXISTS AdminRejectOrCancelBooking;
+DELIMITER //
+CREATE PROCEDURE AdminRejectOrCancelBooking(
+    IN booking_id INT,
+    IN new_status VARCHAR(20)
+)
+BEGIN
+    DECLARE booking_infra_id INT;
+    DECLARE booking_date_param DATE;
+    DECLARE start_time_val TIME;
+    DECLARE end_time_val TIME;
+    DECLARE current_status VARCHAR(20);
+    
+    -- First, get the booking details
+    SELECT 
+        infrastructure_id, 
+        booking_date, 
+        start_time, 
+        end_time,
+        `status`
+    INTO 
+        booking_infra_id, 
+        booking_date_param, 
+        start_time_val, 
+        end_time_val,
+        current_status
+    FROM bookings 
+    WHERE id = booking_id;
+    
+    -- Verify the booking exists
+    IF booking_infra_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Booking not found';
+    END IF;
+    
+    -- Verify the status is valid
+    IF new_status NOT IN ('rejected', 'canceled') THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Invalid status. Must be "rejected" or "canceled"';
+    END IF;
+    
+    -- Update the booking status
+    UPDATE bookings 
+    SET status = new_status 
+    WHERE id = booking_id;
+    
+	-- Create a new available timeslot
+	INSERT INTO bookings (
+		booking_type,
+		infrastructure_id,
+		booking_date,
+		start_time,
+		end_time,
+		`status`
+	) VALUES (
+		'timeslot',
+		booking_infra_id,
+		booking_date_param,
+		start_time_val,
+		end_time_val,
+		'available'
+	);
+END //
+DELIMITER ;
+
 -- Event that will update the statuses of past bookings and timeslots
 SET GLOBAL event_scheduler = ON;
 DROP PROCEDURE IF EXISTS update_past_statuses;
