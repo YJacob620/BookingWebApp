@@ -69,3 +69,13 @@ export interface SortConfig<T> {
   key: keyof T | null;
   direction: 'asc' | 'desc';
 }
+
+export interface FilterQuestionData {
+  id?: number;
+  infrastructure_id: number;
+  question_text: string;
+  question_type: 'dropdown' | 'text' | 'number' | 'document';
+  is_required: boolean;
+  options?: string;
+  display_order?: number;
+}

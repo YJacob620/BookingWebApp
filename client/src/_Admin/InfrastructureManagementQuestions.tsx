@@ -1,6 +1,4 @@
-// src/_Admin/InfrastructureQuestionsManager.tsx
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +33,8 @@ import {
     fetchInfrastructureQuestions,
     saveInfrastructureQuestion,
     deleteInfrastructureQuestion,
-    updateQuestionsOrder
+    updateQuestionsOrder,
+    FilterQuestionData
 } from '@/_utils';
 
 // Define question types
@@ -144,8 +143,13 @@ const SortableQuestionItem = ({
 };
 
 // Main component
-const InfrastructureQuestionsManager: React.FC = () => {
-    const { infrastructureId } = useParams<{ infrastructureId: string }>();
+interface InfrastructureQuestionsManagerProps {
+    infrastructureId: number;
+}
+
+const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerProps> = ({
+    infrastructureId
+}) => {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [newQuestion, setNewQuestion] = useState({
         question_text: '',
@@ -166,7 +170,7 @@ const InfrastructureQuestionsManager: React.FC = () => {
         })
     );
 
-    // Load questions on component mount
+    // Load questions on component mount and when infrastructureId changes
     useEffect(() => {
         if (infrastructureId) {
             loadQuestions();
@@ -181,7 +185,7 @@ const InfrastructureQuestionsManager: React.FC = () => {
             setIsLoading(true);
             setErrorMessage(null);
 
-            const data = await fetchInfrastructureQuestions(parseInt(infrastructureId));
+            const data = await fetchInfrastructureQuestions(infrastructureId);
             // Sort by display_order
             setQuestions(data.sort((a: Question, b: Question) => a.display_order - b.display_order));
         } catch (error) {
@@ -220,7 +224,7 @@ const InfrastructureQuestionsManager: React.FC = () => {
                     display_order: q.display_order
                 }));
 
-                await updateQuestionsOrder(parseInt(infrastructureId!), orderData);
+                await updateQuestionsOrder(infrastructureId, orderData);
 
                 showSuccess('Question order updated successfully');
             } catch (error) {
@@ -239,18 +243,24 @@ const InfrastructureQuestionsManager: React.FC = () => {
             return;
         }
 
+        // Ensure infrastructureId is a valid number
+        if (!infrastructureId || isNaN(infrastructureId)) {
+            setErrorMessage('Invalid infrastructure ID');
+            return;
+        }
+
         try {
             // Calculate the next display order (add to the end)
             const displayOrder = questions.length > 0
                 ? Math.max(...questions.map(q => q.display_order)) + 1
                 : 0;
 
-            const questionData = {
-                infrastructure_id: parseInt(infrastructureId!),
+            const questionData: FilterQuestionData = {
+                infrastructure_id: infrastructureId,
                 question_text: newQuestion.question_text,
                 question_type: newQuestion.question_type,
                 is_required: newQuestion.is_required,
-                options: newQuestion.question_type === 'dropdown' ? newQuestion.options : null,
+                options: newQuestion.question_type === 'dropdown' ? newQuestion.options : '',
                 display_order: displayOrder
             };
 
@@ -296,7 +306,7 @@ const InfrastructureQuestionsManager: React.FC = () => {
         try {
             await saveInfrastructureQuestion({
                 ...editingQuestion,
-                options: editingQuestion.question_type === 'dropdown' ? editingQuestion.options : null
+                options: editingQuestion.question_type === 'dropdown' ? editingQuestion.options ?? undefined : ''
             });
 
             setEditingQuestion(null);
@@ -315,7 +325,7 @@ const InfrastructureQuestionsManager: React.FC = () => {
         }
 
         try {
-            await deleteInfrastructureQuestion(parseInt(infrastructureId!), id);
+            await deleteInfrastructureQuestion(infrastructureId, id);
             loadQuestions();
             showSuccess('Question deleted successfully');
         } catch (error) {

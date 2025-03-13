@@ -12,14 +12,10 @@ import {
 } from "@/components/ui/table";
 import {
     ArrowUpDown,
-    MoreHorizontal,
+    Edit,
+    Power,
+    HelpCircle
 } from "lucide-react";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 import { Infrastructure } from '@/_utils';
 import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
@@ -34,13 +30,17 @@ interface InfrastructureListProps {
     isLoading: boolean;
     onEdit: (infrastructure: Infrastructure) => void;
     onToggleStatus: (id: number, currentStatus: boolean) => Promise<void>;
+    onManageQuestions: (infrastructure: Infrastructure) => void;
+    isAdmin: boolean;
 }
 
 const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     infrastructures,
     isLoading,
     onEdit,
-    onToggleStatus
+    onToggleStatus,
+    onManageQuestions,
+    isAdmin
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
@@ -105,7 +105,9 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     return (
         <Card className="card1">
             <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Existing Infrastructures</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                    {isAdmin ? 'All Infrastructures' : 'Your Managed Infrastructures'}
+                </h2>
                 <div className="mb-4">
                     <Input
                         placeholder="Search infrastructures..."
@@ -167,27 +169,44 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                                 </span>
                                             </TableCell>
                                             <TableCell className="text-center">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="bg-gray-700">
-                                                        <DropdownMenuItem
+                                                <div className="flex justify-center space-x-2">
+                                                    {/* Button to edit infrastructure (admin only) */}
+                                                    {isAdmin && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
                                                             onClick={() => onEdit(infra)}
-                                                            className="hover:bg-gray-500"
+                                                            className="text-blue-400"
+                                                            title="Edit Infrastructure"
                                                         >
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+
+                                                    {/* Button to manage questions (both admin and managers) */}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => onManageQuestions(infra)}
+                                                        className="text-purple-400"
+                                                        title="Manage Questions"
+                                                    >
+                                                        <HelpCircle className="h-4 w-4" />
+                                                    </Button>
+
+                                                    {/* Toggle status button (admin only) */}
+                                                    {isAdmin && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
                                                             onClick={() => onToggleStatus(infra.id, infra.is_active ?? false)}
-                                                            className="hover:bg-gray-500"
+                                                            className={infra.is_active ? "text-red-400" : "text-green-400"}
+                                                            title={infra.is_active ? "Set Inactive" : "Set Active"}
                                                         >
-                                                            {infra.is_active ? 'Set Inactive' : 'Set Active'}
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                            <Power className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))

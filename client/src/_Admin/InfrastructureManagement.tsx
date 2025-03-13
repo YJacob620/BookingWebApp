@@ -1,45 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAdminAuth } from './useAdminAuth';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeftCircle } from "lucide-react";
+import { ArrowLeftCircle, Plus, Database, HelpCircle } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import InfrastructureManagementForm from './InfrastructureManagementForm';
 import InfrastructureManagementList from './InfrastructureManagementList';
+import InfrastructureQuestionsManager from './InfrastructureManagementQuestions';
 
 // Import types and API utilities
 import {
     fetchInfrastructures,
+    fetchMyInfrastructures,
     createOrUpdateInfrastructure,
     toggleInfrastructureStatus,
     Infrastructure,
     Message,
     InfrastFormData
 } from '@/_utils';
-import { ADMIN_DASHBOARD } from '@/RoutePaths';
+import { ADMIN_DASHBOARD, MANAGER_DASHBOARD } from '@/RoutePaths';
 
 
 const InfrastructureManagement: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthorized, isLoading: authLoading } = useAdminAuth();
+
+    // State variables
     const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
     const [message, setMessage] = useState<Message>({ type: '', text: '' });
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingInfrastructure, setEditingInfrastructure] = useState<Infrastructure | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<string>("list");
+    const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
+    // Check if user is admin or manager
     useEffect(() => {
-        if (isAuthorized) {
+        checkUserRole();
+    }, []);
+
+    // Load infrastructures based on user role
+    useEffect(() => {
+        if (isAdmin !== null) {
             getInfrastructures();
         }
-    }, [isAuthorized]);
+    }, [isAdmin]);
+
+    const checkUserRole = () => {
+        const userJson = localStorage.getItem('user');
+        if (!userJson) {
+            navigate('/login');
+            return;
+        }
+
+        try {
+            const user = JSON.parse(userJson);
+            setIsAdmin(user.role === 'admin');
+        } catch (error) {
+            console.error('Error parsing user data:', error);
+            navigate('/login');
+        }
+    };
 
     const getInfrastructures = async () => {
         try {
             setIsLoading(true);
-            // Use the fetchInfrastructures utility instead of direct fetch
-            const data = await fetchInfrastructures();
+
+            // Fetch infrastructures based on user role
+            const data = isAdmin
+                ? await fetchInfrastructures()
+                : await fetchMyInfrastructures();
+
             setInfrastructures(data);
         } catch (error) {
             console.error('Error fetching infrastructures:', error);
@@ -49,8 +81,17 @@ const InfrastructureManagement: React.FC = () => {
         }
     };
 
-    // Create or update infrastructure
+    // Create or update infrastructure (admin only)
     const handleSubmit = async (formData: InfrastFormData) => {
+        // Only allow admins to create/update infrastructures
+        if (!isAdmin) {
+            setMessage({
+                type: 'error',
+                text: 'You do not have permission to perform this action'
+            });
+            return;
+        }
+
         try {
             await createOrUpdateInfrastructure(
                 formData,
@@ -79,8 +120,18 @@ const InfrastructureManagement: React.FC = () => {
     };
 
     const handleEdit = (infrastructure: Infrastructure) => {
+        // Only allow admins to edit infrastructure details
+        if (!isAdmin && activeTab !== "questions") {
+            setMessage({
+                type: 'error',
+                text: 'You do not have permission to edit infrastructure details'
+            });
+            return;
+        }
+
         setIsEditMode(true);
         setEditingInfrastructure(infrastructure);
+        setActiveTab("form");
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -89,8 +140,17 @@ const InfrastructureManagement: React.FC = () => {
         setEditingInfrastructure(null);
     };
 
-    // Toggle infrastructure status (active/inactive)
+    // Toggle infrastructure status (admin only)
     const toggleStatus = async (id: number, currentStatus: boolean) => {
+        // Only allow admins to toggle infrastructure status
+        if (!isAdmin) {
+            setMessage({
+                type: 'error',
+                text: 'You do not have permission to change infrastructure status'
+            });
+            return;
+        }
+
         if (!confirm(currentStatus
             ? 'Warning: Setting an infrastructure as inactive will not cancel existing bookings. Continue?'
             : 'Set this infrastructure as active?')) {
@@ -112,24 +172,19 @@ const InfrastructureManagement: React.FC = () => {
         }
     };
 
-    if (authLoading) {
-        return (
-            <div className="min-h-screen general-container flex items-center justify-center">
-                <div className="text-xl">Loading...</div>
-            </div>
-        );
-    }
-
-    if (!isAuthorized) {
-        return null;
-    }
+    // Handle infrastructure selection for questions management
+    const handleManageQuestions = (infrastructure: Infrastructure) => {
+        setSelectedInfrastructure(infrastructure);
+        setActiveTab("questions");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <Card className="general-container w-210">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-start mb-6">
                     <Button
-                        onClick={() => navigate(ADMIN_DASHBOARD)}
+                        onClick={() => navigate(isAdmin ? ADMIN_DASHBOARD : MANAGER_DASHBOARD)}
                         className="back-button"
                     >
                         <ArrowLeftCircle className="mr-2 h-4 w-4" />
@@ -150,21 +205,65 @@ const InfrastructureManagement: React.FC = () => {
                     </Alert>
                 )}
 
-                {/* Infrastructure Form Component */}
-                <InfrastructureManagementForm
-                    isEditMode={isEditMode}
-                    editingInfrastructure={editingInfrastructure}
-                    onSubmit={handleSubmit}
-                    onCancelEdit={handleCancelEdit}
-                />
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="w-full mb-6"
+                >
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="list" onClick={() => setSelectedInfrastructure(null)}>
+                            <Database className="mr-2 h-4 w-4" />
+                            Infrastructures
+                        </TabsTrigger>
+                        {isAdmin && (
+                            <TabsTrigger value="form" onClick={handleCancelEdit}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                {isEditMode ? 'Edit Infrastructure' : 'Add Infrastructure'}
+                            </TabsTrigger>
+                        )}
+                        <TabsTrigger
+                            value="questions"
+                            disabled={!selectedInfrastructure}
+                        >
+                            <HelpCircle className="mr-2 h-4 w-4" />
+                            Manage Questions
+                        </TabsTrigger>
+                    </TabsList>
 
-                {/* Infrastructure List Component */}
-                <InfrastructureManagementList
-                    infrastructures={infrastructures}
-                    isLoading={isLoading}
-                    onEdit={handleEdit}
-                    onToggleStatus={toggleStatus}
-                />
+                    <TabsContent value="list" className="mt-4">
+                        <InfrastructureManagementList
+                            infrastructures={infrastructures}
+                            isLoading={isLoading}
+                            onEdit={handleEdit}
+                            onToggleStatus={toggleStatus}
+                            onManageQuestions={handleManageQuestions}
+                            isAdmin={isAdmin}
+                        />
+                    </TabsContent>
+
+                    {isAdmin && (
+                        <TabsContent value="form" className="mt-4">
+                            <InfrastructureManagementForm
+                                isEditMode={isEditMode}
+                                editingInfrastructure={editingInfrastructure}
+                                onSubmit={handleSubmit}
+                                onCancelEdit={handleCancelEdit}
+                            />
+                        </TabsContent>
+                    )}
+
+                    <TabsContent value="questions" className="mt-4">
+                        {selectedInfrastructure ? (
+                            <InfrastructureQuestionsManager
+                                infrastructureId={selectedInfrastructure.id}
+                            />
+                        ) : (
+                            <Card className="card1 p-6">
+                                <p className="text-center">Please select an infrastructure to manage its questions</p>
+                            </Card>
+                        )}
+                    </TabsContent>
+                </Tabs>
             </div>
         </Card>
     );

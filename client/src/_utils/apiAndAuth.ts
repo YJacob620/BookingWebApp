@@ -4,7 +4,8 @@ import {
   User,
   InfrastFormData,
   BatchCreationPayload,
-  RegistrationFormData
+  RegistrationFormData,
+  FilterQuestionData
 } from './index'
 /**
  * Base URL for API calls
@@ -290,23 +291,15 @@ export const fetchInfrastructureQuestions = (infrastructureId: number) => {
 };
 
 // Create or update a question
-export const saveInfrastructureQuestion = (questionData: {
-  id?: number;
-  infrastructure_id: number;
-  question_text: string;
-  question_type: 'dropdown' | 'text' | 'number' | 'document';
-  is_required: boolean;
-  options?: string;
-  display_order?: number;
-}) => {
-  const method = questionData.id ? 'PUT' : 'POST';
-  const endpoint = questionData.id
-    ? `/infrastructures/${questionData.infrastructure_id}/questions/${questionData.id}`
-    : `/infrastructures/${questionData.infrastructure_id}/questions`;
+export const saveInfrastructureQuestion = (filterQuestionData: FilterQuestionData) => {
+  const method = filterQuestionData.id ? 'PUT' : 'POST';
+  const endpoint = filterQuestionData.id
+    ? `/infrastructures/${filterQuestionData.infrastructure_id}/questions/${filterQuestionData.id}`
+    : `/infrastructures/${filterQuestionData.infrastructure_id}/questions`;
 
   return apiRequest(endpoint, {
     method,
-    body: JSON.stringify(questionData),
+    body: JSON.stringify(filterQuestionData),
   });
 };
 

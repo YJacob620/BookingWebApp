@@ -3,11 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LogOut, Database } from "lucide-react";
+import { LogOut, Database, Settings, CalendarRange } from "lucide-react";
 
 import { useManagerAuth } from './useManagerAuth';
 import { fetchMyInfrastructures, Infrastructure } from '@/_utils';
-import { LOGIN } from '@/RoutePaths';
+import { LOGIN, MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 
 
@@ -25,7 +25,6 @@ const ManagerDashboard: React.FC = () => {
 
     const getInfrastructures = async () => {
         try {
-            // Use the revised function that doesn't require user ID
             const data = await fetchMyInfrastructures();
             setInfrastructures(data);
         } catch (error) {
@@ -80,11 +79,23 @@ const ManagerDashboard: React.FC = () => {
                     </Alert>
                 )}
 
+                {/* Infrastructure Management Button - Links to shared page */}
+                <div className="mb-6 mt-6">
+                    <Link to={MANAGER_INFRASTRUCTURE_MANAGEMENT}>
+                        <Button className="bg-blue-600 hover:bg-blue-700">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Manage Infrastructures & Questions
+                        </Button>
+                    </Link>
+                </div>
+
+                <h2 className="text-xl font-semibold mb-4">Your Assigned Infrastructures</h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {infrastructures.map((infra) => (
                         <Link
                             key={infra.id}
-                            to={`/manager-bookings/${infra.id}`}
+                            to={getManagerBookingsPath(infra.id)}
                             className="block no-underline"
                         >
                             <Card className="card2">
@@ -94,7 +105,10 @@ const ManagerDashboard: React.FC = () => {
                                             <h2 className="text-xl font-semibold mb-2">{infra.name}</h2>
                                             <p className="text-sm text-gray-400">{infra.location || 'No location'}</p>
                                         </div>
-                                        <Database className="h-6 w-6 text-blue-400" />
+                                        <div className="flex">
+                                            <Database className="h-6 w-6 text-blue-400 mr-2" />
+                                            <CalendarRange className="h-6 w-6 text-green-400" />
+                                        </div>
                                     </div>
                                     <p className="mt-4 text-sm text-gray-300 line-clamp-2">{infra.description}</p>
                                     <div className="mt-4">

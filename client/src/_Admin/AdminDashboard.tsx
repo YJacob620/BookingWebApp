@@ -41,12 +41,6 @@ const AdminDashboard = () => {
             icon: <Database className="h-6 w-6" />
         },
         {
-            title: 'Booking Questions',
-            link: '/infrastructure-questions',
-            description: 'Define required questions for infrastructure booking requests',
-            icon: <HelpCircle className="h-6 w-6" />
-        },
-        {
             title: 'Bookings & Timeslots',
             link: '/booking-management',
             description: 'Manage bookings and available time slots',
@@ -80,7 +74,7 @@ const AdminDashboard = () => {
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                     {menuItems.map((item, index) => (
                         <Link
                             key={index}
