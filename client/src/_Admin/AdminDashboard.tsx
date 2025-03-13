@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button.tsx";
-import { LogOut, Calendar, Database } from "lucide-react";
+import { LogOut, Calendar, Database, Users, HelpCircle } from "lucide-react";
 
 import { useAdminAuth } from './useAdminAuth.tsx';
 import { LOGIN } from '@/RoutePaths';
@@ -29,10 +29,22 @@ const AdminDashboard = () => {
 
     const menuItems = [
         {
+            title: 'User Management',
+            link: '/user-management',
+            description: 'Manage users, assign roles, and control infrastructure access',
+            icon: <Users className="h-6 w-6" />
+        },
+        {
             title: 'Infrastructures Management',
             link: '/infrastructure-management',
             description: 'Create or edit scientific infrastructures',
             icon: <Database className="h-6 w-6" />
+        },
+        {
+            title: 'Booking Questions',
+            link: '/infrastructure-questions',
+            description: 'Define required questions for infrastructure booking requests',
+            icon: <HelpCircle className="h-6 w-6" />
         },
         {
             title: 'Bookings & Timeslots',
@@ -68,7 +80,7 @@ const AdminDashboard = () => {
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {menuItems.map((item, index) => (
                         <Link
                             key={index}

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `password_hash` VARCHAR(255) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
-    `role` ENUM('admin', 'faculty', 'student', 'guest') NOT NULL,
+    `role` ENUM('admin', 'faculty', 'student', 'guest', 'infrastructure_manager') NOT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `is_verified` TINYINT NOT NULL DEFAULT 0,
@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
 	verification_token_expires TIMESTAMP NULL,
 	password_reset_token VARCHAR(255) DEFAULT NULL,
 	password_reset_expires TIMESTAMP NULL,
+    email_notifications TINYINT NOT NULL DEFAULT 1,
+    is_blacklisted TINYINT NOT NULL DEFAULT 0,
     INDEX email_idx (email),
     INDEX idx_users_verification_token (verification_token),
 	INDEX idx_users_password_reset_token (password_reset_token)
@@ -55,6 +57,40 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     FOREIGN KEY (`infrastructure_id`) 
         REFERENCES infrastructures(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS infrastructure_managers ( --  Table for infrastructure questions
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    infrastructure_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (infrastructure_id) REFERENCES infrastructures(id) ON DELETE CASCADE,
+    UNIQUE KEY (user_id, infrastructure_id)
+);
+
+CREATE TABLE IF NOT EXISTS infrastructure_questions ( --  Table for infrastructure answers
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    infrastructure_id INT NOT NULL,
+    question_text TEXT NOT NULL,
+    question_type ENUM('dropdown', 'text', 'number', 'document') NOT NULL,
+    is_required BOOLEAN DEFAULT TRUE,
+    display_order INT NOT NULL DEFAULT 0,
+    options TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (infrastructure_id) REFERENCES infrastructures(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS booking_answers (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    booking_id INT NOT NULL,
+    question_id INT NOT NULL,
+    answer_text TEXT,
+    document_path VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES infrastructure_questions(id) ON DELETE CASCADE
+);
+
 
 -- Constraint that ensures that user_email will be NULL if and only if booking_type will be 'timeslot'.
 ALTER TABLE bookings DROP CONSTRAINT check_timeslot_has_no_user;

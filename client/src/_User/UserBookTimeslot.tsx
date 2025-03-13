@@ -43,6 +43,8 @@ const BookTimeslot = () => {
   const [purpose, setPurpose] = useState<string>('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -129,31 +131,38 @@ const BookTimeslot = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedTimeslotId) {
-      setMessage({ type: 'error', text: 'Please select a timeslot and provide a purpose for your booking' });
+    // Validate required answers
+    const missingRequired = questions
+      .filter(q => q.is_required)
+      .filter(q => !answers[q.id])
+      .map(q => q.question_text);
+
+    if (missingRequired.length > 0) {
+      setMessage({
+        type: 'error',
+        text: `Please answer the following required questions: ${missingRequired.join(', ')}`
+      });
       return;
     }
 
+    // Create FormData for file uploads
+    const formData = new FormData();
+    formData.append('timeslot_id', selectedTimeslotId);
+    formData.append('purpose', purpose);
+
+    // Add answers to form data
+    Object.entries(answers).forEach(([questionId, answer]) => {
+      if (answer instanceof File) {
+        formData.append(`answers[${questionId}]`, answer);
+      } else {
+        formData.append(`answers[${questionId}]`, answer);
+      }
+    });
+
     try {
-      // Use the imported createBooking utility
-      await bookTimeslot({
-        timeslot_id: selectedTimeslotId,
-        purpose: purpose
-      });
-
-      setMessage({ type: 'success', text: 'Booking request submitted successfully' });
-
-      // Reset form
-      setSelectedTimeslotId(null);
-      setPurpose('');
-
-      // Refresh available timeslots
-      fetchAllAvailableTimeslots();
-
-      // Redirect after a short delay
-      setTimeout(() => {
-        navigate(USER_DASHBOARD);
-      }, 2000);
+      // Use an updated booking function that handles FormData
+      await bookTimeslotWithAnswers(formData);
+      // Rest of the success logic...
     } catch (error) {
       console.error('Error creating booking:', error);
       setMessage({
@@ -187,6 +196,88 @@ const BookTimeslot = () => {
     // console.log("date:", date);
     const isAvailable = availableDates.some(d => d.getTime() === date.getTime());
     return !isAvailable;
+  };
+
+  // Load questions when infrastructure is selected
+  useEffect(() => {
+    if (selectedInfrastructureId) {
+      fetchInfrastructureQuestions(selectedInfrastructureId)
+        .then(data => {
+          setQuestions(data);
+          // Initialize answers state with empty values
+          const initialAnswers = {};
+          data.forEach(q => {
+            initialAnswers[q.id] = q.question_type === 'document' ? null : '';
+          });
+          setAnswers(initialAnswers);
+        })
+        .catch(err => {
+          console.error('Error fetching questions:', err);
+        });
+    }
+  }, [selectedInfrastructureId]);
+
+  // Render dynamic question fields
+  const renderQuestionFields = () => {
+    return questions.map(q => (
+      <div key={q.id} className="space-y-2">
+        <p className="small-title">
+          {q.question_text}
+          {q.is_required && <span className="text-red-500 ml-1">*</span>}
+        </p>
+
+        {q.question_type === 'text' && (
+          <Textarea
+            value={answers[q.id] || ''}
+            onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
+            required={q.is_required}
+          />
+        )}
+
+        {q.question_type === 'number' && (
+          <Input
+            type="number"
+            value={answers[q.id] || ''}
+            onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
+            required={q.is_required}
+          />
+        )}
+
+        {q.question_type === 'dropdown' && (
+          <Select
+            value={answers[q.id] || ''}
+            onValueChange={value => setAnswers({ ...answers, [q.id]: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {q.options.split('\n').map((option, i) => (
+                <SelectItem key={i} value={option}>{option}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {q.question_type === 'document' && (
+          <div>
+            <Input
+              type="file"
+              onChange={e => {
+                const file = e.target.files[0];
+                setAnswers({ ...answers, [q.id]: file });
+              }}
+              required={q.is_required}
+            />
+            {answers[q.id] && (
+              <p className="text-sm text-gray-400 mt-1">
+                Selected: {answers[q.id].name}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    ));
   };
 
   return (
@@ -328,7 +419,15 @@ const BookTimeslot = () => {
                     />
                   </div>
 
-                  {/* Submit Button */}
+                  {/* Dynamic question fields */}
+                  {questions.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Additional Information</h3>
+                      {renderQuestionFields()}
+                    </div>
+                  )}
+
+                  {/* Submit button */}
                   <Button
                     type="submit"
                     disabled={!selectedTimeslotId}

@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
 import { resendVerification, login } from '@/_utils';
-import { ADMIN_DASHBOARD, USER_DASHBOARD } from './RoutePaths';
+import { ADMIN_DASHBOARD, USER_DASHBOARD, MANAGER_DASHBOARD } from './RoutePaths';
 
 
 // Interface for form data
@@ -74,8 +74,12 @@ const LoginPage: React.FC = () => {
                 const successData = result.data;
 
                 // The login utility already handles storing user and token
+                // Updated to include infrastructure_manager role
                 if (successData.user.role === 'admin') {
                     navigate(ADMIN_DASHBOARD);
+                } else if (successData.user.role === 'infrastructure_manager') {
+                    console.log("AYO WHAT");
+                    navigate(MANAGER_DASHBOARD);
                 } else {
                     navigate(USER_DASHBOARD);
                 }

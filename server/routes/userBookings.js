@@ -89,6 +89,34 @@ router.post('/request', authenticateToken, async (req, res) => {
             [userEmail, purpose, timeslot_id]
         );
 
+        // Get infrastructure details
+        const [infrastructures] = await connection.execute(
+            'SELECT * FROM infrastructures WHERE id = ?',
+            [timeslot.infrastructure_id]
+        );
+
+        // Get infrastructure managers
+        const [managers] = await connection.execute(
+            `SELECT u.id, u.name, u.email, u.email_notifications
+         FROM users u
+         JOIN infrastructure_managers im ON u.id = im.user_id
+         WHERE im.infrastructure_id = ?`,
+            [timeslot.infrastructure_id]
+        );
+
+        // Generate token for email actions
+        const approveToken = await emailService.generateSecureActionToken(result, 'approve');
+
+        // Send notification email to managers
+        if (infrastructures.length > 0 && managers.length > 0) {
+            await emailService.sendBookingRequestNotification(
+                result,
+                infrastructures[0],
+                managers,
+                approveToken
+            );
+        }
+
         await connection.commit();
 
         res.status(201).json({

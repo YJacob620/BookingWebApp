@@ -1,0 +1,192 @@
+const express = require('express');
+const router = express.Router();
+const pool = require('../config/db');
+const { authenticateToken, verifyAdmin } = require('../middleware/authMiddleware');
+
+// Get all users (admin only)
+router.get('/users', authenticateToken, verifyAdmin, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(
+            `SELECT 
+                id, name, email, role, is_verified, is_blacklisted,
+                created_at, updated_at
+             FROM users
+             ORDER BY created_at DESC`
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ message: 'Error fetching users' });
+    }
+});
+
+// Update user role (admin only)
+router.put('/users/:id/role', authenticateToken, verifyAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!role) {
+        return res.status(400).json({ message: 'Role is required' });
+    }
+
+    const validRoles = ['admin', 'infrastructure_manager', 'faculty', 'student', 'guest'];
+    if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    try {
+        // Check if user exists
+        const [users] = await pool.execute('SELECT * FROM users WHERE id = ?', [id]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = users[0];
+
+        // Update role
+        await pool.execute(
+            'UPDATE users SET role = ? WHERE id = ?',
+            [role, id]
+        );
+
+        // If changing to/from infrastructure_manager, handle the manager-infrastructure relationship
+        if (user.role === 'infrastructure_manager' && role !== 'infrastructure_manager') {
+            // User is no longer a manager, remove all their infrastructure assignments
+            await pool.execute(
+                'DELETE FROM infrastructure_managers WHERE user_id = ?',
+                [id]
+            );
+        }
+
+        res.json({ message: 'User role updated successfully' });
+    } catch (error) {
+        console.error('Error updating user role:', error);
+        res.status(500).json({ message: 'Error updating user role' });
+    }
+});
+
+// Update user blacklist status (admin only)
+router.put('/users/:id/blacklist', authenticateToken, verifyAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { blacklist } = req.body;
+
+    if (typeof blacklist !== 'boolean') {
+        return res.status(400).json({ message: 'Blacklist status must be a boolean' });
+    }
+
+    try {
+        // Check if user exists
+        const [users] = await pool.execute('SELECT * FROM users WHERE id = ?', [id]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update blacklist status
+        await pool.execute(
+            'UPDATE users SET is_blacklisted = ? WHERE id = ?',
+            [blacklist ? 1 : 0, id]
+        );
+
+        res.json({ message: 'User blacklist status updated successfully' });
+    } catch (error) {
+        console.error('Error updating user blacklist status:', error);
+        res.status(500).json({ message: 'Error updating user blacklist status' });
+    }
+});
+
+// Get infrastructures assigned to a manager (admin only)
+router.get('/users/:id/infrastructures', authenticateToken, verifyAdmin, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [rows] = await pool.execute(
+            `SELECT i.* 
+             FROM infrastructures i
+             JOIN infrastructure_managers im ON i.id = im.infrastructure_id
+             WHERE im.user_id = ?
+             ORDER BY i.name`,
+            [id]
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching manager infrastructures:', error);
+        res.status(500).json({ message: 'Error fetching infrastructures' });
+    }
+});
+
+// Assign infrastructure to a manager (admin only)
+router.post('/users/:id/infrastructures', authenticateToken, verifyAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { infrastructureId } = req.body;
+
+    if (!infrastructureId) {
+        return res.status(400).json({ message: 'Infrastructure ID is required' });
+    }
+
+    try {
+        // Check if user exists and is a manager
+        const [users] = await pool.execute(
+            'SELECT * FROM users WHERE id = ? AND role = "infrastructure_manager"',
+            [id]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'User not found or not an infrastructure manager' });
+        }
+
+        // Check if infrastructure exists
+        const [infrastructures] = await pool.execute(
+            'SELECT * FROM infrastructures WHERE id = ?',
+            [infrastructureId]
+        );
+
+        if (infrastructures.length === 0) {
+            return res.status(404).json({ message: 'Infrastructure not found' });
+        }
+
+        // Check if assignment already exists
+        const [existing] = await pool.execute(
+            'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
+            [id, infrastructureId]
+        );
+
+        if (existing.length > 0) {
+            return res.status(409).json({ message: 'Infrastructure already assigned to this manager' });
+        }
+
+        // Create assignment
+        await pool.execute(
+            'INSERT INTO infrastructure_managers (user_id, infrastructure_id) VALUES (?, ?)',
+            [id, infrastructureId]
+        );
+
+        res.status(201).json({ message: 'Infrastructure assigned successfully' });
+    } catch (error) {
+        console.error('Error assigning infrastructure:', error);
+        res.status(500).json({ message: 'Error assigning infrastructure' });
+    }
+});
+
+// Remove infrastructure from a manager (admin only)
+router.delete('/users/:id/infrastructures/:infrastructureId', authenticateToken, verifyAdmin, async (req, res) => {
+    const { id, infrastructureId } = req.params;
+
+    try {
+        // Delete the assignment
+        const [result] = await pool.execute(
+            'DELETE FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
+            [id, infrastructureId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Assignment not found' });
+        }
+
+        res.json({ message: 'Infrastructure removed from manager successfully' });
+    } catch (error) {
+        console.error('Error removing infrastructure:', error);
+        res.status(500).json({ message: 'Error removing infrastructure' });
+    }
+});
+
+module.exports = router;

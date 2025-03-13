@@ -19,10 +19,10 @@ import {
   formatTimeString,
   getStatusColor,
   BookingEntry,
-  fetchUserBookings as fetchRecentUserBookings
+  fetchUserBookings
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
-
+import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -56,9 +56,7 @@ const UserDashboard = () => {
   const getRecentBookings = async () => {
     try {
       setIsLoading(true);
-
-      // Use the imported fetchUserBookings utility
-      const data = await fetchRecentUserBookings();
+      const data = await fetchUserBookings();
       setBookings(data);
     } catch (err) {
       console.error('Error fetching bookings:', err);
@@ -111,6 +109,7 @@ const UserDashboard = () => {
         </Card>
 
         {/* Quick actions */}
+        <EmailPreferencesToggle className="mt-6" />
         <div className="mb-8">
           <Link to="/create-booking">
             <Button className="bg-blue-600 hover:bg-blue-700">

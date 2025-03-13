@@ -222,6 +222,145 @@ export const cancelTimeslots = (ids: number[]) => {
   });
 };
 
+/** 
+ * Fetch all users (admin only)
+*/
+export const fetchUsers = () => {
+  return apiRequest('/admin/users');
+};
+
+/**
+ * Update user role (admin only)
+ */
+export const updateUserRole = (userId: number, role: string) => {
+  return apiRequest(`/admin/users/${userId}/role`, {
+    method: 'PUT',
+    body: JSON.stringify({ role }),
+  });
+};
+
+/**
+ * Toggle user blacklist status (admin only)
+ */
+export const toggleUserBlacklist = (userId: number, blacklist: boolean) => {
+  return apiRequest(`/admin/users/${userId}/blacklist`, {
+    method: 'PUT',
+    body: JSON.stringify({ blacklist }),
+  });
+};
+
+/**
+ * For managers to fetch their own assigned infrastructures
+ */
+export const fetchMyInfrastructures = () => {
+  return apiRequest('/manager/my-infrastructures');
+};
+
+/**
+ * For admins to fetch infrastructures assigned to a specific manager
+ */
+export const fetchUserInfrastructures = (userId: number) => {
+  return apiRequest(`/admin/users/${userId}/infrastructures`);
+};
+
+/**
+ * Assign infrastructure to manager (admin only)
+ */
+export const assignInfrastructureToManager = (userId: number, infrastructureId: number) => {
+  return apiRequest(`/admin/users/${userId}/infrastructures`, {
+    method: 'POST',
+    body: JSON.stringify({ infrastructureId }),
+  });
+};
+
+/**
+ * Remove infrastructure from manager (admin only)
+ */
+export const removeInfrastructureFromManager = (userId: number, infrastructureId: number) => {
+  return apiRequest(`/admin/users/${userId}/infrastructures/${infrastructureId}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Fetch all questions for an infrastructure
+ */
+export const fetchInfrastructureQuestions = (infrastructureId: number) => {
+  return apiRequest(`/infrastructures/${infrastructureId}/questions`);
+};
+
+// Create or update a question
+export const saveInfrastructureQuestion = (questionData: {
+  id?: number;
+  infrastructure_id: number;
+  question_text: string;
+  question_type: 'dropdown' | 'text' | 'number' | 'document';
+  is_required: boolean;
+  options?: string;
+  display_order?: number;
+}) => {
+  const method = questionData.id ? 'PUT' : 'POST';
+  const endpoint = questionData.id
+    ? `/infrastructures/${questionData.infrastructure_id}/questions/${questionData.id}`
+    : `/infrastructures/${questionData.infrastructure_id}/questions`;
+
+  return apiRequest(endpoint, {
+    method,
+    body: JSON.stringify(questionData),
+  });
+};
+
+/**
+ * Delete a question
+ */
+export const deleteInfrastructureQuestion = (infrastructureId: number, questionId: number) => {
+  return apiRequest(`/infrastructures/${infrastructureId}/questions/${questionId}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Update the order of questions
+ */
+export const updateQuestionsOrder = (infrastructureId: number, questionsOrder: { id: number, display_order: number }[]) => {
+  return apiRequest(`/infrastructures/${infrastructureId}/questions/reorder`, {
+    method: 'PUT',
+    body: JSON.stringify({ questions: questionsOrder }),
+  });
+};
+
+/**
+ * Fetch current user's email notification preferences
+ * @returns Promise with email notification preferences
+ */
+export const fetchEmailPreferences = async () => {
+  try {
+    const response = await apiRequest('/user/preferences/email');
+    return response;
+  } catch (error) {
+    console.error('Error fetching email preferences:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update email notification preferences for current user
+ * @param enabled - Boolean indicating if email notifications should be enabled
+ * @returns Promise with updated preferences
+ */
+export const updateEmailPreferences = async (enabled: boolean) => {
+  try {
+    const response = await apiRequest('/user/preferences/email', {
+      method: 'PUT',
+      body: JSON.stringify({ email_notifications: enabled }),
+    });
+    return response;
+  } catch (error) {
+    console.error('Error updating email preferences:', error);
+    throw error;
+  }
+};
+
 // --------------------------------------- Authentication API Functions ---------------------------------------
 
 /**
@@ -361,3 +500,12 @@ export const verifyEmailWithToken = async (token: string) => {
     method: 'GET'
   });
 };
+
+/**
+* Verify infrastructure manager authentication
+ */
+export const verifyManager = async (): Promise<boolean> => {
+  const result = await authApiRequest('/manager/verify');
+  return result.success;
+};
+
