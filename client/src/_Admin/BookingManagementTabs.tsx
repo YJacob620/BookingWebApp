@@ -8,25 +8,25 @@ import BookingManagementTabsBookings from './BookingManagementTabsBookings';
 import BookingManagementTabsTimeslots from './BookingManagementTabsTimeslots';
 import BookingManagementTabsCreate from './BookingManagementTabsCreate';
 
-import { Infrastructure } from '@/_utils';
+import { BookingEntry, Infrastructure } from '@/_utils';
 
 
 interface BookingManagementTabsProps {
-  infrastructureId: number;
-  selectedInfrastructure: Infrastructure;
-  refreshTrigger: number;
+  selectedInfrastructure: Infrastructure
+  bookingEntries: BookingEntry[];
   onSuccess: (message: string) => void;
   onError: (message: string) => void;
   onUpdatePastBookings: () => Promise<void>;
+  onDataChange: () => void;
 }
 
 const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
-  infrastructureId,
   selectedInfrastructure,
-  refreshTrigger,
+  bookingEntries,
   onSuccess,
   onError,
-  onUpdatePastBookings
+  onUpdatePastBookings,
+  onDataChange,
 }) => {
   const [activeTab, setActiveTab] = useState<string>("bookings");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -39,6 +39,12 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
       setIsUpdating(false);
     }
   };
+
+  // Filter bookings (entries where booking_type is 'booking')
+  const bookings = bookingEntries.filter(entry => entry.booking_type === 'booking');
+
+  // Filter timeslots (entries where booking_type is 'timeslot')
+  const timeslots = bookingEntries.filter(entry => entry.booking_type === 'timeslot');
 
   return (
     <Card className="card1 mb-8 min-w-270">
@@ -59,32 +65,38 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
 
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="bookings">Manage Bookings</TabsTrigger>
-            <TabsTrigger value="timeslots">Manage Timeslots</TabsTrigger>
+            <TabsTrigger value="bookings">
+              Manage Bookings {/*`(${bookings.length})`*/}
+            </TabsTrigger>
+            <TabsTrigger value="timeslots">
+              Manage Timeslots {/*`(${timeslots.length})`*/}
+            </TabsTrigger>
             <TabsTrigger value="create">Create Timeslots</TabsTrigger>
           </TabsList>
           <TabsContent value="bookings">
             <BookingManagementTabsBookings
-              infrastructureId={infrastructureId}
+              items={bookings}
               selectedInfrastructure={selectedInfrastructure}
               onStatusChange={onSuccess}
               onError={onError}
-              refreshTrigger={refreshTrigger}
+              onDataChange={onDataChange}
             />
           </TabsContent>
           <TabsContent value="timeslots">
             <BookingManagementTabsTimeslots
-              infrastructureId={infrastructureId}
               selectedInfrastructure={selectedInfrastructure}
+              items={timeslots}
               onDelete={onSuccess}
               onError={onError}
+              onDataChange={onDataChange}
             />
           </TabsContent>
           <TabsContent value="create">
             <BookingManagementTabsCreate
-              infrastructureId={infrastructureId}
+              selectedInfrastructure={selectedInfrastructure}
               onSuccess={onSuccess}
               onError={onError}
+              onDataChange={onDataChange}
             />
           </TabsContent>
         </Tabs>

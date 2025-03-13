@@ -5,18 +5,21 @@ import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { getStatusColor, CalendarItem } from "@/_utils"
+import {
+  getStatusColor,
+  BookingEntry
+} from "@/_utils"
 
 interface BookingsCalendarViewProps {
-  items: CalendarItem[];
+  bookingEntries: BookingEntry[];
   showOnly: 'all' | 'timeslots' | 'bookings';
   dateFilter?: string;
   onDateClick: (date: string) => void;
 }
 
 const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
-  items,
-  showOnly,
+  bookingEntries,
+  showOnly: typeFilter,
   dateFilter,
   onDateClick
 }) => {
@@ -43,12 +46,13 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
 
   // Filter items based on type (showOnly)
   const filteredItemsByType = useMemo(() => {
-    return items.filter(item =>
-      showOnly === 'all' ||
-      (showOnly === 'timeslots' && item.type === 'timeslot') ||
-      (showOnly === 'bookings' && item.type === 'booking')
+
+    return bookingEntries.filter(item =>
+      typeFilter === 'all' ||
+      (typeFilter === 'timeslots' && item.booking_type === 'timeslot') ||
+      (typeFilter === 'bookings' && item.booking_type === 'booking')
     );
-  }, [items, showOnly]);
+  }, [bookingEntries, typeFilter]);
 
   // If dateFilter is active, ensure the calendar displays the right month
   useEffect(() => {
@@ -60,7 +64,8 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
         setCurrentMonth(new Date(filterDate.getFullYear(), filterDate.getMonth(), 1));
       }
     }
-  }, [dateFilter]);
+
+  }, [bookingEntries, dateFilter]);
 
   // Generate calendar data
   const calendarData = useMemo(() => {
@@ -79,10 +84,10 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
     }
 
     // Group calendar items by date
-    const itemsByDate: Record<string, CalendarItem[]> = {};
+    const itemsByDate: Record<string, BookingEntry[]> = {};
 
     filteredItemsByType.forEach(item => {
-      const itemDate = new Date(item.date);
+      const itemDate = new Date(item.booking_date);
 
       // Only include items for the current month/year
       if (itemDate.getMonth() === month && itemDate.getFullYear() === year) {
@@ -193,17 +198,16 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
                           </div>
                           <div className="max-h-60 overflow-y-auto">
                             {dayItems.map((item) => (
-                              <div key={`${item.type}-${item.id}`} className="p-2 border-b border-gray-700 last:border-0">
+                              <div key={`${item.booking_type}-${item.id}`} className="p-2 border-b border-gray-700 last:border-0">
                                 <div className="flex justify-between items-center mb-1">
                                   <Badge className={getStatusColor(item.status)}>
-                                    {item.type === 'timeslot' ?
-                                      'Available' : item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                   </Badge>
                                   <span className="text-sm text-gray-400">
                                     {formatTime(item.start_time)} - {formatTime(item.end_time)}
                                   </span>
                                 </div>
-                                {item.type === 'booking' && (
+                                {item.booking_type === 'booking' && (
                                   <>
                                     <div className="flex items-center small-title">
                                       <User className="h-3 w-3 mr-1" />
@@ -233,7 +237,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
                           const counts: Record<string, number> = {};
 
                           dayItems.forEach(item => {
-                            const key = item.type === 'timeslot' ? 'available' : item.status;
+                            const key = item.status;
                             counts[key] = (counts[key] || 0) + 1;
                           });
 

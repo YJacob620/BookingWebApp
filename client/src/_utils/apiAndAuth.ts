@@ -139,19 +139,68 @@ export const forceUpdatePastBookings = () => {
   });
 };
 
+// /**
+//  * Fetches bookings for a specific infrastructure (admin only)
+//  * @param infrastructureId - ID of the infrastructure
+//  * @param params - Optional parameters for filtering (startDate, endDate)
+//  * @returns Promise with bookings data
+//  */
+// export const fetchInfrastructureBookings = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+//   let url = `/bookings/${infrastructureId}/all-bookings`;
+
+//   if (params) {
+//     const queryParams = new URLSearchParams();
+//     if (params.startDate) queryParams.append('startDate', params.startDate);
+//     if (params.endDate) queryParams.append('endDate', params.endDate);
+
+//     if (queryParams.toString()) {
+//       url += `?${queryParams.toString()}`;
+//     }
+//   }
+
+//   return apiRequest(url);
+// };
+
+// /**
+//  * Fetches all timeslots for an infrastructure (admin only)
+//  */
+// export const fetchInfrastAllTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+//   let url = `/bookings/${infrastructureId}/all-timeslots`;
+
+//   if (params) {
+//     const queryParams = new URLSearchParams();
+//     if (params.startDate) queryParams.append('startDate', params.startDate);
+//     if (params.endDate) queryParams.append('endDate', params.endDate);
+
+//     if (queryParams.toString()) {
+//       url += `?${queryParams.toString()}`;
+//     }
+//   }
+
+//   return apiRequest(url);
+// };
+
 /**
- * Fetches bookings for a specific infrastructure (admin only)
+ * Fetches all booking entries (both bookings and timeslots) for a specific infrastructure (admin only)
  * @param infrastructureId - ID of the infrastructure
- * @param params - Optional parameters for filtering (startDate, endDate)
- * @returns Promise with bookings data
+ * @param params - Optional parameters for filtering (startDate, endDate, limit)
+ * @returns Promise with all booking entries
  */
-export const fetchInfrastructureBookings = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
-  let url = `/bookings/${infrastructureId}/all-bookings`;
+export const fetchAllBookingEntries = (
+  infrastructureId: number,
+  params?: {
+    startDate?: string,
+    endDate?: string,
+    limit?: number
+  }
+) => {
+  let url = `/bookings/${infrastructureId}/all-entries`;
 
   if (params) {
     const queryParams = new URLSearchParams();
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
+    if (params.limit) queryParams.append('limit', params.limit.toString());
 
     if (queryParams.toString()) {
       url += `?${queryParams.toString()}`;
@@ -189,32 +238,11 @@ export const toggleInfrastructureStatus = (id: number) => {
   });
 };
 
-// Timeslots API
-
 /**
- * Fetches only available timeslots for an infrastructure (user and admin)
+ * Fetches only available timeslots for an infrastructure (for user)
  */
 export const fetchInfrastAvailTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
   let url = `/bookings/${infrastructureId}/available-timeslots`;
-
-  if (params) {
-    const queryParams = new URLSearchParams();
-    if (params.startDate) queryParams.append('startDate', params.startDate);
-    if (params.endDate) queryParams.append('endDate', params.endDate);
-
-    if (queryParams.toString()) {
-      url += `?${queryParams.toString()}`;
-    }
-  }
-
-  return apiRequest(url);
-};
-
-/**
- * Fetches all timeslots for an infrastructure (admin only)
- */
-export const fetchInfrastAllTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
-  let url = `/bookings/${infrastructureId}/all-timeslots`;
 
   if (params) {
     const queryParams = new URLSearchParams();

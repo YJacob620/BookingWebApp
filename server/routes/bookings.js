@@ -276,23 +276,32 @@ router.post('/force-bookings-status-update', authenticateToken, verifyAdmin, asy
     }
 });
 
-// Get all bookings for an infrastructure (admin only). Can be within a specified date range.
-router.get('/:infrastructureId/all-bookings', authenticateToken, verifyAdmin, async (req, res) => {
-    try {
-        const { infrastructureId } = req.params;
-        const { startDate, endDate } = req.query;
+let asd = 0;
 
+// Get all entries (both bookings and timeslots) for an infrastructure (admin only).
+// This unified endpoint allows client-side filtering instead of separate endpoints.
+router.get('/:infrastructureId/all-entries', authenticateToken, verifyAdmin, async (req, res) => {
+    console.log("TIMES all-entries CALLED", asd);
+    try {
+        asd++;
+        const { infrastructureId } = req.params;
+        const { startDate, endDate, limit } = req.query;
+
+        // Join with users table to get user roles for bookings and infrastructure info
         let query = `
-            SELECT b.*, u.role as user_role
+            SELECT b.*, 
+                   u.role as user_role,
+                   i.name as infrastructure_name,
+                   i.location as infrastructure_location
             FROM bookings b
             LEFT JOIN users u ON b.user_email = u.email
-            WHERE b.infrastructure_id = ? 
-            AND b.booking_type = 'booking'
+            JOIN infrastructures i ON b.infrastructure_id = i.id
+            WHERE b.infrastructure_id = ?
         `;
 
         const params = [infrastructureId];
 
-        // Add date range filter if provided
+        // Add date range filter if provided (keep minimal server-side filtering)
         if (startDate && endDate) {
             query += ' AND b.booking_date BETWEEN ? AND ?';
             params.push(startDate, endDate);
@@ -304,49 +313,20 @@ router.get('/:infrastructureId/all-bookings', authenticateToken, verifyAdmin, as
             params.push(endDate);
         }
 
+        // Order by date and time for consistent display
         query += ' ORDER BY b.booking_date ASC, b.start_time ASC';
 
-        const [bookings] = await pool.execute(query, params);
-        res.json(bookings);
-    } catch (err) {
-        console.error('Database error:', err);
-        res.status(500).json({ message: 'Error fetching bookings' });
-    }
-});
-
-// Get all timeslots for an infrastructure (admin only). Can be within a specified date range.
-router.get('/:infrastructureId/all-timeslots', authenticateToken, verifyAdmin, async (req, res) => {
-    try {
-        const { infrastructureId } = req.params;
-        const { startDate, endDate } = req.query;
-
-        let query = `
-            SELECT * FROM bookings 
-            WHERE infrastructure_id = ? 
-            AND booking_type = 'timeslot'
-        `;
-
-        const params = [infrastructureId];
-
-        // Add date range filter if provided
-        if (startDate && endDate) {
-            query += ' AND booking_date BETWEEN ? AND ?';
-            params.push(startDate, endDate);
-        } else if (startDate) {
-            query += ' AND booking_date >= ?';
-            params.push(startDate);
-        } else if (endDate) {
-            query += ' AND booking_date <= ?';
-            params.push(endDate);
+        // Add limit if specified (for pagination support)
+        if (limit && !isNaN(parseInt(limit))) {
+            query += ' LIMIT ?';
+            params.push(parseInt(limit));
         }
 
-        query += ' ORDER BY booking_date ASC, start_time ASC';
-
-        const [timeslots] = await pool.execute(query, params);
-        res.json(timeslots);
+        const [entries] = await pool.execute(query, params);
+        res.json(entries);
     } catch (err) {
         console.error('Database error:', err);
-        res.status(500).json({ message: 'Error fetching timeslots' });
+        res.status(500).json({ message: 'Error fetching booking entries' });
     }
 });
 

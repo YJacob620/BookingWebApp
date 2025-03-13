@@ -1,30 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from './useAdminAuth';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeftCircle } from "lucide-react";
+import { ArrowLeftCircle, Loader } from "lucide-react";
 
 // Import components
 import InfrastructureSelector from './InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
 
-import { Infrastructure, Message, forceUpdatePastBookings } from '@/_utils';
+import {
+    Infrastructure,
+    BookingEntry,
+    Message,
+    forceUpdatePastBookings,
+    fetchAllBookingEntries
+} from '@/_utils';
 import { ADMIN_DASHBOARD } from '@/RoutePaths';
 
 
 const BookingManagement: React.FC = () => {
     const navigate = useNavigate();
     const { isAuthorized, isLoading: authLoading } = useAdminAuth();
-    const [selectedInfraId, setSelectedInfraId] = useState<number | null>(null);
+
+    // Infrastructure state
     const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | undefined>(undefined);
+
+    // Booking entries state
+    const [bookingEntries, setBookingEntries] = useState<BookingEntry[]>([]);
+    const [isLoadingEntries, setIsLoadingEntries] = useState<boolean>(false);
+
+    // UI state
     const [message, setMessage] = useState<Message | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const handleInfrastructureSelected = (infraId: number, infrastructure: Infrastructure) => {
-        setSelectedInfraId(infraId);
+    // Fetch all booking entries when infrastructure is selected or refresh is triggered
+    useEffect(() => {
+        if (selectedInfrastructure) {
+            fetchBookingEntries();
+        } else {
+            setBookingEntries([]);
+        }
+    }, [selectedInfrastructure, refreshTrigger]);
+
+    const fetchBookingEntries = async () => {
+        if (!selectedInfrastructure) return;
+
+        try {
+            setIsLoadingEntries(true);
+            const data = await fetchAllBookingEntries(selectedInfrastructure.id);
+            setBookingEntries(data);
+        } catch (error) {
+            console.error('Error fetching booking entries:', error);
+            handleError('Failed to load booking data. Please try again.');
+        } finally {
+            setIsLoadingEntries(false);
+        }
+    };
+
+    const handleInfrastructureSelected = (infrastructure: Infrastructure) => {
         setSelectedInfrastructure(infrastructure);
     };
 
@@ -33,8 +69,6 @@ const BookingManagement: React.FC = () => {
         setMessage({ type: 'success', text });
         // Clear message after 5 seconds
         setTimeout(() => setMessage(null), 5000);
-        // Trigger refresh of data
-        setRefreshTrigger(prev => prev + 1);
     };
 
     const handleError = (text: string) => {
@@ -93,7 +127,14 @@ const BookingManagement: React.FC = () => {
                     onError={handleError}
                 />
 
-                {selectedInfrastructure && selectedInfraId && (
+                {isLoadingEntries && selectedInfrastructure && (
+                    <div className="flex justify-center my-8">
+                        <Loader className="h-8 w-8 animate-spin text-blue-500" />
+                        <span className="ml-2">Loading booking data...</span>
+                    </div>
+                )}
+
+                {!isLoadingEntries && selectedInfrastructure && (
                     <>
                         <p className="text-xl">View Bookings and Timeslots</p>
                         <p className="explanation-text1 pb-1">
@@ -101,13 +142,9 @@ const BookingManagement: React.FC = () => {
                             <br />In calendar-view, clicking on an active date will take you to a filtered list-view of this date.
                         </p>
                         <BookingManagementViews
-                            infrastructureId={selectedInfraId}
-                            selectedInfrastructure={selectedInfrastructure}
-                            refreshTrigger={refreshTrigger}
-                            onDateClick={(date) => {
-                                // This will be handled internally in the CalendarListView component
-                            }}
+                            bookingEntries={bookingEntries}
                             onError={handleError}
+                            onDataChange={() => setRefreshTrigger(prev => prev + 1)}
                         />
 
                         <p className="text-xl">Manage Bookings and Timeslots</p>
@@ -115,12 +152,12 @@ const BookingManagement: React.FC = () => {
                             View and manage all bookings/timeslots, including past ones.
                         </p>
                         <BookingManagementTabs
-                            infrastructureId={selectedInfraId}
                             selectedInfrastructure={selectedInfrastructure}
-                            refreshTrigger={refreshTrigger}
+                            bookingEntries={bookingEntries}
                             onSuccess={handleSuccess}
                             onError={handleError}
                             onUpdatePastBookings={handleUpdatePastBookings}
+                            onDataChange={() => setRefreshTrigger(prev => prev + 1)}
                         />
                     </>
                 )}

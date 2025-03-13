@@ -32,28 +32,28 @@ import {
   getDateFilterOptions,
   approveBooking,
   rejectOrCancelBooking,
-  Booking,
   Infrastructure,
-  fetchInfrastructureBookings
+  BookingEntry,
 } from '@/_utils';
 
 interface BookingListProps {
-  infrastructureId: number;
+  items: BookingEntry[];
   selectedInfrastructure: Infrastructure | undefined;
   onStatusChange: (message: string) => void;
   onError: (message: string) => void;
-  refreshTrigger: number;
+  onDataChange: () => void;
 }
 
 const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
-  infrastructureId,
+  selectedInfrastructure,
+  items,
   onStatusChange,
   onError,
-  refreshTrigger
+  onDataChange
 }) => {
   // State for bookings and filters
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<BookingEntry[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<BookingEntry[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -61,29 +61,19 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
   // Load bookings when infrastructure changes or after actions
   useEffect(() => {
-    if (infrastructureId) {
-      fetchBookings();
+    if (selectedInfrastructure) {
+      setBookings(items)
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
     }
-  }, [infrastructureId, refreshTrigger]);
+  }, [selectedInfrastructure]);
 
   // Apply filters when bookings, status filter, date filter, or search query changes
   useEffect(() => {
     applyFilters();
   }, [bookings, statusFilter, dateFilter, searchQuery]);
 
-  const fetchBookings = async () => {
-    try {
-      setIsLoading(true);
-      const data = await fetchInfrastructureBookings(infrastructureId);
-
-      setBookings(data);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      onError('Error loading bookings. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const applyFilters = () => {
     let filtered = [...bookings];
@@ -99,8 +89,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     startOfToday.setHours(0, 0, 0, 0);
 
     const filterBookings = (bookings: typeof filtered, dateFilter: string) => {
-      return bookings.filter(({ booking_date }) => {
-        const bookingDate = new Date(booking_date);
+      return bookings.filter(({ booking_date: date }) => {
+        const bookingDate = new Date(date);
 
         switch (dateFilter) {
           case 'today':
@@ -121,8 +111,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(booking =>
-        booking.user_email.toLowerCase().includes(query) ||
-        booking.purpose.toLowerCase().includes(query)
+        booking.user_email?.toLowerCase().includes(query) ||
+        booking.purpose?.toLowerCase().includes(query)
       );
     }
 
@@ -170,7 +160,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       const successMessage = `Booking approved successfully`;
 
       onStatusChange(successMessage);
-      fetchBookings(); // Refresh the bookings list
+      onDataChange(); // Refresh the bookings list
     } catch (error) {
       console.error('Error approving booking:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');
@@ -185,7 +175,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
       await rejectOrCancelBooking(bookingId, 'rejected');
       onStatusChange(`Booking rejected successfully`);
-      fetchBookings(); // Refresh the bookings list
+      onDataChange(); // Refresh the bookings list
     } catch (error) {
       console.error('Error rejecting booking:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');
@@ -200,7 +190,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
       await rejectOrCancelBooking(bookingId, 'canceled');
       onStatusChange(`Booking canceled successfully`);
-      fetchBookings(); // Refresh the bookings list
+      onDataChange(); // Refresh the bookings list
     } catch (error) {
       console.error('Error canceling booking:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');
@@ -272,7 +262,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       {isLoading ? (
         <div className="text-center py-10">Loading bookings...</div>
       ) : (
-        <div className="rounded-md border border-gray-700">
+        <div className="rounded-md border border-gray-700 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="border-gray-700">
@@ -307,11 +297,16 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                     </TableCell>
                     <TableCell
                       className="relative max-w-xs overflow-hidden text-ellipsis whitespace-nowrap"
-                      dir={/[\u0590-\u05FF]/.test(booking.purpose) ? "rtl" : "ltr"}
+                      dir={/[\u0590-\u05FF]/.test(booking.purpose || '') ? "rtl" : "ltr"}
                     >
-                      <span title={booking.purpose}>
-                        {booking.purpose.length > 30 ? booking.purpose.substring(0, 30) + "..." : booking.purpose}
-                      </span>
+                      {(() => {
+                        const purpose = booking.purpose || ''; // Ensures it's always a string
+                        return (
+                          <span title={purpose}>
+                            {purpose.length > 30 ? purpose.substring(0, 30) + "..." : purpose}
+                          </span>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-center">
                       {/* Use shared utility for status color */}

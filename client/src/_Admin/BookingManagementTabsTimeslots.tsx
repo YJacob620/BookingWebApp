@@ -36,28 +36,29 @@ import {
   getStatusColor,
   calculateDuration,
   getTimeslotStatusOptions,
-  fetchInfrastAllTimeslots,
   cancelTimeslots,
   Infrastructure,
-  Timeslot
+  BookingEntry
 } from '@/_utils';
 
 
 interface TimeslotListProps {
-  infrastructureId: number;
   selectedInfrastructure: Infrastructure | undefined;
+  items: BookingEntry[];
   onDelete: (message: string) => void;
   onError: (message: string) => void;
+  onDataChange: () => void;
 }
 
 const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
-  infrastructureId,
   selectedInfrastructure,
+  items,
   onDelete,
-  onError
+  onError,
+  onDataChange
 }) => {
   // Main state
-  const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
+  const [timeslots, setTimeslots] = useState<BookingEntry[]>([]);
   const [selectedSlots, setSelectedSlots] = useState<number[]>([]);
   const [dateFilter, setDateFilter] = useState<string>('');
   const [filterType, setFilterType] = useState<string>('all');
@@ -92,8 +93,8 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       now.setHours(0, 0, 0, 0); // Start of today
 
       if (filterType === 'today') {
-        const today = now.toISOString().split('T')[0];
-        filtered = filtered.filter(slot => slot.booking_date === today);
+        const today = now.toDateString(); // Convert to a comparable string format
+        filtered = filtered.filter(slot => slot.booking_date.toDateString() === today);
       } else if (filterType === 'upcoming') {
         filtered = filtered.filter(slot => {
           const slotDate = new Date(slot.booking_date);
@@ -112,12 +113,13 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
 
   // Load timeslots when infrastructure changes
   useEffect(() => {
-    if (infrastructureId) {
-      fetchTimeslots();
+    if (selectedInfrastructure) {
+      setTimeslots(items);
+      setIsLoading(false);
     } else {
-      setTimeslots([]);
+      setIsLoading(true);
     }
-  }, [infrastructureId]);
+  }, [selectedInfrastructure]);
 
   // Clear selected slots when filtered timeslots change
   useEffect(() => {
@@ -126,23 +128,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       prev.filter(id => filteredTimeslots.some(slot => slot.id === id))
     );
   }, [filteredTimeslots]);
-
-  const fetchTimeslots = async () => {
-    if (!infrastructureId) return;
-
-    try {
-      setIsLoading(true);
-
-      // Use the imported API function instead of direct fetch
-      const data = await fetchInfrastAllTimeslots(infrastructureId);
-      setTimeslots(data);
-    } catch (error) {
-      console.error('Error fetching timeslots:', error);
-      onError('Error loading timeslots. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleDeleteTimeslots = async (ids: number[]) => {
     if (ids.length === 0) return;
@@ -157,7 +142,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       setSelectedSlots(prev => prev.filter(id => !ids.includes(id)));
 
       // Refresh the data
-      fetchTimeslots();
+      onDataChange();
     } catch (error) {
       console.error('Error canceling timeslots:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');
@@ -266,7 +251,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       {isLoading ? (
         <div className="text-center py-10">Loading timeslots...</div>
       ) : (
-        <div className="rounded-md border border-gray-700">
+        <div className="rounded-md border border-gray-700 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="border-gray-700">

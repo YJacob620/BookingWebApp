@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -18,7 +17,7 @@ import {
 import { Infrastructure, fetchInfrastructures } from '@/_utils';
 
 interface InfrastructureSelectorProps {
-  onSelectInfrastructure: (infrastructureId: number, infrastructure: Infrastructure) => void;
+  onSelectInfrastructure: (infrastructure: Infrastructure) => void;
   onError: (message: string) => void;
 }
 
@@ -40,7 +39,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
     if (selectedInfraId) {
       const selectedInfra = infrastructures.find(i => i.id === selectedInfraId);
       if (selectedInfra) {
-        onSelectInfrastructure(selectedInfraId, selectedInfra);
+        onSelectInfrastructure(selectedInfra);
       }
     }
   }, [selectedInfraId, infrastructures, onSelectInfrastructure]);

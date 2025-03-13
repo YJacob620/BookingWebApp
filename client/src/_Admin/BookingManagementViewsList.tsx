@@ -24,26 +24,22 @@ import {
   getStatusColor,
   calculateDuration,
   formatStatus,
-  CalendarItem
+  BookingEntry
 } from '@/_utils';
 
 interface BookingsListViewProps {
-  items: CalendarItem[];
-  onStatusChange: () => void;
-  onError: (message: string) => void;
+  items: BookingEntry[];
 }
 
 const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
-  items,
-  onStatusChange,
-  onError
+  items
 }) => {
   return (
     <div>
-      <div className="rounded-md border border-gray-700">
+      <div className="rounded-md border border-gray-700 overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow className="border-gray-700">
+          <TableHeader className="">
+            <TableRow>
               <TableHead className="text-center">Type</TableHead>
               <TableHead className="text-center">Date</TableHead>
               <TableHead className="text-center">Time</TableHead>
@@ -57,9 +53,10 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
             {items.length > 0 ? (
               items.map((item) => {
                 // Generate a unique key for this row
-                const rowKey = `${item.type}-${item.id}`;
-                const hasPurpose = item.purpose && item.purpose.trim().length > 0;
-                const needsTruncation = hasPurpose && item.purpose.length > 30;
+                const rowKey = `${item.booking_type}-${item.id}`;
+                const purpose = item.purpose || '';
+                const hasPurpose = purpose.trim().length > 0;
+                const needsTruncation = hasPurpose && purpose.length > 30;
 
                 // Function to preserve newlines in text
                 const formatPurposeText = (text: string) => {
@@ -77,7 +74,7 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
                     className="border-gray-700 def-hover"
                   >
                     <TableCell className="text-center">
-                      {item.type === 'timeslot' ? (
+                      {item.booking_type === 'timeslot' ? (
                         <Badge className="bg-blue-700">
                           <Calendar className="h-3 w-3 mr-1" />
                           Timeslot
@@ -90,7 +87,7 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                      {formatDate(item.date)}
+                      {formatDate(item.booking_date)}
                     </TableCell>
                     <TableCell className="text-center whitespace-nowrap">
                       {formatTimeString(item.start_time)} - {formatTimeString(item.end_time)}
@@ -100,7 +97,7 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge className={getStatusColor(item.status)}>
-                        {formatStatus(item.type, item.status)}
+                        {formatStatus(item.booking_type, item.status)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
@@ -117,15 +114,15 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
                               className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer hover:text-blue-500"
                               title="Click to view full text"
                             >
-                              {needsTruncation ? item.purpose.substring(0, 30) + "..." : item.purpose}
+                              {needsTruncation ? purpose.substring(0, 30) + "..." : item.purpose}
                             </div>
                           </PopoverTrigger>
                           <PopoverContent
                             className="w-100 max-h-60 overflow-auto bg-gray-900"
-                            dir={/[\u0590-\u05FF]/.test(item.purpose) ? "rtl" : "ltr"}
+                            dir={/[\u0590-\u05FF]/.test(purpose) ? "rtl" : "ltr"}
                           >
                             <div className="text-sm whitespace-pre-wrap">
-                              {formatPurposeText(item.purpose)}
+                              {formatPurposeText(purpose)}
                             </div>
                           </PopoverContent>
                         </Popover>

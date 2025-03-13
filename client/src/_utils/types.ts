@@ -78,6 +78,26 @@ export interface CalendarItem {
   purpose?: string;
 }
 
+/**
+ * Combined interface representing both booking and timeslot entries
+ * from the unified API endpoint
+ */
+export interface BookingEntry {
+  id: number;
+  booking_type: 'booking' | 'timeslot';
+  infrastructure_id: number;
+  infrastructure_name?: string;
+  infrastructure_location?: string | null;
+  booking_date: Date;
+  start_time: string;
+  end_time: string;
+  status: string;
+  user_email: string | null;
+  user_role: string;
+  purpose: string | null;
+  created_at: string;
+}
+
 export interface BatchCreationPayload {
   infrastructureID: number;
   startDate: string;

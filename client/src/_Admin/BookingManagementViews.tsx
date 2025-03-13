@@ -3,108 +3,43 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, List } from "lucide-react";
 
 import BookingManagementViewsCalendar from './BookingManagementViewsCalendar';
 import BookingManagementViewsList from './BookingManagementViewsList';
 
 import {
-  Infrastructure,
-  CalendarItem,
-  fetchInfrastAllTimeslots,
-  fetchInfrastructureBookings
+  BookingEntry,
 } from '@/_utils';
 
 
-interface CalendarListViewProps {
-  infrastructureId: number;
-  selectedInfrastructure: Infrastructure | undefined;
-  refreshTrigger: number;
-  onDateClick: (date: string) => void;
+interface BookingManagementViewsProps {
+  bookingEntries: BookingEntry[];
   onError: (message: string) => void;
+  onDataChange: () => void;
 }
 
-const BookingManagementViews: React.FC<CalendarListViewProps> = ({
-  infrastructureId,
-  selectedInfrastructure,
-  refreshTrigger,
-  onDateClick,
-  onError
+const BookingManagementViews: React.FC<BookingManagementViewsProps> = ({
+  bookingEntries,
+  onError,
+  onDataChange
 }) => {
   // State management
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
-  const [calendarItems, setCalendarItems] = useState<CalendarItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState<string>('');
   const [showOnly, setShowOnly] = useState<'all' | 'timeslots' | 'bookings'>('all');
 
   // Load data when component mounts or when refreshTrigger changes
   useEffect(() => {
-    if (infrastructureId) {
-      fetchCalendarData();
-    }
-  }, [infrastructureId, refreshTrigger]);
-
-  // Fetch both timeslots and bookings
-  const fetchCalendarData = async () => {
-    try {
-      setIsLoading(true);
-
-      // Calculate month range
-      const currentMonth = new Date();
-      const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth();
-      const firstDay = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0);
-
-      const startDate = firstDay.toISOString().split('T')[0];
-      const endDate = lastDay.toISOString().split('T')[0];
-
-      // Use the API utilities with date parameters
-      const timeslots = await fetchInfrastAllTimeslots(infrastructureId, {
-        startDate,
-        endDate
-      });
-
-      const bookings = await fetchInfrastructureBookings(infrastructureId, {
-        startDate,
-        endDate
-      });
-
-      // Transform data for unified display
-      const combinedItems: CalendarItem[] = [
-        ...timeslots.map((ts: any) => ({
-          type: 'timeslot' as const,
-          id: ts.id,
-          date: ts.booking_date,
-          start_time: ts.start_time,
-          end_time: ts.end_time,
-          status: ts.status
-        })),
-        ...bookings.map((booking: any) => ({
-          type: 'booking' as const,
-          id: booking.id,
-          date: booking.booking_date,
-          start_time: booking.start_time,
-          end_time: booking.end_time,
-          status: booking.status,
-          user_email: booking.user_email,
-          purpose: booking.purpose
-        }))
-      ];
-
-      setCalendarItems(combinedItems);
-    } catch (error) {
-      console.error('Error fetching calendar data:', error);
-      onError('Error loading calendar data');
-    } finally {
+    if (bookingEntries) {
       setIsLoading(false);
+    } else {
+      setIsLoading(true);
     }
-  };
+  }, [bookingEntries]);
 
-
-  // Handle date selection from calendar view
   const handleCalendarDateClick = (date: string) => {
     setDateFilter(date);
     setViewMode('list');
@@ -112,11 +47,10 @@ const BookingManagementViews: React.FC<CalendarListViewProps> = ({
 
   // Filter calendar items based on date and type
   const filteredItems = useMemo(() => {
-    return calendarItems.filter(item => {
-      // Apply date filtering more precisely, comparing year/month/day components
+    return bookingEntries.filter(item => {
       let dateMatches = true;
       if (dateFilter) {
-        const itemDate = new Date(item.date);
+        const itemDate = new Date(item.booking_date);
         const filterDate = new Date(dateFilter);
 
         dateMatches = (
@@ -129,12 +63,12 @@ const BookingManagementViews: React.FC<CalendarListViewProps> = ({
       // Filter by type if showOnly is not 'all'
       const typeMatches =
         showOnly === 'all' ||
-        (showOnly === 'timeslots' && item.type === 'timeslot') ||
-        (showOnly === 'bookings' && item.type === 'booking');
+        (showOnly === 'timeslots' && item.booking_type === 'timeslot') ||
+        (showOnly === 'bookings' && item.booking_type === 'booking');
 
       return dateMatches && typeMatches;
     });
-  }, [calendarItems, dateFilter, showOnly]);
+  }, [dateFilter, showOnly]);
 
   // Clear date filter
   const handleClearDateFilter = () => {
@@ -217,7 +151,7 @@ const BookingManagementViews: React.FC<CalendarListViewProps> = ({
         <div className="mt-6">
           {viewMode === 'calendar' ? (
             <BookingManagementViewsCalendar
-              items={calendarItems}
+              bookingEntries={bookingEntries}
               showOnly={showOnly}
               dateFilter={dateFilter}
               onDateClick={handleCalendarDateClick}
@@ -225,12 +159,10 @@ const BookingManagementViews: React.FC<CalendarListViewProps> = ({
           ) : (
             <BookingManagementViewsList
               items={filteredItems}
-              onStatusChange={() => fetchCalendarData()}
-              onError={onError}
             />
           )}
 
-          {!isLoading && calendarItems.length === 0 && (
+          {!isLoading && bookingEntries.length === 0 && (
             <div className="text-center py-8 text-gray-400">
               No bookings or timeslots for this infrastructure.
             </div>

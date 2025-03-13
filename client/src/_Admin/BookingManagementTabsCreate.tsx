@@ -14,19 +14,22 @@ import {
   isEndTimeAfterStartTime,
   isTimeFormatValid,
   createTimeslots,
-  BatchCreationPayload
+  BatchCreationPayload,
+  Infrastructure
 } from "@/_utils";
 
 interface BookingManagementTabsCreateProps {
-  infrastructureId: number;
+  selectedInfrastructure: Infrastructure;
   onSuccess: (message: string) => void;
   onError: (message: string) => void;
+  onDataChange: () => void;
 }
 
 const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = ({
-  infrastructureId,
+  selectedInfrastructure,
   onSuccess,
-  onError
+  onError,
+  onDataChange
 }) => {
   // Shared state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,7 +73,7 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
     // Use the batch endpoint with single day parameters
     const payload: BatchCreationPayload = {
-      infrastructureID: infrastructureId,
+      infrastructureID: selectedInfrastructure.id,
       startDate: format(singleDate, "yyyy-MM-dd"),
       endDate: format(singleDate, "yyyy-MM-dd"),
       dailyStartTime: startTime,
@@ -111,7 +114,7 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
     }
 
     const payload: BatchCreationPayload = {
-      infrastructureID: infrastructureId,
+      infrastructureID: selectedInfrastructure.id,
       startDate: format(startDate, "yyyy-MM-dd"),
       endDate: format(endDate, "yyyy-MM-dd"),
       dailyStartTime,
