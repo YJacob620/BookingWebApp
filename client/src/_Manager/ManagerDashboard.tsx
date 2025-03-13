@@ -71,7 +71,7 @@ const ManagerDashboard: React.FC = () => {
                     </CardContent>
                 </Card>
 
-                <EmailPreferencesToggle className="mt-6" />
+                <EmailPreferencesToggle />
 
                 {error && (
                     <Alert className="alert-error mb-6">
@@ -89,7 +89,8 @@ const ManagerDashboard: React.FC = () => {
                     </Link>
                 </div>
 
-                <h2 className="text-xl font-semibold mb-4">Your Assigned Infrastructures</h2>
+                <h2 className="text-xl font-semibold">Your Assigned Infrastructures</h2>
+                <p className='explanation-text1 mb-4'>Click on one to manage its bookings and timeslots</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {infrastructures.map((infra) => (

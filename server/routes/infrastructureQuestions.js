@@ -8,12 +8,54 @@ router.get('/:infrastructureId/questions',
     authenticateToken,
     async (req, res) => {
         const { infrastructureId } = req.params;
+        const userId = req.user.userId;
+        const userRole = req.user.role;
 
         try {
+            // First, check if the infrastructure exists and get its status
+            const [infrastructures] = await pool.execute(
+                'SELECT * FROM infrastructures WHERE id = ?',
+                [infrastructureId]
+            );
+
+            if (infrastructures.length === 0) {
+                return res.status(404).json({ message: 'Infrastructure not found' });
+            }
+
+            const infrastructure = infrastructures[0];
+
+            // Different access rules based on user role
+            if (userRole === 'admin') {
+                // Admins can access any infrastructure's questions
+                // No additional checks needed
+            } else if (userRole === 'infrastructure_manager') {
+                // Managers can only access infrastructures assigned to them
+                const [managerAccess] = await pool.execute(
+                    'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
+                    [userId, infrastructureId]
+                );
+
+                if (managerAccess.length === 0) {
+                    return res.status(403).json({
+                        message: 'You do not have permission to access questions for this infrastructure'
+                    });
+                }
+            } else {
+                // Regular users (student, faculty, guest) can only see questions for active infrastructures
+                // and only when they need to book
+                if (!infrastructure.is_active) {
+                    return res.status(403).json({
+                        message: 'This infrastructure is currently inactive'
+                    });
+                }
+            }
+
+            // If we get here, the user has permission to view the questions
             const [rows] = await pool.execute(
                 'SELECT * FROM infrastructure_questions WHERE infrastructure_id = ? ORDER BY display_order',
                 [infrastructureId]
             );
+
             res.json(rows);
         } catch (error) {
             console.error('Error fetching questions:', error);

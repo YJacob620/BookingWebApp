@@ -90,6 +90,35 @@ export const bookTimeslot = (data: { timeslot_id: number, purpose: string }) => 
 };
 
 /**
+ * Request a booking with additional form data (for questions and file uploads)
+ * @param formData - FormData object containing timeslot_id, purpose, and answers
+ * @returns Promise with booking response
+ */
+export const bookTimeslotWithAnswers = async (formData: FormData) => {
+  const token = localStorage.getItem('token');
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Note: Don't set Content-Type for FormData, browser will set it with boundary
+
+  const response = await fetch(`${API_BASE_URL}/bookings/request-with-answers`, {
+    method: 'POST',
+    headers,
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `API request failed with status ${response.status}`);
+  }
+
+  return response.json();
+};
+
+/**
  * Cancel a booking (user)
 */
 export const userCancelBooking = (id: number) => {

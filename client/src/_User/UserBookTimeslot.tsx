@@ -26,7 +26,9 @@ import {
   BookingEntry,
   fetchActiveInfrastructures,
   bookTimeslot,
-  fetchInfrastAvailTimeslots
+  fetchInfrastAvailTimeslots,
+  bookTimeslotWithAnswers,
+  fetchInfrastructureQuestions
 } from '@/_utils';
 import { LOGIN, USER_DASHBOARD } from '@/RoutePaths';
 
@@ -131,44 +133,89 @@ const BookTimeslot = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required answers
-    const missingRequired = questions
-      .filter(q => q.is_required)
-      .filter(q => !answers[q.id])
-      .map(q => q.question_text);
-
-    if (missingRequired.length > 0) {
+    if (!selectedTimeslotId) {
       setMessage({
         type: 'error',
-        text: `Please answer the following required questions: ${missingRequired.join(', ')}`
+        text: 'Please select a timeslot'
       });
       return;
     }
 
+    // Validate required answers if there are questions
+    if (questions.length > 0) {
+      const missingRequired = questions
+        .filter(q => q.is_required)
+        .filter(q => !answers[q.id])
+        .map(q => q.question_text);
+
+      if (missingRequired.length > 0) {
+        setMessage({
+          type: 'error',
+          text: `Please answer the following required questions: ${missingRequired.join(', ')}`
+        });
+        return;
+      }
+    }
+
     // Create FormData for file uploads
     const formData = new FormData();
-    formData.append('timeslot_id', selectedTimeslotId);
+    formData.append('timeslot_id', selectedTimeslotId.toString());
     formData.append('purpose', purpose);
 
-    // Add answers to form data
-    Object.entries(answers).forEach(([questionId, answer]) => {
-      if (answer instanceof File) {
-        formData.append(`answers[${questionId}]`, answer);
-      } else {
-        formData.append(`answers[${questionId}]`, answer);
-      }
-    });
+    // Add answers to form data if there are questions
+    if (questions.length > 0) {
+      Object.entries(answers).forEach(([questionId, answer]) => {
+        if (answer instanceof File) {
+          formData.append(`answers[${questionId}]`, answer);
+        } else if (answer !== null && answer !== undefined) {
+          formData.append(`answers[${questionId}]`, answer.toString());
+        }
+      });
+    }
 
     try {
-      // Use an updated booking function that handles FormData
-      await bookTimeslotWithAnswers(formData);
-      // Rest of the success logic...
+      setIsLoading(true);
+      // If there are no questions, use regular bookTimeslot
+      if (questions.length === 0) {
+        await bookTimeslot({
+          timeslot_id: selectedTimeslotId,
+          purpose: purpose
+        });
+      } else {
+        // Use FormData version for questions and file uploads
+        await bookTimeslotWithAnswers(formData);
+      }
+
+      // Success logic
+      setMessage({
+        type: 'success',
+        text: 'Your booking request has been submitted successfully!'
+      });
+
+      // Reset form
+      setSelectedTimeslotId(null);
+      setPurpose('');
+      setSelectedDate(undefined);
+
+      // Reset answers
+      const initialAnswers = {};
+      questions.forEach(q => {
+        initialAnswers[q.id] = q.question_type === 'document' ? null : '';
+      });
+      setAnswers(initialAnswers);
+
+      // Redirect to booking history after a delay
+      setTimeout(() => {
+        navigate('/booking-history');
+      }, 3000);
     } catch (error) {
       console.error('Error creating booking:', error);
       setMessage({
         type: 'error',
         text: error instanceof Error ? error.message : 'An error occurred while creating your booking'
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 

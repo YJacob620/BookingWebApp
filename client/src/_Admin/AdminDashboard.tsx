@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button.tsx";
-import { LogOut, Calendar, Database, Users, HelpCircle } from "lucide-react";
+import { LogOut, Calendar, Database, Users } from "lucide-react";
 
 import { useAdminAuth } from './useAdminAuth.tsx';
 import { LOGIN } from '@/RoutePaths';

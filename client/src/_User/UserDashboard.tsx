@@ -109,7 +109,7 @@ const UserDashboard = () => {
         </Card>
 
         {/* Quick actions */}
-        <EmailPreferencesToggle className="mt-6" />
+        <EmailPreferencesToggle />
         <div className="mb-8">
           <Link to="/create-booking">
             <Button className="bg-blue-600 hover:bg-blue-700">
