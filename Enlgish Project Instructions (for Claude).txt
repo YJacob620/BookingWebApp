@@ -1,2 +1,0 @@
-The purpose of this project is to create a timeslot-booking web app in React + Vite (follow the Vite + React template structure).
-When asked to modify an uploaded code-file (for example UserDashBoard.tsx), also see if changes should be made in other uploaded files - especially if they are referenced in the prompt.
