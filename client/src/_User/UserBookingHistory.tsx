@@ -36,6 +36,7 @@ import {
   BookingStatus
 } from '@/_utils';
 import { LOGIN, USER_DASHBOARD } from '@/RoutePaths';
+import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
 
 
 
@@ -235,7 +236,7 @@ const BookingHistory = () => {
           <p className="explanation-text1 py-2">You can only cancel bookings if they don't occur in the next 24 hours.</p>
           <CardContent>
             {filteredBookings.length > 0 ? (
-              <div className="rounded-md border border-gray-700">
+              <div className="rounded-md border border-gray-700 overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-700">
@@ -271,16 +272,11 @@ const BookingHistory = () => {
                             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                           </Badge>
                         </TableCell>
-
-                        <TableCell
-                          className="relative max-w-xs overflow-hidden text-ellipsis whitespace-nowrap"
-                          dir={/[\u0590-\u05FF]/.test(booking.purpose) ? "rtl" : "ltr"}
-                        >
-                          <span title={booking.purpose}>
-                            {booking.purpose.length > 30 ? booking.purpose.substring(0, 30) + "..." : booking.purpose}
-                          </span>
-                        </TableCell>
-
+                        <TruncatedTextCell
+                          text={booking.purpose}
+                          maxLength={30}
+                          cellClassName="text-center"
+                        />
                         <TableCell className="text-center">
                           {(booking.status === 'pending' || booking.status === 'approved') && (() => {
                             const isWithin24h = isWithin24Hours(booking.booking_date, booking.start_time);

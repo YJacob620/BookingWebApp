@@ -121,7 +121,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
                             required
                             value={formData.description}
                             onChange={handleInputChange}
-                            className="h-32 resize-none"
+                            className="h-32"
                         />
                     </div>
 

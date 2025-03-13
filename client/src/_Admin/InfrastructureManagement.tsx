@@ -125,7 +125,7 @@ const InfrastructureManagement: React.FC = () => {
     }
 
     return (
-        <Card className="general-container">
+        <Card className="general-container w-210">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-start mb-6">
                     <Button

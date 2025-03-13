@@ -78,7 +78,8 @@ const VerificationPendingPage: React.FC = () => {
           </p>
 
           <div className="space-y-4">
-            <p>Click the link in the email to verify your account.</p>
+            {/* Use the dynamic message here */}
+            <p>{message}</p>
             <p className="text-sm explanation-text1">If you don't see the email, check your spam folder.</p>
           </div>
 

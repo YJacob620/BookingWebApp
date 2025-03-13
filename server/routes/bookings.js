@@ -310,7 +310,7 @@ router.get('/:infrastructureId/all-entries', authenticateToken, verifyAdmin, asy
         }
 
         // Order by date and time for consistent display
-        query += ' ORDER BY b.booking_date ASC, b.start_time ASC';
+        query += ' ORDER BY b.booking_date DESC, b.start_time ASC';
 
         // Add limit if specified (for pagination support)
         if (limit && !isNaN(parseInt(limit))) {

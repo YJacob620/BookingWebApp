@@ -36,6 +36,7 @@ import {
   Infrastructure,
   BookingEntry,
 } from '@/_utils';
+import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
 
 interface BookingListProps {
   items: BookingEntry[];
@@ -348,19 +349,11 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                     <TableCell className="text-center whitespace-nowrap">
                       {formatTimeString(booking.start_time)} - {formatTimeString(booking.end_time)}
                     </TableCell>
-                    <TableCell
-                      className="relative max-w-xs overflow-hidden text-ellipsis whitespace-nowrap"
-                      dir={/[\u0590-\u05FF]/.test(booking.purpose || '') ? "rtl" : "ltr"}
-                    >
-                      {(() => {
-                        const purpose = booking.purpose || ''; // Ensures it's always a string
-                        return (
-                          <span title={purpose}>
-                            {purpose.length > 30 ? purpose.substring(0, 30) + "..." : purpose}
-                          </span>
-                        );
-                      })()}
-                    </TableCell>
+                    <TruncatedTextCell
+                      text={booking.purpose}
+                      maxLength={30}
+                      cellClassName="text-center"
+                    />
                     <TableCell className="text-center">
                       {/* Use shared utility for status color */}
                       <Badge className={getStatusColor(booking.status)}>

@@ -177,7 +177,7 @@ const UserDashboard = () => {
                 </Table>
               </div>
             ) : (
-              <p className="text-center py-8 text-gray-400">
+              <p className="text-center py-8 explanation-text1">
                 You don't have any bookings yet.
               </p>
             )}

@@ -143,8 +143,6 @@ const BookingManagement: React.FC = () => {
                         </p>
                         <BookingManagementViews
                             bookingEntries={bookingEntries}
-                            onError={handleError}
-                            onDataChange={() => setRefreshTrigger(prev => prev + 1)}
                         />
 
                         <p className="text-xl">Manage Bookings and Timeslots</p>

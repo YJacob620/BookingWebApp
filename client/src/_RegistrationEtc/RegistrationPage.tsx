@@ -232,7 +232,7 @@ const RegistrationPage: React.FC = () => {
                                 {errors.password && (
                                     <p className="text-red-500 text-sm mt-1">{errors.password}</p>
                                 )}
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs explanation-text1">
                                     <Info className="inline mr-1 h-3 w-3" />
                                     Password must be at least 8 characters
                                 </p>
@@ -283,7 +283,7 @@ const RegistrationPage: React.FC = () => {
                             </Button>
 
                             <div className="text-center mt-4">
-                                <p className="text-gray-400">
+                                <p className="explanation-text1">
                                     Already have an account?{" "}
                                     <Link to="/login" className="text-blue-400 hover:underline">
                                         Log in

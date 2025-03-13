@@ -97,24 +97,6 @@ h1 {
   font-weight: 700;
 }
 
-/* Change from 'button' to be more specific */
-/* button:not([role="checkbox"]) {
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  border-color: #363636;
-  cursor: pointer;
-  transition: border-color 0.25s;
-  color: #ffffff;
-}
-
-button:not([role="checkbox"]):hover {
-  border-color: #ffffff;
-} */
-
 input {
   @apply bg-gray-700 border-gray-600;
 }
@@ -161,10 +143,6 @@ textarea:hover {
 .checkbox1:hover {
   @apply border-white;
 }
-
-/* .sort-button {
-  @apply !bg-transparent !p-0 !border-none;
-} */
 
 .back-button {
   @apply bg-zinc-950 h-8;

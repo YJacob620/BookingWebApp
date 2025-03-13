@@ -21,11 +21,6 @@ const API_BASE_URL = 'http://localhost:3001/api';
  */
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
-
-  // const headers = {
-  //   'Content-Type': 'application/json',
-  //   ...options.headers,
-  // };
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>)
@@ -69,8 +64,6 @@ export const fetchInfrastructureById = (id: number) => {
   return apiRequest(`/infrastructures/${id}`);
 };
 
-// Booking API
-
 /**
  * Fetch user's recent bookings
  */
@@ -104,13 +97,6 @@ export const userCancelBooking = (id: number) => {
   });
 };
 
-// export const updateBookingStatus = (bookingId: number, status: string) => {
-//   return apiRequest(/bookings/${bookingId}/booking-status, {
-//     method: 'PUT',
-//     body: JSON.stringify({ status }),
-//   });
-// };
-
 /**
  * Aprove a booking (admin)
 */
@@ -138,47 +124,6 @@ export const forceUpdatePastBookings = () => {
     method: 'POST',
   });
 };
-
-// /**
-//  * Fetches bookings for a specific infrastructure (admin only)
-//  * @param infrastructureId - ID of the infrastructure
-//  * @param params - Optional parameters for filtering (startDate, endDate)
-//  * @returns Promise with bookings data
-//  */
-// export const fetchInfrastructureBookings = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
-//   let url = `/bookings/${infrastructureId}/all-bookings`;
-
-//   if (params) {
-//     const queryParams = new URLSearchParams();
-//     if (params.startDate) queryParams.append('startDate', params.startDate);
-//     if (params.endDate) queryParams.append('endDate', params.endDate);
-
-//     if (queryParams.toString()) {
-//       url += `?${queryParams.toString()}`;
-//     }
-//   }
-
-//   return apiRequest(url);
-// };
-
-// /**
-//  * Fetches all timeslots for an infrastructure (admin only)
-//  */
-// export const fetchInfrastAllTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
-//   let url = `/bookings/${infrastructureId}/all-timeslots`;
-
-//   if (params) {
-//     const queryParams = new URLSearchParams();
-//     if (params.startDate) queryParams.append('startDate', params.startDate);
-//     if (params.endDate) queryParams.append('endDate', params.endDate);
-
-//     if (queryParams.toString()) {
-//       url += `?${queryParams.toString()}`;
-//     }
-//   }
-
-//   return apiRequest(url);
-// };
 
 /**
  * Fetches all booking entries (both bookings and timeslots) for a specific infrastructure (admin only)
@@ -239,7 +184,7 @@ export const toggleInfrastructureStatus = (id: number) => {
 };
 
 /**
- * Fetches only available timeslots for an infrastructure (for user)
+ * Fetches available (only) timeslots for an infrastructure (for user)
  */
 export const fetchInfrastAvailTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
   let url = `/bookings/${infrastructureId}/available-timeslots`;

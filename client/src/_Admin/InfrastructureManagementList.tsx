@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Infrastructure } from '@/_utils';
+import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
 
 interface SortConfig {
     key: keyof Infrastructure | null;
@@ -72,14 +73,29 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                 if (aValue === null) return 1;
                 if (bValue === null) return -1;
 
-                // Now we can safely compare non-null values
-                if (aValue < bValue) {
-                    return sortConfig.direction === 'asc' ? -1 : 1;
+                // For string comparison
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    return sortConfig.direction === 'asc'
+                        ? aValue.localeCompare(bValue)
+                        : bValue.localeCompare(aValue);
                 }
-                if (aValue > bValue) {
-                    return sortConfig.direction === 'asc' ? 1 : -1;
+
+                // For boolean comparison
+                if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+                    if (aValue === bValue) return 0;
+                    return sortConfig.direction === 'asc'
+                        ? (aValue ? 1 : -1)
+                        : (aValue ? -1 : 1);
                 }
-                return 0;
+
+                // For number comparison
+                if (typeof aValue === 'number' && typeof bValue === 'number') {
+                    return sortConfig.direction === 'asc'
+                        ? aValue - bValue
+                        : bValue - aValue;
+                }
+
+                return 0; // Default case
             });
         }
 
@@ -108,7 +124,6 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                         <Button
                                             variant="ghost"
                                             onClick={() => handleSort('name')}
-                                        // className="sort-button"
                                         >
                                             Name
                                             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -117,7 +132,6 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                     <TableHead>Description</TableHead>
                                     <TableHead>
                                         <Button
-                                            // className="sort-button"
                                             variant="ghost"
                                             onClick={() => handleSort('location')}
                                         >
@@ -136,11 +150,11 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                             <TableCell className="font-medium text-center">
                                                 {infra.name}
                                             </TableCell>
-                                            <TableCell className="text-center">
-                                                {infra.description.length > 100
-                                                    ? `${infra.description.substring(0, 100)}...`
-                                                    : infra.description}
-                                            </TableCell>
+                                            <TruncatedTextCell
+                                                text={infra.description}
+                                                maxLength={40}
+                                                cellClassName="text-center"
+                                            />
                                             <TableCell className="text-center">
                                                 {infra.location || 'N/A'}
                                             </TableCell>
@@ -167,7 +181,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                                             Edit
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            onClick={() => onToggleStatus(infra.id, infra.is_active)}
+                                                            onClick={() => onToggleStatus(infra.id, infra.is_active ?? false)}
                                                             className="hover:bg-gray-500"
                                                         >
                                                             {infra.is_active ? 'Set Inactive' : 'Set Active'}

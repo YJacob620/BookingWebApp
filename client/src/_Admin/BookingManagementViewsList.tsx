@@ -13,11 +13,6 @@ import {
   ArrowUpDown
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -28,6 +23,7 @@ import {
   formatStatus,
   BookingEntry
 } from '@/_utils';
+import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
 
 interface BookingsListViewProps {
   items: BookingEntry[];
@@ -173,19 +169,6 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
               sortedItems.map((item) => {
                 // Generate a unique key for this row
                 const rowKey = `${item.booking_type}-${item.id}`;
-                const purpose = item.purpose || '';
-                const hasPurpose = purpose.trim().length > 0;
-                const needsTruncation = hasPurpose && purpose.length > 30;
-
-                // Function to preserve newlines in text
-                const formatPurposeText = (text: string) => {
-                  return text.split('\n').map((line, i) => (
-                    <React.Fragment key={i}>
-                      {line}
-                      {i < text.split('\n').length - 1 && <br />}
-                    </React.Fragment>
-                  ));
-                };
 
                 return (
                   <TableRow
@@ -222,33 +205,11 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
                     <TableCell className="text-center">
                       {item.user_email || 'N/A'}
                     </TableCell>
-                    <TableCell
-                      dir={/[\u0590-\u05FF]/.test(item.purpose ?? "") ? "rtl" : "ltr"}
-                      className="relative"
-                    >
-                      {hasPurpose ? (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <div
-                              className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer hover:text-blue-500"
-                              title="Click to view full text"
-                            >
-                              {needsTruncation ? purpose.substring(0, 30) + "..." : item.purpose}
-                            </div>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            className="w-100 max-h-60 overflow-auto bg-gray-900"
-                            dir={/[\u0590-\u05FF]/.test(purpose) ? "rtl" : "ltr"}
-                          >
-                            <div className="text-sm whitespace-pre-wrap">
-                              {formatPurposeText(purpose)}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      ) : (
-                        <span>N/A</span>
-                      )}
-                    </TableCell>
+                    <TruncatedTextCell
+                      text={item.purpose}
+                      maxLength={30}
+                      cellClassName="text-center"
+                    />
                   </TableRow>
                 );
               })
