@@ -300,7 +300,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       {isLoading ? (
         <div className="text-center py-10">Loading bookings...</div>
       ) : (
-        <div className="rounded-md border border-gray-700 overflow-hidden">
+        <div className="table-wrapper">
           <Table>
             <TableHeader>
               <TableRow className="border-gray-700">

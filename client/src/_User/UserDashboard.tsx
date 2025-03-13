@@ -18,7 +18,7 @@ import {
   formatDate,
   formatTimeString,
   getStatusColor,
-  Booking,
+  BookingEntry,
   fetchUserBookings as fetchRecentUserBookings
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
@@ -26,7 +26,7 @@ import { LOGIN } from '@/RoutePaths';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{ name: string, email: string } | null>(null);
@@ -137,7 +137,7 @@ const UserDashboard = () => {
           </CardHeader>
           <CardContent>
             {bookings.length > 0 ? (
-              <div className="rounded-md border border-gray-700">
+              <div className="table-wrapper">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-700">

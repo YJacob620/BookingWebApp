@@ -184,6 +184,10 @@ textarea:hover {
   @apply w-auto h-auto p-0 bg-gray-900;
 }
 
+.table-wrapper {
+  @apply rounded-md border border-gray-700 overflow-hidden;
+}
+
 @layer base {
   * {
     @apply border-gray-400;

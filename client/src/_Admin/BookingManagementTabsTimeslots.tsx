@@ -149,12 +149,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     }
   };
 
-  // Check if duration exceeds max booking duration
-  const isOverMaxDuration = (duration: number): boolean => {
-    return !!selectedInfrastructure?.max_booking_duration &&
-      duration > selectedInfrastructure.max_booking_duration;
-  };
-
   return (
     <div className="space-y-4">
       {/* Description section - without update button */}
@@ -251,7 +245,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       {isLoading ? (
         <div className="text-center py-10">Loading timeslots...</div>
       ) : (
-        <div className="rounded-md border border-gray-700 overflow-hidden">
+        <div className="table-wrapper">
           <Table>
             <TableHeader>
               <TableRow className="border-gray-700">
@@ -268,7 +262,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
               {filteredTimeslots.length > 0 ? (
                 filteredTimeslots.map((slot) => {
                   const duration = calculateDuration(slot.start_time, slot.end_time);
-                  const isExceedingMaxDuration = isOverMaxDuration(duration);
 
                   return (
                     <TableRow
@@ -303,11 +296,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           {duration} minutes
-                          {isExceedingMaxDuration && (
-                            <Badge variant="destructive" className="text-xs">
-                              Exceeds max
-                            </Badge>
-                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-center">

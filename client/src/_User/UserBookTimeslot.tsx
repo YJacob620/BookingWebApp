@@ -18,12 +18,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format, isBefore, startOfDay, parseISO } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
 import { Spinner } from '@/components/ui/spinner';
 
 import {
   Infrastructure,
-  Timeslot,
+  BookingEntry,
   fetchActiveInfrastructures,
   bookTimeslot,
   fetchInfrastAvailTimeslots
@@ -35,8 +35,8 @@ const BookTimeslot = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
-  const [allTimeslots, setAllTimeslots] = useState<Timeslot[]>([]);
-  const [availableTimeslots, setAvailableTimeslots] = useState<Timeslot[]>([]);
+  const [allTimeslots, setAllTimeslots] = useState<BookingEntry[]>([]);
+  const [availableTimeslots, setAvailableTimeslots] = useState<BookingEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedInfrastructureId, setSelectedInfrastructureId] = useState<number | null>(null);
   const [selectedTimeslotId, setSelectedTimeslotId] = useState<number | null>(null);
@@ -115,7 +115,7 @@ const BookTimeslot = () => {
       const selectedDay = startOfDay(selectedDate).getTime();
 
       const filtered = allTimeslots.filter(slot => {
-        const slotDay = startOfDay(parseISO(slot.booking_date)).getTime();
+        const slotDay = startOfDay(slot.booking_date).getTime();
         return slotDay === selectedDay;
       });
 

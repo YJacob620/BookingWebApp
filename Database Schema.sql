@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS `infrastructures` (
     `id` int NOT NULL AUTO_INCREMENT,
-    `name` varchar(100) NOT NULL UNIQUE,
+    `name` varchar(100) NOT NULL UNIQUE DEFAULT 'infrastructure name',
     `description` text,
     `location` varchar(100) DEFAULT NULL,
-    `is_active` tinyint DEFAULT '1',
+    `is_active` tinyint NOT NULL DEFAULT '1',
     PRIMARY KEY (`id`),
     UNIQUE KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

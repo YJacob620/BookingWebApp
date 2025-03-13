@@ -21,7 +21,6 @@ export interface Infrastructure {
   description?: string;
   location?: string | null;
   is_active?: boolean;
-  max_booking_duration?: number;
 }
 
 export interface InfrastFormData {
@@ -31,32 +30,7 @@ export interface InfrastFormData {
   is_active: boolean;
 }
 
-export interface Booking {
-  id: number;
-  infrastructure_id: number;
-  infrastructure_name?: string;
-  infrastructure_location?: string | null;
-  user_email: string;
-  user_role?: string;
-  booking_date: Date;
-  start_time: string;
-  end_time: string;
-  status: BookingEntryStatus;
-  purpose: string;
-  created_at: Date;
-}
-
-export type BookingEntryStatus =
-  | 'available' | 'pending' | 'approved' | 'rejected' | 'completed' | 'expired' | 'canceled';
-
-export interface Timeslot {
-  id: number;
-  infrastructure_id: number;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  status: 'available' | 'canceled' | 'expired';
-}
+type BookingEntryStatus = 'available' | 'pending' | 'approved' | 'rejected' | 'completed' | 'expired' | 'canceled';
 
 /**
  * Combined interface representing both booking and timeslot entries.
@@ -65,7 +39,7 @@ export interface BookingEntry {
   id: number;
   booking_type: 'booking' | 'timeslot';
   infrastructure_id: number;
-  infrastructure_name?: string;
+  infrastructure_name: string;
   infrastructure_location?: string | null;
   booking_date: Date;
   start_time: string;

@@ -32,8 +32,7 @@ import {
   fetchAllUserBookings,
   userCancelBooking,
   getDateFilterOptions,
-  Booking,
-  BookingEntryStatus
+  BookingEntry,
 } from '@/_utils';
 import { LOGIN, USER_DASHBOARD } from '@/RoutePaths';
 import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
@@ -42,8 +41,8 @@ import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
 
 const BookingHistory = () => {
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<BookingEntry[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -117,9 +116,9 @@ const BookingHistory = () => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(booking =>
-        booking.infrastructure_name?.toLowerCase().includes(query) ||
+        booking.infrastructure_name.toLowerCase().includes(query) ||
         (booking.infrastructure_location && booking.infrastructure_location.toLowerCase().includes(query)) ||
-        booking.purpose.toLowerCase().includes(query)
+        booking.purpose?.toLowerCase().includes(query)
       );
     }
     setFilteredBookings(filtered);
@@ -141,7 +140,7 @@ const BookingHistory = () => {
       setBookings(prevBookings =>
         prevBookings.map(booking =>
           booking.id === bookingId
-            ? { ...booking, status: 'canceled' as BookingEntryStatus }
+            ? { ...booking, status: 'canceled' }
             : booking
         )
       );
@@ -236,7 +235,7 @@ const BookingHistory = () => {
           <p className="explanation-text1 py-2">You can only cancel bookings if they don't occur in the next 24 hours.</p>
           <CardContent>
             {filteredBookings.length > 0 ? (
-              <div className="rounded-md border border-gray-700 overflow-hidden">
+              <div className="table-wrapper">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-700">

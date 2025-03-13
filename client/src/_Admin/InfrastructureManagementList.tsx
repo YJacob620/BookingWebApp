@@ -116,7 +116,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                 {isLoading ? (
                     <div className="text-center py-10">Loading infrastructures...</div>
                 ) : (
-                    <div className="rounded-md border border-gray-700 overflow-hidden">
+                    <div className="table-wrapper">
                         <Table>
                             <TableHeader>
                                 <TableRow>

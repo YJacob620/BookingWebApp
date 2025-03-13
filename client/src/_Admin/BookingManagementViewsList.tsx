@@ -119,7 +119,7 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
 
   return (
     <div>
-      <div className="rounded-md border border-gray-700 overflow-hidden">
+      <div className="table-wrapper">
         <Table>
           <TableHeader className="">
             <TableRow>
