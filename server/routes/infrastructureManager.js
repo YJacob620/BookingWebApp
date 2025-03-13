@@ -3,6 +3,11 @@ const router = express.Router();
 const pool = require('../config/db');
 const { authenticateToken, verifyInfrastructureManager, verifyInfrastructureAccess } = require('../middleware/authMiddleware');
 
+// Manager verification endpoint
+router.get('/verify', authenticateToken, verifyInfrastructureManager, (req, res) => {
+    res.json({ message: 'Infrastructure manager verified' });
+});
+
 // Get infrastructures managed by the current user (infers user from token)
 router.get('/my-infrastructures', authenticateToken, verifyInfrastructureManager, async (req, res) => {
     try {
