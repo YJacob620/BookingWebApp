@@ -1,6 +1,5 @@
 /* Common interfaces shared across components */
 
-// User related
 export interface User {
   id: number;
   name: string;
@@ -16,7 +15,6 @@ export interface RegistrationFormData {
   role: string;
 }
 
-// Infrastructure related
 export interface Infrastructure {
   id: number;
   name: string;
@@ -33,7 +31,6 @@ export interface InfrastFormData {
   is_active: boolean;
 }
 
-// Booking related
 export interface Booking {
   id: number;
   infrastructure_id: number;
@@ -44,20 +41,14 @@ export interface Booking {
   booking_date: Date;
   start_time: string;
   end_time: string;
-  status: BookingStatus;
+  status: BookingEntryStatus;
   purpose: string;
   created_at: Date;
 }
 
-export type BookingStatus =
-  | 'pending'
-  | 'approved'
-  | 'rejected'
-  | 'completed'
-  | 'expired'
-  | 'canceled';
+export type BookingEntryStatus =
+  | 'available' | 'pending' | 'approved' | 'rejected' | 'completed' | 'expired' | 'canceled';
 
-// Timeslot related
 export interface Timeslot {
   id: number;
   infrastructure_id: number;
@@ -67,20 +58,8 @@ export interface Timeslot {
   status: 'available' | 'canceled' | 'expired';
 }
 
-export interface CalendarItem {
-  type: 'timeslot' | 'booking';
-  id: number;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  user_email?: string;
-  purpose?: string;
-}
-
 /**
- * Combined interface representing both booking and timeslot entries
- * from the unified API endpoint
+ * Combined interface representing both booking and timeslot entries.
  */
 export interface BookingEntry {
   id: number;
@@ -91,7 +70,7 @@ export interface BookingEntry {
   booking_date: Date;
   start_time: string;
   end_time: string;
-  status: string;
+  status: BookingEntryStatus;
   user_email: string | null;
   user_role: string;
   purpose: string | null;
@@ -107,13 +86,11 @@ export interface BatchCreationPayload {
   slotsPerDay: number;
 }
 
-// Generic UI-related
 export interface Message {
   type: 'success' | 'error' | 'warning' | '';
   text: string;
 }
 
-// Sorting
 export interface SortConfig<T> {
   key: keyof T | null;
   direction: 'asc' | 'desc';

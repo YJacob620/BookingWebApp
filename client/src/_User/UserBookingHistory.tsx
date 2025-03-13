@@ -33,7 +33,7 @@ import {
   userCancelBooking,
   getDateFilterOptions,
   Booking,
-  BookingStatus
+  BookingEntryStatus
 } from '@/_utils';
 import { LOGIN, USER_DASHBOARD } from '@/RoutePaths';
 import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
@@ -141,7 +141,7 @@ const BookingHistory = () => {
       setBookings(prevBookings =>
         prevBookings.map(booking =>
           booking.id === bookingId
-            ? { ...booking, status: 'canceled' as BookingStatus }
+            ? { ...booking, status: 'canceled' as BookingEntryStatus }
             : booking
         )
       );
