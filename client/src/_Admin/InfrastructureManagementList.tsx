@@ -195,17 +195,15 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                                     </Button>
 
                                                     {/* Toggle status button (admin only) */}
-                                                    {isAdmin && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => onToggleStatus(infra.id, infra.is_active ?? false)}
-                                                            className={infra.is_active ? "text-red-400" : "text-green-400"}
-                                                            title={infra.is_active ? "Set Inactive" : "Set Active"}
-                                                        >
-                                                            <Power className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => onToggleStatus(infra.id, infra.is_active ?? false)}
+                                                        className={infra.is_active ? "text-red-400" : "text-green-400"}
+                                                        title={infra.is_active ? "Set Inactive" : "Set Active"}
+                                                    >
+                                                        <Power className="h-4 w-4" />
+                                                    </Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

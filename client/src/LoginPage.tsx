@@ -78,7 +78,6 @@ const LoginPage: React.FC = () => {
                 if (successData.user.role === 'admin') {
                     navigate(ADMIN_DASHBOARD);
                 } else if (successData.user.role === 'infrastructure_manager') {
-                    console.log("AYO WHAT");
                     navigate(MANAGER_DASHBOARD);
                 } else {
                     navigate(USER_DASHBOARD);
