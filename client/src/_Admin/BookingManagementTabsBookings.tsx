@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,8 @@ import {
 import {
   Check,
   X,
-  CalendarX
+  CalendarX,
+  ArrowUpDown
 } from "lucide-react";
 import {
   Select,
@@ -44,6 +45,11 @@ interface BookingListProps {
   onDataChange: () => void;
 }
 
+interface SortConfig {
+  key: keyof BookingEntry | null;
+  direction: 'asc' | 'desc';
+}
+
 const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   selectedInfrastructure,
   items,
@@ -58,6 +64,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'booking_date', direction: 'desc' });
 
   // Load bookings when infrastructure changes or after actions
   useEffect(() => {
@@ -74,6 +81,67 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     applyFilters();
   }, [bookings, statusFilter, dateFilter, searchQuery]);
 
+  // Handle sorting
+  const handleSort = (key: keyof BookingEntry) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const sortedData = useMemo(() => {
+    let sorted = [...filteredBookings];
+
+    if (sortConfig.key) {
+      sorted.sort((a, b) => {
+        // Sort by date
+        if (sortConfig.key === 'booking_date') {
+          const dateA = new Date(a.booking_date);
+          const dateB = new Date(b.booking_date);
+
+          // If dates are equal, sort by start_time
+          if (dateA.getTime() === dateB.getTime()) {
+            const timeA = a.start_time;
+            const timeB = b.start_time;
+            return sortConfig.direction === 'asc'
+              ? timeA.localeCompare(timeB)
+              : timeB.localeCompare(timeA);
+          }
+
+          return sortConfig.direction === 'desc'
+            ? dateA.getTime() - dateB.getTime()
+            : dateB.getTime() - dateA.getTime();
+        }
+
+        // Sort by user
+        if (sortConfig.key === 'user_email') {
+          const valA = a[sortConfig.key] || '';
+          const valB = b[sortConfig.key] || '';
+
+          return sortConfig.direction === 'asc'
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
+        }
+
+        // Default sorting for other columns
+        // Type guard to ensure key is not null before accessing
+        if (!sortConfig.key) return 0;
+
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+
+        return 0;
+      });
+    }
+
+    return sorted;
+  }, [filteredBookings, sortConfig]);
 
   const applyFilters = () => {
     let filtered = [...bookings];
@@ -118,37 +186,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
     setFilteredBookings(filtered);
   };
-
-  // const handleStatusChange = async (bookingId: number, newStatus: string) => {
-  //   try {
-  //     let confirmMessage = '';
-  //     if (newStatus === 'approved') {
-  //       confirmMessage = 'Are you sure you want to approve this booking?';
-  //     } else if (newStatus === 'rejected') {
-  //       confirmMessage = 'Are you sure you want to reject this booking? '
-  //         + 'This will automatically create a new timeslot at the same time.';
-  //     } else if (newStatus === 'canceled') {
-  //       confirmMessage = 'Are you sure you want to cancel this approved booking?';
-  //     }
-
-  //     if (!confirm(confirmMessage)) {
-  //       return;
-  //     }
-
-  //     const data = await updateBookingStatus(bookingId, newStatus);
-
-  //     let successMessage = `Booking status updated to ${newStatus}`;
-  //     if (data.rejectedCount && data.rejectedCount > 0) {
-  //       successMessage += `. Additionally, ${data.rejectedCount} overlapping booking(s) were automatically rejected.`;
-  //     }
-
-  //     onStatusChange(successMessage);
-  //     fetchBookings(); // Refresh the bookings list
-  //   } catch (error) {
-  //     console.error('Error updating booking status:', error);
-  //     onError(error instanceof Error ? error.message : 'An error occurred');
-  //   }
-  // };
 
   const handleApproveBooking = async (bookingId: number) => {
     try {
@@ -266,17 +303,33 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           <Table>
             <TableHeader>
               <TableRow className="border-gray-700">
-                <TableHead className="text-center">User</TableHead>
-                <TableHead className="text-center">Date</TableHead>
-                <TableHead className="text-center">Time</TableHead>
-                <TableHead className="text-center">Purpose</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('user_email')}
+                  >
+                    User
+                    <ArrowUpDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('booking_date')}
+                  >
+                    Date
+                    <ArrowUpDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>Time</TableHead>
+                <TableHead>Purpose</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredBookings.length > 0 ? (
-                filteredBookings.map((booking) => (
+              {sortedData.length > 0 ? (
+                sortedData.map((booking) => (
                   <TableRow
                     key={booking.id}
                     className="border-gray-700 def-hover"

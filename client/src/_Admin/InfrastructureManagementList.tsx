@@ -57,7 +57,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
         if (searchQuery) {
             filtered = filtered.filter(item =>
                 item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (item.location && item.location.toLowerCase().includes(searchQuery.toLowerCase()))
             );
         }
@@ -100,11 +100,11 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                 {isLoading ? (
                     <div className="text-center py-10">Loading infrastructures...</div>
                 ) : (
-                    <div className="rounded-md border border-gray-700">
+                    <div className="rounded-md border border-gray-700 overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="border-gray-700">
-                                    <TableHead className="text-center">
+                                <TableRow>
+                                    <TableHead>
                                         <Button
                                             variant="ghost"
                                             onClick={() => handleSort('name')}
@@ -114,8 +114,8 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                             <ArrowUpDown className="ml-2 h-4 w-4" />
                                         </Button>
                                     </TableHead>
-                                    <TableHead className="text-center">Description</TableHead>
-                                    <TableHead className="text-center">
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>
                                         <Button
                                             // className="sort-button"
                                             variant="ghost"
@@ -125,8 +125,8 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                             <ArrowUpDown className="ml-2 h-4 w-4" />
                                         </Button>
                                     </TableHead>
-                                    <TableHead className="text-center">Status</TableHead>
-                                    <TableHead className="text-center">Actions</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

@@ -240,12 +240,12 @@ const BookingHistory = () => {
                   <TableHeader>
                     <TableRow className="border-gray-700">
                       <TableHead>Infrastructure</TableHead>
-                      <TableHead className="text-center">Date</TableHead>
-                      <TableHead className="text-center">Time</TableHead>
-                      <TableHead className="text-center">Location</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
-                      <TableHead className="text-center">Purpose</TableHead>
-                      <TableHead className="text-center">Actions</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Time</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Purpose</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

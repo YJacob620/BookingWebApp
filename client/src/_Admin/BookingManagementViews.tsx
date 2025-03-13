@@ -16,14 +16,10 @@ import {
 
 interface BookingManagementViewsProps {
   bookingEntries: BookingEntry[];
-  onError: (message: string) => void;
-  onDataChange: () => void;
 }
 
 const BookingManagementViews: React.FC<BookingManagementViewsProps> = ({
   bookingEntries,
-  onError,
-  onDataChange
 }) => {
   // State management
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');

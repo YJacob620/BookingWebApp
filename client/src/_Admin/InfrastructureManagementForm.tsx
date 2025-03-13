@@ -80,7 +80,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
                     {isEditMode && (
                         <Button
                             onClick={onCancelEdit}
-                            variant="secondary"
+                            className="discard h-8"
                         >
                             Cancel Edit
                         </Button>
@@ -121,7 +121,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
                             required
                             value={formData.description}
                             onChange={handleInputChange}
-                            className="h-32"
+                            className="h-32 resize-none"
                         />
                     </div>
 

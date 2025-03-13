@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/table";
 import {
   Clock,
-  Calendar
+  Calendar,
+  ArrowUpDown
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 import {
   formatDate,
@@ -31,27 +33,144 @@ interface BookingsListViewProps {
   items: BookingEntry[];
 }
 
+interface SortConfig {
+  key: keyof BookingEntry | null;
+  direction: 'asc' | 'desc';
+}
+
 const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
   items
 }) => {
+  // Set default sorting to date in descending order
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'booking_date', direction: 'desc' });
+
+  // Handle sorting
+  const handleSort = (key: keyof BookingEntry) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  // Apply sorting to items
+  const sortedItems = useMemo(() => {
+    let sorted = [...items];
+
+    if (sortConfig.key) {
+      sorted.sort((a, b) => {
+        // Sort by date
+        if (sortConfig.key === 'booking_date') {
+          const dateA = new Date(a.booking_date);
+          const dateB = new Date(b.booking_date);
+
+          // If dates are equal, sort by start_time
+          if (dateA.getTime() === dateB.getTime()) {
+            const timeA = a.start_time;
+            const timeB = b.start_time;
+            return sortConfig.direction === 'asc'
+              ? timeA.localeCompare(timeB)
+              : timeB.localeCompare(timeA);
+          }
+
+          return sortConfig.direction === 'desc'
+            ? dateA.getTime() - dateB.getTime()
+            : dateB.getTime() - dateA.getTime();
+        }
+
+        // Sort by user
+        if (sortConfig.key === 'user_email') {
+          const valA = a[sortConfig.key] || '';
+          const valB = b[sortConfig.key] || '';
+
+          return sortConfig.direction === 'asc'
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
+        }
+
+        // Sort by booking type
+        if (sortConfig.key === 'booking_type') {
+          return sortConfig.direction === 'asc'
+            ? a.booking_type.localeCompare(b.booking_type)
+            : b.booking_type.localeCompare(a.booking_type);
+        }
+
+        // Sort by status
+        if (sortConfig.key === 'status') {
+          return sortConfig.direction === 'asc'
+            ? a.status.localeCompare(b.status)
+            : b.status.localeCompare(a.status);
+        }
+
+        // Default sorting for other columns
+        // Type guard to ensure key is not null before accessing
+        if (!sortConfig.key) return 0;
+
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+
+        return 0;
+      });
+    }
+
+    return sorted;
+  }, [items, sortConfig]);
+
   return (
     <div>
       <div className="rounded-md border border-gray-700 overflow-hidden">
         <Table>
           <TableHeader className="">
             <TableRow>
-              <TableHead className="text-center">Type</TableHead>
-              <TableHead className="text-center">Date</TableHead>
-              <TableHead className="text-center">Time</TableHead>
-              <TableHead className="text-center">Duration</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-center">User</TableHead>
-              <TableHead className="text-center">Purpose</TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('booking_type')}
+                >
+                  Type
+                  <ArrowUpDown className="ml-1 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('booking_date')}
+                >
+                  Date
+                  <ArrowUpDown className="ml-1 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Duration</TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('status')}
+                >
+                  Status
+                  <ArrowUpDown className="ml-1 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort('user_email')}
+                >
+                  User
+                  <ArrowUpDown className="ml-1 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>Purpose</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.length > 0 ? (
-              items.map((item) => {
+            {sortedItems.length > 0 ? (
+              sortedItems.map((item) => {
                 // Generate a unique key for this row
                 const rowKey = `${item.booking_type}-${item.id}`;
                 const purpose = item.purpose || '';

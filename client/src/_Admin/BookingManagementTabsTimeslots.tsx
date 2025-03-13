@@ -256,12 +256,12 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
             <TableHeader>
               <TableRow className="border-gray-700">
                 <TableHead className="text-center w-14">Select</TableHead>
-                <TableHead className="text-center">Date</TableHead>
-                <TableHead className="text-center">Start Time</TableHead>
-                <TableHead className="text-center">End Time</TableHead>
-                <TableHead className="text-center">Duration</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Start Time</TableHead>
+                <TableHead>End Time</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

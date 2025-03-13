@@ -130,7 +130,6 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
     setIsSubmitting(true);
 
     try {
-      // Call the imported createTimeslots utility function instead of direct fetch
       const data = await createTimeslots(payload);
 
       // Create success message based on created/skipped counts
@@ -138,11 +137,9 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
       if (data.skipped > 0) {
         successMessage += ` (${data.skipped} skipped due to overlap)`;
       }
-
       onSuccess(successMessage);
-
-      // Reset forms
-      resetForms();
+      resetForms(); // Reset forms
+      onDataChange(); // Refresh the data
     } catch (error) {
       console.error('Error creating timeslots:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');

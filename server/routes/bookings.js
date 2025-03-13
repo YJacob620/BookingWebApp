@@ -276,14 +276,10 @@ router.post('/force-bookings-status-update', authenticateToken, verifyAdmin, asy
     }
 });
 
-let asd = 0;
-
 // Get all entries (both bookings and timeslots) for an infrastructure (admin only).
 // This unified endpoint allows client-side filtering instead of separate endpoints.
 router.get('/:infrastructureId/all-entries', authenticateToken, verifyAdmin, async (req, res) => {
-    console.log("TIMES all-entries CALLED", asd);
     try {
-        asd++;
         const { infrastructureId } = req.params;
         const { startDate, endDate, limit } = req.query;
 

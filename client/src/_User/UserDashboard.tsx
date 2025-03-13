@@ -141,11 +141,11 @@ const UserDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-700">
-                      <TableHead className="text-center">Infrastructure</TableHead>
-                      <TableHead className="text-center">Date</TableHead>
-                      <TableHead className="text-center">Time</TableHead>
-                      <TableHead className="text-center">Location</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead>Infrastructure</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Time</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

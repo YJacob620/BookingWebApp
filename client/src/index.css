@@ -195,7 +195,7 @@ textarea:hover {
 }
 
 .def-hover:hover {
-  @apply bg-gray-700;
+  @apply bg-muted brightness-125;
 }
 
 .small-title {
