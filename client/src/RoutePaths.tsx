@@ -7,7 +7,7 @@ export const FORGOT_PASSWORD = '/forgot-password';
 export const RESET_PASSWORD = '/reset-password/:token';
 
 // Admin routes
-export const ADMIN_DASHBOARD = '/admin-dashboard';
+export const ADMIN_DASHBOARD = '/userManagement-admin-dashboard';
 export const INFRASTRUCTURE_MANAGEMENT = '/infrastructure-management';
 export const BOOKING_MANAGEMENT = '/booking-management';
 export const USER_MANAGEMENT = '/user-management';

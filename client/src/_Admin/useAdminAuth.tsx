@@ -11,6 +11,12 @@ export const useAdminAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (isAuthorized) {
+      console.warn("ADMIN AUTHORIZED");
+    }
+  }, [isAuthorized]);
+
+  useEffect(() => {
     const checkAdminAuthorization = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -35,6 +41,7 @@ export const useAdminAuth = () => {
     };
 
     checkAdminAuthorization();
+
   }, [navigate]);
 
   return { isAuthorized, isLoading };

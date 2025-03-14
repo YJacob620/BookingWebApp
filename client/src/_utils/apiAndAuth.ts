@@ -48,42 +48,42 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
  * Fetch all infrastructures (admin only)
  */
 export const fetchInfrastructures = () => {
-  return apiRequest('/infrastructures');
+  return apiRequest('/infrastructures-admin');
 };
 
 /**
  * Fetch active infrastructures (all users)
  */
 export const fetchActiveInfrastructures = () => {
-  return apiRequest('/infrastructures/active');
+  return apiRequest('/WTFinfrastructures/active');
 };
 
 /**
  * Fetch a single infrastructure by ID
  */
 export const fetchInfrastructureById = (id: number) => {
-  return apiRequest(`/infrastructures/${id}`);
+  return apiRequest(`/infrastructures-admin/${id}`);
 };
 
 /**
  * Fetch user's recent bookings
  */
 export const fetchUserBookings = () => {
-  return apiRequest('/bookings/user');
+  return apiRequest('/bookings-user/user');
 };
 
 /**
  * Fetch all user's bookings
  */
 export const fetchAllUserBookings = () => {
-  return apiRequest('/bookings/user/all');
+  return apiRequest('/bookings-user/user/all');
 };
 
 /**
  * Request a booking (user)
  */
 export const bookTimeslot = (data: { timeslot_id: number, purpose: string }) => {
-  return apiRequest('/bookings/request', {
+  return apiRequest('/bookings-user/request', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -104,7 +104,7 @@ export const bookTimeslotWithAnswers = async (formData: FormData) => {
 
   // Note: Don't set Content-Type for FormData, browser will set it with boundary
 
-  const response = await fetch(`${API_BASE_URL}/bookings/request-with-answers`, {
+  const response = await fetch(`${API_BASE_URL}/bookings-user/request-with-answers`, {
     method: 'POST',
     headers,
     body: formData
@@ -122,7 +122,7 @@ export const bookTimeslotWithAnswers = async (formData: FormData) => {
  * Cancel a booking (user)
 */
 export const userCancelBooking = (id: number) => {
-  return apiRequest(`/bookings/${id}/cancel`, {
+  return apiRequest(`/bookings-user/${id}/cancel`, {
     method: 'POST',
   });
 };
@@ -131,7 +131,7 @@ export const userCancelBooking = (id: number) => {
  * Aprove a booking (admin)
 */
 export const approveBooking = (bookingId: number) => {
-  return apiRequest(`/bookings/${bookingId}/approve`, {
+  return apiRequest(`/bookings-admin/${bookingId}/approve`, {
     method: 'PUT'
   });
 };
@@ -140,7 +140,7 @@ export const approveBooking = (bookingId: number) => {
  * Reject or cancel a booking (admin)
 */
 export const rejectOrCancelBooking = (bookingId: number, newStatus: 'rejected' | 'canceled') => {
-  return apiRequest(`/bookings/${bookingId}/reject-or-cancel`, {
+  return apiRequest(`/bookings-admin/${bookingId}/reject-or-cancel`, {
     method: 'PUT',
     body: JSON.stringify({ status: newStatus }),
   });
@@ -150,7 +150,7 @@ export const rejectOrCancelBooking = (bookingId: number, newStatus: 'rejected' |
  * Force update past bookings statuses (admin only)
  */
 export const forceUpdatePastBookings = () => {
-  return apiRequest('/bookings/force-bookings-status-update', {
+  return apiRequest('/bookings-admin/force-bookings-status-update', {
     method: 'POST',
   });
 };
@@ -169,7 +169,7 @@ export const fetchAllBookingEntries = (
     limit?: number
   }
 ) => {
-  let url = `/bookings/${infrastructureId}/all-entries`;
+  let url = `/bookings-admin/${infrastructureId}/all-entries`;
 
   if (params) {
     const queryParams = new URLSearchParams();
@@ -192,7 +192,7 @@ export const fetchAllBookingEntries = (
  * @returns Promise with API response
  */
 export const createOrUpdateInfrastructure = (formData: InfrastFormData, infrastructureId?: number) => {
-  const url = infrastructureId ? `/infrastructures/${infrastructureId}` : '/infrastructures';
+  const url = infrastructureId ? `/infrastructures-admin/${infrastructureId}` : '/infrastructures-admin';
 
   const method = infrastructureId ? 'PUT' : 'POST';
 
@@ -208,7 +208,7 @@ export const createOrUpdateInfrastructure = (formData: InfrastFormData, infrastr
  * @returns Promise with API response
  */
 export const toggleInfrastructureStatus = (id: number) => {
-  return apiRequest(`/infrastructures/${id}/toggle-status`, {
+  return apiRequest(`/infrastructures-admin/${id}/toggle-status`, {
     method: 'POST'
   });
 };
@@ -217,7 +217,7 @@ export const toggleInfrastructureStatus = (id: number) => {
  * Fetches available (only) timeslots for an infrastructure (for user)
  */
 export const fetchInfrastAvailTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
-  let url = `/bookings/${infrastructureId}/available-timeslots`;
+  let url = `/bookings-user/${infrastructureId}/available-timeslots`;
 
   if (params) {
     const queryParams = new URLSearchParams();
@@ -236,7 +236,7 @@ export const fetchInfrastAvailTimeslots = (infrastructureId: number, params?: { 
  * Create timeslots (admin only)
  */
 export const createTimeslots = (data: BatchCreationPayload) => {
-  return apiRequest('/bookings/create-timeslots', {
+  return apiRequest('/bookings-admin/create-timeslots', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -246,7 +246,7 @@ export const createTimeslots = (data: BatchCreationPayload) => {
  * Delete/cancel timeslots (admin only)
  */
 export const cancelTimeslots = (ids: number[]) => {
-  return apiRequest('/bookings/timeslots', {
+  return apiRequest('/bookings-admin/timeslots', {
     method: 'DELETE',
     body: JSON.stringify({ ids }),
   });
@@ -256,14 +256,14 @@ export const cancelTimeslots = (ids: number[]) => {
  * Fetch all users (admin only)
 */
 export const fetchUsers = () => {
-  return apiRequest('/admin/users');
+  return apiRequest('/userManagement-admin/users');
 };
 
 /**
  * Update user role (admin only)
  */
 export const updateUserRole = (userId: number, role: string) => {
-  return apiRequest(`/admin/users/${userId}/role`, {
+  return apiRequest(`/userManagement-admin/users/${userId}/role`, {
     method: 'PUT',
     body: JSON.stringify({ role }),
   });
@@ -273,7 +273,7 @@ export const updateUserRole = (userId: number, role: string) => {
  * Toggle user blacklist status (admin only)
  */
 export const toggleUserBlacklist = (userId: number, blacklist: boolean) => {
-  return apiRequest(`/admin/users/${userId}/blacklist`, {
+  return apiRequest(`/userManagement-admin/users/${userId}/blacklist`, {
     method: 'PUT',
     body: JSON.stringify({ blacklist }),
   });
@@ -290,14 +290,14 @@ export const fetchMyInfrastructures = () => {
  * For admins to fetch infrastructures assigned to a specific manager
  */
 export const fetchUserInfrastructures = (userId: number) => {
-  return apiRequest(`/admin/users/${userId}/infrastructures`);
+  return apiRequest(`/userManagement-admin/users/${userId}/infrastructures`);
 };
 
 /**
  * Assign infrastructure to manager (admin only)
  */
 export const assignInfrastructureToManager = (userId: number, infrastructureId: number) => {
-  return apiRequest(`/admin/users/${userId}/infrastructures`, {
+  return apiRequest(`/userManagement-admin/users/${userId}/infrastructures`, {
     method: 'POST',
     body: JSON.stringify({ infrastructureId }),
   });
@@ -307,7 +307,7 @@ export const assignInfrastructureToManager = (userId: number, infrastructureId: 
  * Remove infrastructure from manager (admin only)
  */
 export const removeInfrastructureFromManager = (userId: number, infrastructureId: number) => {
-  return apiRequest(`/admin/users/${userId}/infrastructures/${infrastructureId}`, {
+  return apiRequest(`/userManagement-admin/users/${userId}/infrastructures/${infrastructureId}`, {
     method: 'DELETE',
   });
 };
@@ -316,15 +316,15 @@ export const removeInfrastructureFromManager = (userId: number, infrastructureId
  * Fetch all questions for an infrastructure
  */
 export const fetchInfrastructureQuestions = (infrastructureId: number) => {
-  return apiRequest(`/infrastructures/${infrastructureId}/questions`);
+  return apiRequest(`/infrastructures-manager-admin/${infrastructureId}/questions`);
 };
 
 // Create or update a question
 export const saveInfrastructureQuestion = (filterQuestionData: FilterQuestionData) => {
   const method = filterQuestionData.id ? 'PUT' : 'POST';
   const endpoint = filterQuestionData.id
-    ? `/infrastructures/${filterQuestionData.infrastructure_id}/questions/${filterQuestionData.id}`
-    : `/infrastructures/${filterQuestionData.infrastructure_id}/questions`;
+    ? `/infrastructures-manager-admin/${filterQuestionData.infrastructure_id}/questions/${filterQuestionData.id}`
+    : `/infrastructures-manager-admin/${filterQuestionData.infrastructure_id}/questions`;
 
   return apiRequest(endpoint, {
     method,
@@ -336,7 +336,7 @@ export const saveInfrastructureQuestion = (filterQuestionData: FilterQuestionDat
  * Delete a question
  */
 export const deleteInfrastructureQuestion = (infrastructureId: number, questionId: number) => {
-  return apiRequest(`/infrastructures/${infrastructureId}/questions/${questionId}`, {
+  return apiRequest(`/infrastructures-manager-admin/${infrastructureId}/questions/${questionId}`, {
     method: 'DELETE',
   });
 };
@@ -345,7 +345,7 @@ export const deleteInfrastructureQuestion = (infrastructureId: number, questionI
  * Update the order of questions
  */
 export const updateQuestionsOrder = (infrastructureId: number, questionsOrder: { id: number, display_order: number }[]) => {
-  return apiRequest(`/infrastructures/${infrastructureId}/questions/reorder`, {
+  return apiRequest(`/infrastructures-manager-admin/${infrastructureId}/questions/reorder`, {
     method: 'PUT',
     body: JSON.stringify({ questions: questionsOrder }),
   });
@@ -513,7 +513,7 @@ export const resendVerification = async (email: string) => {
  * @returns Promise with verification result
  */
 export const verifyAdmin = async (): Promise<boolean> => {
-  const result = await authApiRequest('/admin/verify');
+  const result = await authApiRequest('/verify-admin');
   return result.success;
 };
 
@@ -527,7 +527,7 @@ export const verifyEmailWithToken = async (token: string) => {
 * Verify infrastructure manager authentication
  */
 export const verifyManager = async (): Promise<boolean> => {
-  const result = await authApiRequest('/manager/verify');
+  const result = await authApiRequest('/verify-manager');
   return result.success;
 };
 

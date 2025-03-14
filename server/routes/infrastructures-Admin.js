@@ -16,19 +16,6 @@ router.get('/', authenticateToken, verifyAdmin, async (req, res) => {
     }
 });
 
-// Get active infrastructures (for all users)
-router.get('/active', authenticateToken, async (req, res) => {
-    try {
-        const [rows] = await pool.execute(
-            'SELECT * FROM infrastructures WHERE is_active = 1 ORDER BY name'
-        );
-        res.json(rows);
-    } catch (error) {
-        console.error('Error fetching active infrastructures:', error);
-        res.status(500).json({ message: 'Error fetching active infrastructures' });
-    }
-});
-
 // Create infrastructure (admin only)
 router.post('/', authenticateToken, verifyAdmin, async (req, res) => {
     const { name, description, location, is_active } = req.body;
@@ -139,7 +126,7 @@ router.put('/:id', authenticateToken, verifyAdmin, async (req, res) => {
     }
 });
 
-// Get single infrastructure
+// Get single infrastructure (admin only)
 router.get('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
 

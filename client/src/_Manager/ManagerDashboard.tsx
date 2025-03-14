@@ -3,12 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LogOut, Database, Settings, CalendarRange } from "lucide-react";
+import { Database, Settings, CalendarRange } from "lucide-react";
 
 import { useManagerAuth } from './useManagerAuth';
 import { fetchMyInfrastructures, Infrastructure } from '@/_utils';
-import { LOGIN, MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
+import { MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
+import LogoutButton from '@/components/_LogoutButton.tsx';
 
 
 const ManagerDashboard: React.FC = () => {
@@ -33,11 +34,6 @@ const ManagerDashboard: React.FC = () => {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate(LOGIN);
-    };
-
     if (isLoading) {
         return <div>Loading...</div>;
     }
@@ -50,13 +46,7 @@ const ManagerDashboard: React.FC = () => {
         <Card className="general-container">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-end mb-6">
-                    <Button
-                        onClick={handleLogout}
-                        className="bg-zinc-950 h-8 discard"
-                    >
-                        <LogOut className="h-4 w-4" />
-                        Logout
-                    </Button>
+                    <LogoutButton />
                 </div>
 
                 <div className="text-center mb-2">

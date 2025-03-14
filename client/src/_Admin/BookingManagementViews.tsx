@@ -94,7 +94,6 @@ const BookingManagementViews: React.FC<BookingManagementViewsProps> = ({
           </TabsList>
         </Tabs>
 
-        {/* Filter tabs (All/Timeslots/Bookings) */}
         <Tabs
           defaultValue={showOnly}
           value={showOnly}

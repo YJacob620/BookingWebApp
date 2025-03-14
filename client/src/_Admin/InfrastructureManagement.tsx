@@ -5,9 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeftCircle, Plus, Database, HelpCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import InfrastructureManagementForm from './InfrastructureManagementForm';
 import InfrastructureManagementList from './InfrastructureManagementList';
 import InfrastructureQuestionsManager from './InfrastructureManagementQuestions';
+import { useAdminAuth } from './useAdminAuth';
+import { useManagerAuth } from '@/_Manager/useManagerAuth';
 
 // Import types and API utilities
 import {
@@ -24,54 +27,36 @@ import { ADMIN_DASHBOARD, MANAGER_DASHBOARD } from '@/RoutePaths';
 
 const InfrastructureManagement: React.FC = () => {
     const navigate = useNavigate();
+    const { isAuthorized: isAuthorizedAdmin, isLoading: adminLoading } = useAdminAuth();
+    const { isAuthorized: isAuthorizedManager, isLoading: managerLoading } = useManagerAuth();
 
-    // State variables
+    // Remove manual checkUserRole function and related state
+    // Instead, use this pattern:
+    const [isAdmin, setIsAdmin] = useState(false);
     const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState<Message>({ type: '', text: '' });
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingInfrastructure, setEditingInfrastructure] = useState<Infrastructure | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<string>("list");
     const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    // Check if user is admin or manager
+    // Determine user role once when component mounts 
     useEffect(() => {
-        checkUserRole();
-    }, []);
-
-    // Load infrastructures based on user role
-    useEffect(() => {
-        if (isAdmin !== null) {
+        if (isAuthorizedAdmin) {
             getInfrastructures();
+        } else {
+            console.error("Auth problem");
         }
-    }, [isAdmin]);
-
-    const checkUserRole = () => {
-        const userJson = localStorage.getItem('user');
-        if (!userJson) {
-            navigate('/login');
-            return;
-        }
-
-        try {
-            const user = JSON.parse(userJson);
-            setIsAdmin(user.role === 'admin');
-        } catch (error) {
-            console.error('Error parsing user data:', error);
-            navigate('/login');
-        }
-    };
+    }, [isAuthorizedAdmin, refreshTrigger]);
 
     const getInfrastructures = async () => {
         try {
             setIsLoading(true);
-
-            // Fetch infrastructures based on user role
             const data = isAdmin
                 ? await fetchInfrastructures()
                 : await fetchMyInfrastructures();
-
             setInfrastructures(data);
         } catch (error) {
             console.error('Error fetching infrastructures:', error);
@@ -184,7 +169,8 @@ const InfrastructureManagement: React.FC = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-start mb-6">
                     <Button
-                        onClick={() => navigate(isAdmin ? ADMIN_DASHBOARD : MANAGER_DASHBOARD)}
+                        onClick={() => navigate(
+                            isAuthorizedAdmin ? ADMIN_DASHBOARD : isAuthorizedManager ? MANAGER_DASHBOARD : 'ERROR')}
                         className="back-button"
                     >
                         <ArrowLeftCircle className="mr-2 h-4 w-4" />

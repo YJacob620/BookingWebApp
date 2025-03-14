@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, CalendarPlus } from "lucide-react";
+import { CalendarPlus } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,6 +23,7 @@ import {
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
+import LogoutButton from '@/components/_LogoutButton.tsx';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -66,11 +67,6 @@ const UserDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate(LOGIN);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen general-container flex items-center justify-center">
@@ -84,13 +80,7 @@ const UserDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Logout button in top-right corner */}
         <div className="flex justify-end mb-6">
-          <Button
-            onClick={handleLogout}
-            className="back-button discard"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
+          <LogoutButton />
         </div>
 
         {/* Centered title */}

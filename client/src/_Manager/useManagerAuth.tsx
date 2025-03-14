@@ -10,6 +10,12 @@ export const useManagerAuth = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        if (isAuthorized) {
+            console.warn("MANAGER AUTHORIZED");
+        }
+    }, [isAuthorized]);
+
+    useEffect(() => {
         const checkManagerAuthorization = async () => {
             try {
                 const token = localStorage.getItem('token');

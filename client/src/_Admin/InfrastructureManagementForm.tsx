@@ -13,13 +13,15 @@ interface InfrastructureFormProps {
     editingInfrastructure: Infrastructure | null;
     onSubmit: (formData: InfrastFormData) => Promise<void>;
     onCancelEdit: () => void;
+    // onDataChange: () => void;
 }
 
 const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
     isEditMode,
     editingInfrastructure,
     onSubmit,
-    onCancelEdit
+    onCancelEdit,
+    // onDataChange
 }) => {
     const [formData, setFormData] = useState<InfrastFormData>({
         name: '',

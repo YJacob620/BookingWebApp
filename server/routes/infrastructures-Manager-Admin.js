@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const { authenticateToken, verifyAdmin, verifyInfrastructureManager, verifyInfrastructureAccess } = require('../middleware/authMiddleware');
 
-// Get all questions for an infrastructure
+// Get all questions for an infrastructure (admin or manager of this infrastructure)
 router.get('/:infrastructureId/questions',
     authenticateToken,
     async (req, res) => {
@@ -124,7 +124,7 @@ router.post('/:infrastructureId/questions',
     }
 );
 
-// Update a question (admin or manager)
+// Update a question (admin or manager of this infrastructure)
 router.put('/:infrastructureId/questions/:questionId',
     authenticateToken,
     async (req, res) => {
@@ -185,7 +185,7 @@ router.put('/:infrastructureId/questions/:questionId',
     }
 );
 
-// Delete a question (admin or manager)
+// Delete a question (admin or manager of this infrastructure)
 router.delete('/:infrastructureId/questions/:questionId',
     authenticateToken,
     async (req, res) => {
@@ -226,7 +226,7 @@ router.delete('/:infrastructureId/questions/:questionId',
     }
 );
 
-// Update question order (admin or manager)
+// Update question order (admin or manager of this infrastructure)
 router.put('/:infrastructureId/questions/reorder',
     authenticateToken,
     async (req, res) => {

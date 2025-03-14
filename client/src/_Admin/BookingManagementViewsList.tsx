@@ -23,7 +23,7 @@ import {
   formatStatus,
   BookingEntry
 } from '@/_utils';
-import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
+import TruncatedTextCell from '@/components/_TruncatedTextCell';
 
 interface BookingsListViewProps {
   items: BookingEntry[];

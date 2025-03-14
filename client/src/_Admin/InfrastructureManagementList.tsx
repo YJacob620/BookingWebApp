@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { Infrastructure } from '@/_utils';
-import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
+import TruncatedTextCell from '@/components/_TruncatedTextCell';
 
 interface SortConfig {
     key: keyof Infrastructure | null;

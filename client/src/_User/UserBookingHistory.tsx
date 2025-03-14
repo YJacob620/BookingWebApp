@@ -35,7 +35,7 @@ import {
   BookingEntry,
 } from '@/_utils';
 import { LOGIN, USER_DASHBOARD } from '@/RoutePaths';
-import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
+import TruncatedTextCell from '@/components/_TruncatedTextCell';
 
 
 

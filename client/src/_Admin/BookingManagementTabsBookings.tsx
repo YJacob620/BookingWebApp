@@ -36,7 +36,7 @@ import {
   Infrastructure,
   BookingEntry,
 } from '@/_utils';
-import TruncatedTextCell from '@/components/ui/_TruncatedTextCell';
+import TruncatedTextCell from '@/components/_TruncatedTextCell';
 
 interface BookingListProps {
   items: BookingEntry[];

@@ -1,10 +1,9 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button.tsx";
-import { LogOut, Calendar, Database, Users } from "lucide-react";
+import { Calendar, Database, Users } from "lucide-react";
 
 import { useAdminAuth } from './useAdminAuth.tsx';
-import { LOGIN } from '@/RoutePaths';
+import LogoutButton from '@/components/_LogoutButton.tsx';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -21,11 +20,6 @@ const AdminDashboard = () => {
     if (!isAuthorized) {
         return null;
     }
-
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate(LOGIN);
-    };
 
     const menuItems = [
         {
@@ -52,13 +46,7 @@ const AdminDashboard = () => {
         <Card className="general-container">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-end mb-6">
-                    <Button
-                        onClick={handleLogout}
-                        className="bg-zinc-950 h-8 discard"
-                    >
-                        <LogOut className="h-4 w-4" />
-                        Logout
-                    </Button>
+                    <LogoutButton />
                 </div>
 
                 {/* Centered title */}
