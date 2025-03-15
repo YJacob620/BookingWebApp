@@ -79,8 +79,11 @@ const LoginPage: React.FC = () => {
                     navigate(ADMIN_DASHBOARD);
                 } else if (user.role === 'manager') {
                     navigate(MANAGER_DASHBOARD);
-                } else if (user.role === 'student', user.role === 'faculty', user.role === 'guest') {
+                } else if (user.role === 'student' || user.role === 'faculty' || user.role === 'guest') {
                     navigate(USER_DASHBOARD);
+                }
+                else {
+                    setError(`Unidentified user role "${user.role}"`);
                 }
             } else {
                 setError(result.data.message);

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeftCircle } from "lucide-react";
 import { ADMIN_DASHBOARD, MANAGER_DASHBOARD, USER_DASHBOARD, LOGIN } from '@/RoutePaths';
 
-const BackToDashboard: React.FC = () => {
+const BackToDashboardButton: React.FC = () => {
     const navigate = useNavigate();
 
     const handleNavigate = () => {
@@ -57,4 +57,4 @@ const BackToDashboard: React.FC = () => {
     );
 };
 
-export default BackToDashboard;
+export default BackToDashboardButton;

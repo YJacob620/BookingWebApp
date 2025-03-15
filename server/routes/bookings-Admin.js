@@ -326,37 +326,4 @@ router.get('/:infrastructureId/all-entries', authenticateToken, verifyAdmin, asy
     }
 });
 
-// Get available timeslots for an infrastructure with optional date filter (admin and user). 
-// Can be within a specified date range.
-router.get('/:infrastructureId/available-timeslots', authenticateToken, async (req, res) => {
-    try {
-        const { infrastructureId } = req.params;
-        const { date } = req.query;
-
-        let query = `
-            SELECT * FROM bookings 
-            WHERE infrastructure_id = ? 
-            AND booking_type = 'timeslot'
-            AND status = 'available'
-            AND booking_date >= CURDATE()
-        `;
-
-        const params = [infrastructureId];
-
-        // Add date filter if provided
-        if (date) {
-            query += ' AND booking_date = ?';
-            params.push(date);
-        }
-
-        query += ' ORDER BY booking_date ASC, start_time ASC';
-
-        const [timeslots] = await pool.execute(query, params);
-        res.json(timeslots);
-    } catch (err) {
-        console.error('Database error:', err);
-        res.status(500).json({ message: 'Error fetching available timeslots' });
-    }
-});
-
 module.exports = router;

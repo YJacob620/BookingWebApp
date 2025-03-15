@@ -50,7 +50,8 @@ router.get('/user/all', authenticateToken, async (req, res) => {
     }
 });
 
-// Cancel a booking (user can cancel their own pending or approved bookings not within 24 hours)
+// Cancel a booking 
+// Users can cancel their own pending or approved bookings as long as the bookings aren't within 24 hours
 router.post('/:id/cancel', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -303,6 +304,39 @@ router.post('/request-with-answers', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Error creating booking request', error: err.message });
     } finally {
         connection.release();
+    }
+});
+
+// Get available timeslots for an infrastructure with optional date filter (user). 
+// Can be within a specified date range.
+router.get('/:infrastructureId/available-timeslots', authenticateToken, async (req, res) => {
+    try {
+        const { infrastructureId } = req.params;
+        const { date } = req.query;
+
+        let query = `
+            SELECT * FROM bookings 
+            WHERE infrastructure_id = ? 
+            AND booking_type = 'timeslot'
+            AND status = 'available'
+            AND booking_date >= CURDATE()
+        `;
+
+        const params = [infrastructureId];
+
+        // Add date filter if provided
+        if (date) {
+            query += ' AND booking_date = ?';
+            params.push(date);
+        }
+
+        query += ' ORDER BY booking_date ASC, start_time ASC';
+
+        const [timeslots] = await pool.execute(query, params);
+        res.json(timeslots);
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ message: 'Error fetching available timeslots' });
     }
 });
 

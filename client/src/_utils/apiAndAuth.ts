@@ -55,7 +55,7 @@ export const fetchInfrastructures = () => {
  * Fetch active infrastructures (all users)
  */
 export const fetchActiveInfrastructures = () => {
-  return apiRequest('/WTFinfrastructures/active');
+  return apiRequest('/infrastructures-user/active');
 };
 
 /**

@@ -15,3 +15,4 @@ router.get('/active', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Error fetching active infrastructures' });
     }
 });
+module.exports = router;

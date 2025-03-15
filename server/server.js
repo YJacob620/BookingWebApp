@@ -4,6 +4,7 @@ require('./config/env'); // Validate environment variables
 const pool = require('./config/db'); // Create database connection pool
 const authenticationRoutes = require('./routes/authenticationRoutes');
 const infrastructuresRoutes_Admin = require('./routes/infrastructures-Admin');
+const infrastructuresRoutes_User = require('./routes/infrastructures-User');
 const infrastructuresRoutes_Manager_Admin = require('./routes/infrastructures-Manager-Admin');
 const infrastructuresRoutes_Manager = require('./routes/infrastructures-Manager');
 const bookingRoutes_Admin = require('./routes/bookings-Admin');
@@ -14,6 +15,12 @@ const emailService = require('./utils/emailService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+if (pool) {
+    console.log("Database connection pool created successfully.");
+} else {
+    console.error("Failed to create database connection pool.");
+}
 
 // Enable event scheduler
 (async () => {
@@ -46,6 +53,7 @@ app.use(express.json());
 // Register routes
 app.use('/api', authenticationRoutes);
 app.use('/api/infrastructures-admin', infrastructuresRoutes_Admin);
+app.use('/api/infrastructures-user', infrastructuresRoutes_User);
 app.use('/api/bookings-admin', bookingRoutes_Admin);
 app.use('/api/bookings-user', bookingRoutes_User);
 app.use('/api/manager', infrastructuresRoutes_Manager);
