@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Calendar, Database, Users } from "lucide-react";
 
 import LogoutButton from '@/components/_LogoutButton.tsx';
-import { useRoleAuth } from '@/useRoleAuth.tsx';
+import { useRoleAuth } from '@/useRoleAuth';
 
 const AdminDashboard = () => {
     const { isAdmin, isManager, isLoading, error: authError } = useRoleAuth();
