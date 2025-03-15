@@ -1,16 +1,10 @@
 /* Common interfaces shared across components */
 
-// Define roles in one place as a constant
-export const USER_ROLES = ['admin', 'manager', 'faculty', 'student', 'guest'] as const;
-
-// Derive the type from the array
-export type UserRole = typeof USER_ROLES[number];
-
 export interface User {
   id: number;
   name: string;
   email: string;
-  role: UserRole;
+  role: 'admin' | 'manager' | 'faculty' | 'student' | 'guest';
 }
 
 export interface RegistrationFormData {

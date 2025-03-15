@@ -14,7 +14,6 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        // Just clear localStorage and navigate to login
         localStorage.clear();
         navigate(LOGIN);
     };

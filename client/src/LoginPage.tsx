@@ -1,5 +1,5 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
 import { resendVerification, login, User } from '@/_utils';
-import { LOGIN } from './RoutePaths';
-import { smartNavigate, checkAuth } from '@/_utils/navigation';
+import { ADMIN_DASHBOARD, USER_DASHBOARD, MANAGER_DASHBOARD } from './RoutePaths';
+
 
 // Interface for form data
 interface LoginFormData {
@@ -18,7 +18,6 @@ interface LoginFormData {
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const [formData, setFormData] = useState<LoginFormData>({
         email: '',
         password: ''
@@ -28,14 +27,6 @@ const LoginPage: React.FC = () => {
     const [needsVerification, setNeedsVerification] = useState<boolean>(false);
     const [isResendingVerification, setIsResendingVerification] = useState<boolean>(false);
     const [resendSuccess, setResendSuccess] = useState<boolean>(false);
-
-    // Check if user is already authenticated on component mount
-    useEffect(() => {
-        if (checkAuth()) {
-            // User is already authenticated, redirect to appropriate dashboard
-            smartNavigate(navigate, location.pathname);
-        }
-    }, [navigate, location.pathname]);
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -80,9 +71,20 @@ const LoginPage: React.FC = () => {
             const result = await login(formData.email, formData.password);
 
             if (result.success) {
+                const successData = result.data;
+                const user: User = successData.user;
                 // The login utility already handles storing user and token
-                // Use smartNavigate to redirect to the appropriate dashboard
-                smartNavigate(navigate, location.pathname);
+                // Updated to include infrastructure_manager role
+                if (user.role === 'admin') {
+                    navigate(ADMIN_DASHBOARD);
+                } else if (user.role === 'manager') {
+                    navigate(MANAGER_DASHBOARD);
+                } else if (user.role === 'student' || user.role === 'faculty' || user.role === 'guest') {
+                    navigate(USER_DASHBOARD);
+                }
+                else {
+                    setError(`Unidentified user role "${user.role}"`);
+                }
             } else {
                 setError(result.data.message);
 
