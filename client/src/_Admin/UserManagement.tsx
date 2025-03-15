@@ -30,7 +30,6 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { useAdminAuth } from './useAdminAuth';
 import {
     fetchUsers,
     updateUserRole,
@@ -41,10 +40,11 @@ import {
     fetchUserInfrastructures
 } from '@/_utils';
 import { ADMIN_DASHBOARD } from '@/RoutePaths';
+import { useRoleAuth } from '@/useRoleAuth';
 
 const UserManagement: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthorized, isLoading: authLoading } = useAdminAuth();
+    const { isAdmin, isManager, isLoading: authLoading, error: authError } = useRoleAuth();
 
     // State management
     const [users, setUsers] = useState([]);
@@ -61,11 +61,11 @@ const UserManagement: React.FC = () => {
     const [assignedInfrastructures, setAssignedInfrastructures] = useState<number[]>([]);
 
     useEffect(() => {
-        if (isAuthorized) {
+        if (isAdmin) {
             loadUsers();
             loadInfrastructures();
         }
-    }, [isAuthorized]);
+    }, [isAdmin]);
 
     useEffect(() => {
         filterUsers();
@@ -123,8 +123,8 @@ const UserManagement: React.FC = () => {
             setSuccess(`User role updated successfully`);
 
             // If changing to/from infrastructure_manager, reload user data to get assigned infrastructures
-            if (newRole === 'infrastructure_manager' ||
-                users.find(u => u.id === userId)?.role === 'infrastructure_manager') {
+            if (newRole === 'manager' ||
+                users.find(u => u.id === userId)?.role === 'manager') {
                 loadUsers();
             }
 
@@ -207,7 +207,7 @@ const UserManagement: React.FC = () => {
         );
     }
 
-    if (!isAuthorized) {
+    if (!isAdmin) {
         return null;
     }
 
@@ -315,7 +315,7 @@ const UserManagement: React.FC = () => {
                                                                 )}
                                                             </Button>
 
-                                                            {user.role === 'infrastructure_manager' && (
+                                                            {user.role === 'manager' && (
                                                                 <Button
                                                                     size="sm"
                                                                     variant="ghost"

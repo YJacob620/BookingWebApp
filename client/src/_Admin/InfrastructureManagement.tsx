@@ -9,10 +9,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import InfrastructureManagementForm from './InfrastructureManagementForm';
 import InfrastructureManagementList from './InfrastructureManagementList';
 import InfrastructureQuestionsManager from './InfrastructureManagementQuestions';
-import { useAdminAuth } from './useAdminAuth';
-import { useManagerAuth } from '@/_Manager/useManagerAuth';
+import { useRoleAuth } from '@/useRoleAuth';
 
-// Import types and API utilities
 import {
     fetchInfrastructures,
     fetchMyInfrastructures,
@@ -22,17 +20,13 @@ import {
     Message,
     InfrastFormData
 } from '@/_utils';
-import { ADMIN_DASHBOARD, MANAGER_DASHBOARD } from '@/RoutePaths';
+import { ADMIN_DASHBOARD, MANAGER_DASHBOARD, LOGIN } from '@/RoutePaths';
 
 
 const InfrastructureManagement: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthorized: isAuthorizedAdmin, isLoading: adminLoading } = useAdminAuth();
-    const { isAuthorized: isAuthorizedManager, isLoading: managerLoading } = useManagerAuth();
+    const { isAdmin, isManager, isLoading: authLoading, error: authError } = useRoleAuth();
 
-    // Remove manual checkUserRole function and related state
-    // Instead, use this pattern:
-    const [isAdmin, setIsAdmin] = useState(false);
     const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState<Message>({ type: '', text: '' });
@@ -42,21 +36,30 @@ const InfrastructureManagement: React.FC = () => {
     const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    // Determine user role once when component mounts 
+    // Check authentication and handle unauthorized access
     useEffect(() => {
-        if (isAuthorizedAdmin) {
-            getInfrastructures();
-        } else {
-            console.error("Auth problem");
+        if (!authLoading && !isAdmin && !isManager) {
+            // Not authorized as either admin or manager
+            navigate(LOGIN);
         }
-    }, [isAuthorizedAdmin, refreshTrigger]);
+    }, [authLoading, isAdmin, isManager, navigate]);
+
+    // Fetch infrastructures when role is determined or refresh is triggered
+    useEffect(() => {
+        if (!authLoading && (isAdmin || isManager)) {
+            getInfrastructures();
+        }
+    }, [authLoading, isAdmin, isManager, refreshTrigger]);
 
     const getInfrastructures = async () => {
         try {
             setIsLoading(true);
+
+            // Use the correct API call based on role
             const data = isAdmin
-                ? await fetchInfrastructures()
-                : await fetchMyInfrastructures();
+                ? await fetchInfrastructures()  // Admin endpoint
+                : await fetchMyInfrastructures(); // Manager endpoint
+
             setInfrastructures(data);
         } catch (error) {
             console.error('Error fetching infrastructures:', error);
@@ -92,7 +95,8 @@ const InfrastructureManagement: React.FC = () => {
                 handleCancelEdit();
             }
 
-            getInfrastructures();
+            // Refresh the list
+            setRefreshTrigger(prev => prev + 1);
         } catch (error) {
             console.error(`Error ${isEditMode ? 'updating' : 'adding'} infrastructure:`, error);
             setMessage({
@@ -145,7 +149,7 @@ const InfrastructureManagement: React.FC = () => {
         try {
             await toggleInfrastructureStatus(id);
             setMessage({ type: 'success', text: 'Status updated successfully!' });
-            getInfrastructures();
+            setRefreshTrigger(prev => prev + 1);
         } catch (error) {
             console.error('Error toggling status:', error);
             setMessage({
@@ -164,13 +168,37 @@ const InfrastructureManagement: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Determine which dashboard to return to based on user role
+    const handleBackToDashboard = () => {
+        navigate(isAdmin ? ADMIN_DASHBOARD : MANAGER_DASHBOARD);
+    };
+
+    // Loading screen
+    if (authLoading || (isLoading && !message.text)) {
+        return (
+            <Card className="general-container">
+                <div className="text-center p-8">Loading...</div>
+            </Card>
+        );
+    }
+
+    // Show auth error if there is one
+    if (authError) {
+        return (
+            <Card className="general-container">
+                <div className="text-center p-8 text-red-500">
+                    Authentication Error: {authError}
+                </div>
+            </Card>
+        );
+    }
+
     return (
         <Card className="general-container w-210">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-start mb-6">
                     <Button
-                        onClick={() => navigate(
-                            isAuthorizedAdmin ? ADMIN_DASHBOARD : isAuthorizedManager ? MANAGER_DASHBOARD : 'ERROR')}
+                        onClick={handleBackToDashboard}
                         className="back-button"
                     >
                         <ArrowLeftCircle className="mr-2 h-4 w-4" />
@@ -199,7 +227,7 @@ const InfrastructureManagement: React.FC = () => {
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="list" onClick={() => setSelectedInfrastructure(null)}>
                             <Database className="mr-2 h-4 w-4" />
-                            Infrastructures
+                            {isAdmin ? 'All Infrastructures' : 'Your Infrastructures'}
                         </TabsTrigger>
                         {isAdmin && (
                             <TabsTrigger value="form" onClick={handleCancelEdit}>

@@ -29,7 +29,7 @@ router.put('/users/:id/role', authenticateToken, verifyAdmin, async (req, res) =
         return res.status(400).json({ message: 'Role is required' });
     }
 
-    const validRoles = ['admin', 'infrastructure_manager', 'faculty', 'student', 'guest'];
+    const validRoles = ['admin', 'manager', 'faculty', 'student', 'guest'];
     if (!validRoles.includes(role)) {
         return res.status(400).json({ message: 'Invalid role' });
     }
@@ -50,7 +50,7 @@ router.put('/users/:id/role', authenticateToken, verifyAdmin, async (req, res) =
         );
 
         // If changing to/from infrastructure_manager, handle the manager-infrastructure relationship
-        if (user.role === 'infrastructure_manager' && role !== 'infrastructure_manager') {
+        if (user.role === 'manager' && role !== 'manager') {
             // User is no longer a manager, remove all their infrastructure assignments
             await pool.execute(
                 'DELETE FROM infrastructure_managers WHERE user_id = ?',

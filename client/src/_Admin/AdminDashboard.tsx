@@ -2,12 +2,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar, Database, Users } from "lucide-react";
 
-import { useAdminAuth } from './useAdminAuth.tsx';
 import LogoutButton from '@/components/_LogoutButton.tsx';
+import { useRoleAuth } from '@/useRoleAuth.tsx';
 
 const AdminDashboard = () => {
-    const navigate = useNavigate();
-    const { isAuthorized, isLoading } = useAdminAuth();
+    const { isAdmin, isManager, isLoading, error: authError } = useRoleAuth();
 
     if (isLoading) {
         return (
@@ -17,7 +16,7 @@ const AdminDashboard = () => {
         );
     }
 
-    if (!isAuthorized) {
+    if (!isAdmin) {
         return null;
     }
 

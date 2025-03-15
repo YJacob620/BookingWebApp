@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
-import { resendVerification, login } from '@/_utils';
+import { resendVerification, login, User } from '@/_utils';
 import { ADMIN_DASHBOARD, USER_DASHBOARD, MANAGER_DASHBOARD } from './RoutePaths';
 
 
@@ -72,14 +72,14 @@ const LoginPage: React.FC = () => {
 
             if (result.success) {
                 const successData = result.data;
-
+                const user: User = successData.user;
                 // The login utility already handles storing user and token
                 // Updated to include infrastructure_manager role
-                if (successData.user.role === 'admin') {
+                if (user.role === 'admin') {
                     navigate(ADMIN_DASHBOARD);
-                } else if (successData.user.role === 'infrastructure_manager') {
+                } else if (user.role === 'manager') {
                     navigate(MANAGER_DASHBOARD);
-                } else {
+                } else if (user.role === 'student', user.role === 'faculty', user.role === 'guest') {
                     navigate(USER_DASHBOARD);
                 }
             } else {

@@ -25,7 +25,7 @@ const BackToDashboard: React.FC = () => {
                 case 'admin':
                     navigate(ADMIN_DASHBOARD);
                     break;
-                case 'infrastructure_manager':
+                case 'manager':
                     navigate(MANAGER_DASHBOARD);
                     break;
                 case 'faculty':

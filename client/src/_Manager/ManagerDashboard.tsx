@@ -5,24 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Database, Settings, CalendarRange } from "lucide-react";
 
-import { useManagerAuth } from './useManagerAuth';
 import { fetchMyInfrastructures, Infrastructure } from '@/_utils';
 import { MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import LogoutButton from '@/components/_LogoutButton.tsx';
+import { useRoleAuth } from '@/useRoleAuth';
 
 
 const ManagerDashboard: React.FC = () => {
-    const navigate = useNavigate();
-    const { isAuthorized, isLoading } = useManagerAuth();
+    const { isAdmin, isManager, isLoading: authLoading, error: authError } = useRoleAuth();
     const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (isAuthorized) {
+        if (isManager) {
             getInfrastructures();
         }
-    }, [isAuthorized]);
+    }, [isManager]);
 
     const getInfrastructures = async () => {
         try {
@@ -34,11 +33,11 @@ const ManagerDashboard: React.FC = () => {
         }
     };
 
-    if (isLoading) {
-        return <div>Loading...</div>;
+    if (authLoading) {
+        return <div>Authenticating...</div>;
     }
 
-    if (!isAuthorized) {
+    if (!isManager) {
         return null;
     }
 

@@ -28,7 +28,7 @@ router.get('/:infrastructureId/questions',
             if (userRole === 'admin') {
                 // Admins can access any infrastructure's questions
                 // No additional checks needed
-            } else if (userRole === 'infrastructure_manager') {
+            } else if (userRole === 'manager') {
                 // Managers can only access infrastructures assigned to them
                 const [managerAccess] = await pool.execute(
                     'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',

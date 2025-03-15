@@ -29,7 +29,7 @@ const verifyAdmin = (req, res, next) => {
 
 // Middleware to verify infrastructure manager role
 const verifyInfrastructureManager = async (req, res, next) => {
-    if (req.user.role !== 'infrastructure_manager' && req.user.role !== 'admin') {
+    if (req.user.role !== 'manager' && req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Infrastructure manager access required' });
     }
     next();

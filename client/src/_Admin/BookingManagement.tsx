@@ -6,10 +6,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeftCircle, Loader } from "lucide-react";
 
 // Import components
-import { useAdminAuth } from './useAdminAuth';
 import InfrastructureSelector from './InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
+import { useRoleAuth } from '@/useRoleAuth';
 
 import {
     Infrastructure,
@@ -23,7 +23,7 @@ import { ADMIN_DASHBOARD } from '@/RoutePaths';
 
 const BookingManagement: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthorized, isLoading: authLoading } = useAdminAuth();
+    const { isAdmin, isManager, isLoading: authLoading, error: authError } = useRoleAuth();
 
     // Infrastructure state
     const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | undefined>(undefined);
@@ -100,7 +100,7 @@ const BookingManagement: React.FC = () => {
         return null;
     }
 
-    if (!isAuthorized) {
+    if (!isAdmin) {
         return null;
     }
 
