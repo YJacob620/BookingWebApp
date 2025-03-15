@@ -21,6 +21,7 @@ import {
     InfrastFormData
 } from '@/_utils';
 import { ADMIN_DASHBOARD, MANAGER_DASHBOARD, LOGIN } from '@/RoutePaths';
+import BackToDashboardButton from '@/components/_BackToDashboardButton';
 
 
 const InfrastructureManagement: React.FC = () => {
@@ -197,13 +198,7 @@ const InfrastructureManagement: React.FC = () => {
         <Card className="general-container w-210">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-start mb-6">
-                    <Button
-                        onClick={handleBackToDashboard}
-                        className="back-button"
-                    >
-                        <ArrowLeftCircle className="mr-2 h-4 w-4" />
-                        Back to Dashboard
-                    </Button>
+                    <BackToDashboardButton />
                 </div>
 
                 <div className="flex justify-between items-center mb-8">

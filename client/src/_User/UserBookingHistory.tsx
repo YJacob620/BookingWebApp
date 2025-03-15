@@ -36,6 +36,7 @@ import {
 } from '@/_utils';
 import { LOGIN, USER_DASHBOARD } from '@/RoutePaths';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
+import BackToDashboardButton from '@/components/_BackToDashboardButton';
 
 
 
@@ -162,13 +163,7 @@ const BookingHistory = () => {
     <Card className="general-container">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-start mb-6">
-          <Button
-            onClick={() => navigate(USER_DASHBOARD)}
-            className="back-button"
-          >
-            <ArrowLeftCircle className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
+          <BackToDashboardButton />
         </div>
 
         <div className="flex justify-between items-center mb-8">

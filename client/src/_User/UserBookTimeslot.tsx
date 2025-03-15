@@ -31,6 +31,7 @@ import {
   fetchInfrastructureQuestions
 } from '@/_utils';
 import { LOGIN, USER_DASHBOARD } from '@/RoutePaths';
+import BackToDashboardButton from '@/components/_BackToDashboardButton';
 
 
 const BookTimeslot = () => {
@@ -337,13 +338,7 @@ const BookTimeslot = () => {
         <Card className="general-container">
           <div className="max-w-7xl mx-auto px-4 py-1">
             <div className="flex justify-start mb-6">
-              <Button
-                onClick={() => navigate(USER_DASHBOARD)}
-                className="back-button"
-              >
-                <ArrowLeftCircle className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
+              <BackToDashboardButton />
             </div>
 
             <div className="flex justify-between items-center mb-8">

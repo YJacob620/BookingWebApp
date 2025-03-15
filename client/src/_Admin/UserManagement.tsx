@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeftCircle, Search, UserCheck, UserX, Shield } from 'lucide-react';
+import { Search, UserCheck, UserX, Shield } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -39,12 +38,11 @@ import {
     removeInfrastructureFromManager,
     fetchUserInfrastructures
 } from '@/_utils';
-import { ADMIN_DASHBOARD } from '@/RoutePaths';
 import { useRoleAuth } from '@/useRoleAuth';
+import BackToDashboardButton from '@/components/_BackToDashboardButton';
 
 const UserManagement: React.FC = () => {
-    const navigate = useNavigate();
-    const { isAdmin, isManager, isLoading: authLoading, error: authError } = useRoleAuth();
+    const { isAdmin, isLoading: authLoading, error: authError } = useRoleAuth();
 
     // State management
     const [users, setUsers] = useState([]);
@@ -215,13 +213,7 @@ const UserManagement: React.FC = () => {
         <Card className="general-container">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-start mb-6">
-                    <Button
-                        onClick={() => navigate(ADMIN_DASHBOARD)}
-                        className="back-button"
-                    >
-                        <ArrowLeftCircle className="mr-2 h-4 w-4" />
-                        Back to Dashboard
-                    </Button>
+                    <BackToDashboardButton />
                 </div>
 
                 <div className="flex justify-between items-center mb-8">

@@ -19,6 +19,7 @@ import {
     fetchAllBookingEntries
 } from '@/_utils';
 import { ADMIN_DASHBOARD } from '@/RoutePaths';
+import BackToDashboardButton from '@/components/_BackToDashboardButton';
 
 
 const BookingManagement: React.FC = () => {
@@ -108,13 +109,7 @@ const BookingManagement: React.FC = () => {
         <Card className="general-container min-w-200">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-start mb-6">
-                    <Button
-                        onClick={() => navigate(ADMIN_DASHBOARD)}
-                        className="back-button"
-                    >
-                        <ArrowLeftCircle className="mr-2 h-4 w-4" />
-                        Back to Dashboard
-                    </Button>
+                    <BackToDashboardButton />
                 </div>
 
                 <div className="flex justify-between items-center mb-8">
