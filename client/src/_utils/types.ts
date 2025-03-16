@@ -76,11 +76,19 @@ export interface SortConfig<T> {
 }
 
 export interface FilterQuestionData {
-  id?: number;
+  id: number;
   infrastructure_id: number;
   question_text: string;
   question_type: 'dropdown' | 'text' | 'number' | 'document';
   is_required: boolean;
   options?: string;
   display_order?: number;
+}
+
+/**
+ * Interface for the answers to infrastructure filter questions.
+ * Maps question IDs to their respective answer values.
+ */
+export interface FilterQuestionAnswerData {
+  [questionId: number]: (string | number | File | null);
 }

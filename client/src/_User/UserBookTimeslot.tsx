@@ -27,12 +27,14 @@ import {
   fetchInfrastAvailTimeslots,
   bookTimeslotWithAnswers,
   fetchInfrastructureQuestions,
-  FilterQuestionData
+  FilterQuestionData,
+  FilterQuestionAnswerData
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
 import { Input } from '@/components/ui/input';
 import BasePageLayout from '@/components/_BasePageLayout';
 
+type FilterQuestionAnswerMap = Record<number, FilterQuestionAnswerData | null>;
 
 const BookTimeslot = () => {
   const navigate = useNavigate();
@@ -47,7 +49,7 @@ const BookTimeslot = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState<FilterQuestionAnswerMap>({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -199,7 +201,7 @@ const BookTimeslot = () => {
       setSelectedDate(undefined);
 
       // Reset answers
-      const initialAnswers = {};
+      const initialAnswers: FilterQuestionAnswerMap = {};
       questions.forEach(q => {
         initialAnswers[q.id] = q.question_type === 'document' ? null : '';
       });
@@ -253,7 +255,7 @@ const BookTimeslot = () => {
         .then(data => {
           setQuestions(data);
           // Initialize answers state with empty values
-          const initialAnswers = {};
+          const initialAnswers: FilterQuestionAnswerMap = {};
           data.forEach(q => {
             initialAnswers[q.id] = q.question_type === 'document' ? null : '';
           });
@@ -276,7 +278,7 @@ const BookTimeslot = () => {
 
         {q.question_type === 'text' && (
           <Textarea
-            value={answers[q.id] || ''}
+            value={answers[q.id]?.toString() || ''}
             onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
             required={q.is_required}
           />
@@ -285,15 +287,15 @@ const BookTimeslot = () => {
         {q.question_type === 'number' && (
           <Input
             type="number"
-            value={answers[q.id] || ''}
+            value={answers[q.id]?.toString() || ''}
             onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
             required={q.is_required}
           />
         )}
 
-        {q.question_type === 'dropdown' && (
+        {q.question_type === 'dropdown' && q.options && (
           <Select
-            value={answers[q.id] || ''}
+            value={answers[q.id]?.toString() || ''}
             onValueChange={value => setAnswers({ ...answers, [q.id]: value })}
           >
             <SelectTrigger>

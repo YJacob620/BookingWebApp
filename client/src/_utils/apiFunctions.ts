@@ -302,7 +302,7 @@ export const removeInfrastructureFromManager = (userId: number, infrastructureId
 /**
  * Fetch all questions for an infrastructure
  */
-export const fetchInfrastructureQuestions = (infrastructureId: number) => {
+export const fetchInfrastructureQuestions = (infrastructureId: number): Promise<FilterQuestionData[]> => {
   return apiRequest(`/infrastructures-manager-admin/${infrastructureId}/questions`);
 };
 
