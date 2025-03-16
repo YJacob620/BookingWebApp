@@ -26,7 +26,7 @@ function App() {
         <Route
           path={RoutePaths.LOGIN}
           element={
-            <AuthGuard isPublicRoute={true}>
+            <AuthGuard>
               <LoginPage />
             </AuthGuard>
           }
@@ -34,7 +34,7 @@ function App() {
         <Route
           path={RoutePaths.REGISTER}
           element={
-            <AuthGuard isPublicRoute={true}>
+            <AuthGuard>
               <RegistrationPage />
             </AuthGuard>
           }
@@ -52,7 +52,7 @@ function App() {
         <Route
           path={RoutePaths.VERIFICATION_PENDING}
           element={
-            <AuthGuard isPublicRoute={true}>
+            <AuthGuard>
               <VerificationPendingPage />
             </AuthGuard>
           }
@@ -60,7 +60,7 @@ function App() {
         <Route
           path={RoutePaths.FORGOT_PASSWORD}
           element={
-            <AuthGuard isPublicRoute={true}>
+            <AuthGuard>
               <ForgotPasswordPage />
             </AuthGuard>
           }

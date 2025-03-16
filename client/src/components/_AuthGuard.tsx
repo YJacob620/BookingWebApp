@@ -14,9 +14,6 @@ interface AuthGuardProps {
 
   // Custom loading component (optional)
   loadingComponent?: ReactNode;
-
-  // Whether this is a public route (like login page)
-  isPublicRoute?: boolean;
 }
 
 /**
@@ -55,19 +52,22 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRoles }) => {
   // Show loading component/spinner while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen general-container flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
+      <div className="general-container flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Spinner size="lg" color='without' />
           <div className="text-xl">Loading...</div>
         </div>
       </div>
     );
   }
+
   // For protected routes, we need additional checks
   if (requiredRoles) {
     if (!isLocalUserDataValid()) {
       return null; // Don't render anything, will redirect in useEffect
     }
+
+    // console.warn("OH NO - ", requiredRoles, authenticatedRole);
 
     // Don't render anything if user doesn't have required role
     const hasRequiredRole = authenticatedRole && requiredRoles.includes(authenticatedRole);
@@ -77,6 +77,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRoles }) => {
   }
 
   // Render the protected content
+  console.warn("AUTH SUCCESS");
   return <>{children}</>;
 };
 
