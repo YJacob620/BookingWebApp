@@ -17,7 +17,7 @@ import {
     InfrastFormData,
     getUserFromStorage
 } from '@/_utils';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 
 const InfrastructureManagement: React.FC = () => {

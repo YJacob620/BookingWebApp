@@ -7,7 +7,7 @@ import { CheckCircle, XCircle, Loader } from 'lucide-react';
 
 import { verifyEmailWithToken } from '@/_utils';
 import { ADMIN_DASHBOARD, LOGIN, USER_DASHBOARD } from '@/RoutePaths';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 
 const EmailVerificationPage: React.FC = () => {

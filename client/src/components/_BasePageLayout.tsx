@@ -47,12 +47,12 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
           className={`grid ${showDashboardButton && showLogoutButton ? 'grid-cols-2' : 'grid-cols-1'}`}
         >
           {showDashboardButton && (
-            <div className="flex justify-start mb-9">
+            <div className="flex justify-start mb-7">
               <BackToDashboardButton />
             </div>
           )}
           {showLogoutButton && (
-            <div className="flex justify-end mb-9">
+            <div className="flex justify-end mb-7">
               <LogoutButton />
             </div>
           )}
@@ -67,7 +67,7 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
 
 
         {explanationText && (
-          <p className="explanation-text1 mt-1">
+          <p className="explanation-text1 mt-2">
             {explanationText}
           </p>
         )}

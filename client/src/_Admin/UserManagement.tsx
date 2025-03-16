@@ -41,7 +41,7 @@ import {
     UserRole,
     Message
 } from '@/_utils';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 const UserManagement: React.FC = () => {
 

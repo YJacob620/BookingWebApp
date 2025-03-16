@@ -7,7 +7,7 @@ import { Mail, Loader } from 'lucide-react';
 
 import { resendVerification, Message } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 interface LocationState {
   email?: string;

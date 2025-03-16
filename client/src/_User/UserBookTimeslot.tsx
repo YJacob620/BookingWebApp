@@ -5,7 +5,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeftCircle, CalendarCheck } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -33,6 +33,7 @@ import {
 import { LOGIN } from '@/RoutePaths';
 import BackToDashboardButton from '@/components/_BackToDashboardButton';
 import { Input } from '@/components/ui/input';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 
 const BookTimeslot = () => {
@@ -330,161 +331,140 @@ const BookTimeslot = () => {
   };
 
   return (
-    <>
-      {isLoading ? (
-        <div className="flex justify-center items-center h-full">
-          <Spinner /> {/* You'd need to import or create a Spinner component */}
-        </div>
-      ) : (
-        <Card className="general-container">
-          <div className="max-w-7xl mx-auto px-4 py-1">
-            <div className="flex justify-start mb-6">
-              <BackToDashboardButton />
+    <BasePageLayout
+      pageTitle="Request a Booking"
+      explanationText={"Fill and submit the form to request a booking from an infrastructure manager"}
+      showDashboardButton
+      alertMessage={message}
+    >
+      <Card className="card1 mb-8">
+        <CardTitle className="text-2xl py-4">Book Infrastructures</CardTitle>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Infrastructure Selection */}
+            <div className="space-y-2">
+              {isLoading ? (
+                <p>Loading available infrastructures...</p>
+              ) : infrastructures.length === 0 ? (
+                <p>No infrastructures available</p>
+              ) : (
+                <>
+                  <p className="small-title">Select Infrastructure</p>
+                  <Select
+                    onValueChange={(value) => {
+                      setSelectedInfrastructureId(Number(value));
+                      setSelectedDate(undefined);
+                      setSelectedTimeslotId(null);
+                    }}
+                    value={selectedInfrastructureId?.toString() || ""}
+                    disabled={isLoading} // Disable when loading infrastructures
+                  >
+                    <SelectTrigger id="infrastructure">
+                      <SelectValue placeholder="Select an infrastructure" />
+                    </SelectTrigger>
+                    <SelectContent className="card1">
+                      {infrastructures.map((infra) => (
+                        <SelectItem key={infra.id} value={infra.id.toString()}>
+                          {infra.name} {infra.location ? `(${infra.location})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
             </div>
 
-            <div className="flex justify-between items-center mb-8">
-              <h1>Create New Booking</h1>
+            {/* Date Selection */}
+            <div className="space-y-2">
+              <p className="small-title">Select Date</p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`def-hover w-full h-9 px-2 text-[14px] justify-start text-left font-normal 
+                        ${!selectedDate && "text-gray-400"}`}
+                  >
+                    <CalendarCheck className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, 'PPP') : "Select a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="calendar-popover">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setSelectedTimeslotId(null); // Reset timeslot when date changes
+                    }}
+                    disabled={isDateDisabled}
+                  />
+
+                </PopoverContent>
+              </Popover>
+              {isLoadingTimeslots && <p className="text-sm text-gray-400">Loading available dates...</p>}
+              {!isLoadingTimeslots && selectedInfrastructureId && availableDates.length === 0 && (
+                <p className="text-sm text-amber-500">No available timeslots for this infrastructure</p>
+              )}
             </div>
 
-            {message && (
-              <Alert
-                className={`mb-6 ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}
+            {/* Timeslot Selection */}
+            <div className="space-y-2">
+              <p className="small-title">Select Timeslot</p>
+              <Select
+                onValueChange={(value) => setSelectedTimeslotId(Number(value))}
+                value={selectedTimeslotId?.toString() || ""}
+                disabled={availableTimeslots.length === 0 || !selectedDate}
               >
-                <AlertDescription>{message.text}</AlertDescription>
-              </Alert>
+                <SelectTrigger id="timeslot">
+                  <SelectValue placeholder={
+                    !selectedInfrastructureId
+                      ? "Select infrastructure first" : !selectedDate
+                        ? "Select a date first" : availableTimeslots.length === 0
+                          ? "No available timeslots for this date" : "Select a timeslot"
+                  } />
+                </SelectTrigger>
+                <SelectContent className="card1">
+                  {availableTimeslots.map((slot) => (
+                    <SelectItem key={slot.id} value={slot.id.toString()}>
+                      {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Purpose */}
+            <div className="space-y-2">
+              <p className="small-title">Purpose of Booking (optional)</p>
+              <Textarea
+                id="purpose"
+                value={purpose}
+                onChange={(e) => setPurpose(e.target.value)}
+                placeholder="Briefly describe the purpose of your booking"
+                className="h-24"
+              />
+            </div>
+
+            {/* Dynamic question fields */}
+            {questions.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Additional Information</h3>
+                {renderQuestionFields()}
+              </div>
             )}
 
-            <Card className="card1 mb-8">
-              <CardTitle className="text-2xl py-4">Book Infrastructures</CardTitle>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Infrastructure Selection */}
-                  <div className="space-y-2">
-                    {isLoading ? (
-                      <p>Loading available infrastructures...</p>
-                    ) : infrastructures.length === 0 ? (
-                      <p>No infrastructures available</p>
-                    ) : (
-                      <>
-                        <p className="small-title">Select Infrastructure</p>
-                        <Select
-                          onValueChange={(value) => {
-                            setSelectedInfrastructureId(Number(value));
-                            setSelectedDate(undefined);
-                            setSelectedTimeslotId(null);
-                          }}
-                          value={selectedInfrastructureId?.toString() || ""}
-                          disabled={isLoading} // Disable when loading infrastructures
-                        >
-                          <SelectTrigger id="infrastructure">
-                            <SelectValue placeholder="Select an infrastructure" />
-                          </SelectTrigger>
-                          <SelectContent className="card1">
-                            {infrastructures.map((infra) => (
-                              <SelectItem key={infra.id} value={infra.id.toString()}>
-                                {infra.name} {infra.location ? `(${infra.location})` : ''}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Date Selection */}
-                  <div className="space-y-2">
-                    <p className="small-title">Select Date</p>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={`def-hover w-full h-9 px-2 text-[14px] justify-start text-left font-normal 
-                        ${!selectedDate && "text-gray-400"}`}
-                        >
-                          <CalendarCheck className="mr-2 h-4 w-4" />
-                          {selectedDate ? format(selectedDate, 'PPP') : "Select a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="calendar-popover">
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={(date) => {
-                            setSelectedDate(date);
-                            setSelectedTimeslotId(null); // Reset timeslot when date changes
-                          }}
-                          disabled={isDateDisabled}
-                        />
-
-                      </PopoverContent>
-                    </Popover>
-                    {isLoadingTimeslots && <p className="text-sm text-gray-400">Loading available dates...</p>}
-                    {!isLoadingTimeslots && selectedInfrastructureId && availableDates.length === 0 && (
-                      <p className="text-sm text-amber-500">No available timeslots for this infrastructure</p>
-                    )}
-                  </div>
-
-                  {/* Timeslot Selection */}
-                  <div className="space-y-2">
-                    <p className="small-title">Select Timeslot</p>
-                    <Select
-                      onValueChange={(value) => setSelectedTimeslotId(Number(value))}
-                      value={selectedTimeslotId?.toString() || ""}
-                      disabled={availableTimeslots.length === 0 || !selectedDate}
-                    >
-                      <SelectTrigger id="timeslot">
-                        <SelectValue placeholder={
-                          !selectedInfrastructureId
-                            ? "Select infrastructure first" : !selectedDate
-                              ? "Select a date first" : availableTimeslots.length === 0
-                                ? "No available timeslots for this date" : "Select a timeslot"
-                        } />
-                      </SelectTrigger>
-                      <SelectContent className="card1">
-                        {availableTimeslots.map((slot) => (
-                          <SelectItem key={slot.id} value={slot.id.toString()}>
-                            {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Purpose */}
-                  <div className="space-y-2">
-                    <p className="small-title">Purpose of Booking (optional)</p>
-                    <Textarea
-                      id="purpose"
-                      value={purpose}
-                      onChange={(e) => setPurpose(e.target.value)}
-                      placeholder="Briefly describe the purpose of your booking"
-                      className="h-24"
-                    />
-                  </div>
-
-                  {/* Dynamic question fields */}
-                  {questions.length > 0 && (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">Additional Information</h3>
-                      {renderQuestionFields()}
-                    </div>
-                  )}
-
-                  {/* Submit button */}
-                  <Button
-                    type="submit"
-                    disabled={!selectedTimeslotId}
-                    className="w-full"
-                  >
-                    Submit Booking Request
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        </Card>
-      )}
-    </>
+            {/* Submit button */}
+            <Button
+              type="submit"
+              disabled={!selectedTimeslotId}
+              className="w-full"
+            >
+              Submit Booking Request
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </BasePageLayout>
   );
 };
 

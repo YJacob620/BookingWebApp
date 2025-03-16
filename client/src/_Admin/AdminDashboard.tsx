@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar, Database, Users } from "lucide-react";
 
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 const AdminDashboard = () => {
     const menuItems = [

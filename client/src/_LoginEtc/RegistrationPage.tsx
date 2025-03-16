@@ -15,7 +15,7 @@ import {
 
 import { Message, register, RegistrationFormData } from '@/_utils';
 import { LOGIN, VERIFICATION_PENDING } from '@/RoutePaths';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 
 interface FormErrors {

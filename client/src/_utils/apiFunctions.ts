@@ -3,7 +3,9 @@
 import {
   InfrastFormData,
   BatchCreationPayload,
-  FilterQuestionData
+  FilterQuestionData,
+  BookingEntry,
+  Infrastructure
 } from './types';
 
 /**
@@ -62,35 +64,28 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
 /**
  * Fetch all infrastructures (admin only)
  */
-export const fetchInfrastructures = () => {
+export const fetchInfrastructures = (): Promise<Infrastructure[]> => {
   return apiRequest('/infrastructures-admin');
 };
 
 /**
  * Fetch active infrastructures (all users)
  */
-export const fetchActiveInfrastructures = () => {
+export const fetchActiveInfrastructures = (): Promise<Infrastructure[]> => {
   return apiRequest('/infrastructures-user/active');
-};
-
-/**
- * Fetch a single infrastructure by ID
- */
-export const fetchInfrastructureById = (id: number) => {
-  return apiRequest(`/infrastructures-admin/${id}`);
 };
 
 /**
  * Fetch user's recent bookings
  */
-export const fetchRecentUserBookings = () => {
+export const fetchRecentUserBookings = (): Promise<BookingEntry[]> => {
   return apiRequest('/bookings-user/recent');
 };
 
 /**
  * Fetch all user's bookings
  */
-export const fetchAllUserBookings = () => {
+export const fetchAllUserBookings = (): Promise<BookingEntry[]> => {
   return apiRequest('/bookings-user/all');
 };
 
@@ -166,7 +161,7 @@ export const fetchAllBookingEntries = (
     endDate?: string,
     limit?: number
   }
-) => {
+): Promise<BookingEntry[]> => {
   let url = `/bookings-admin/${infrastructureId}/all-entries`;
 
   if (params) {
@@ -213,15 +208,16 @@ export const toggleInfrastructureStatus = (id: number) => {
 /**
  * Fetches available (only) timeslots for an infrastructure (for user)
  */
-export const fetchInfrastAvailTimeslots = (infrastructureId: number, params?: { date?: string }) => {
-  let url = `/bookings-user/${infrastructureId}/available-timeslots`;
+export const fetchInfrastAvailTimeslots =
+  (infrastructureId: number, params?: { date?: string }): Promise<BookingEntry[]> => {
+    let url = `/bookings-user/${infrastructureId}/available-timeslots`;
 
-  if (params?.date) {
-    url += `?date=${params.date}`;
-  }
+    if (params?.date) {
+      url += `?date=${params.date}`;
+    }
 
-  return apiRequest(url);
-};
+    return apiRequest(url);
+  };
 
 /**
  * Create timeslots (admin only)
@@ -273,7 +269,7 @@ export const toggleUserBlacklist = (userId: number, blacklist: boolean) => {
 /**
  * For managers to fetch their own assigned infrastructures
  */
-export const fetchMyInfrastructures = () => {
+export const fetchMyInfrastructures = (): Promise<Infrastructure[]> => {
   return apiRequest('/manager/my-infrastructures');
 };
 

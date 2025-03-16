@@ -35,7 +35,7 @@ import {
   Message,
 } from '@/_utils';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 
 

@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
 import { resendVerification, login, User, getDashboardPath, Message } from '@/_utils';
-import BasePageLayout from '../components/_ProtectedPageLayout';
+import BasePageLayout from '../components/_BasePageLayout';
 import { FORGOT_PASSWORD, REGISTER } from '@/RoutePaths';
 
 // Interface for form data

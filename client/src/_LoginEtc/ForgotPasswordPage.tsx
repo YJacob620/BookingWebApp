@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Loader } from 'lucide-react';
 
 import { requestPasswordReset } from '@/_utils';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 import { LOGIN } from '@/RoutePaths';
 
 

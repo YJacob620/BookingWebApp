@@ -7,7 +7,7 @@ import { Database, Settings, CalendarRange } from "lucide-react";
 import { fetchMyInfrastructures, Infrastructure, Message } from '@/_utils';
 import { MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 
 const ManagerDashboard: React.FC = () => {

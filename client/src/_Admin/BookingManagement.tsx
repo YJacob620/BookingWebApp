@@ -5,7 +5,7 @@ import { Loader } from "lucide-react";
 import InfrastructureSelector from './InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
-import BasePageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_BasePageLayout';
 
 import {
     Infrastructure,
@@ -64,15 +64,8 @@ const BookingManagement: React.FC = () => {
     // Handle batch updating of past bookings/timeslots statuses
     const handleUpdatePastBookings = async () => {
         try {
-            const data = await forceUpdatePastBookings();
-            handleSuccess(
-                `${data.completedCount} bookings marked as completed, ` +
-                `${data.expiredBookingsCount} bookings marked as expired, and ` +
-                `${data.expiredTimeslotsCount} timeslots marked as expired.`
-            );
-
-            // Refresh the data after status updates
-            setRefreshTrigger(prev => prev + 1);
+            await forceUpdatePastBookings();
+            setRefreshTrigger(prev => prev + 1); // Refresh the data after status updates
         } catch (error) {
             console.error('Error updating past bookings:', error);
             handleError('An error occurred while updating past bookings');
