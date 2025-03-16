@@ -5,7 +5,7 @@ import BackToDashboardButton from '@/components/_BackToDashboardButton';
 import LogoutButton from '@/components/_LogoutButton';
 import { Message } from '@/_utils';
 
-interface ProtectedPageLayoutProps {
+interface BasePageLayoutProps {
   // Content to display
   children: ReactNode;
 
@@ -25,12 +25,9 @@ interface ProtectedPageLayoutProps {
 }
 
 /**
- * ProtectedPageLayout - Standard layout for protected pages
- * 
- * This component provides a consistent layout for protected pages
- * without handling authentication (which is now done at the route level).
+ * Component that provides a consistent layout for pages.
  */
-const ProtectedPageLayout: React.FC<ProtectedPageLayoutProps> = ({
+const BasePageLayout: React.FC<BasePageLayoutProps> = ({
   children,
   pageTitle,
   showDashboardButton = false,
@@ -98,4 +95,4 @@ const ProtectedPageLayout: React.FC<ProtectedPageLayoutProps> = ({
   );
 };
 
-export default ProtectedPageLayout;
+export default BasePageLayout;

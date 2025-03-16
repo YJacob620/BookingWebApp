@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { logout } from '@/_utils/authUtils';
+import { logout } from '@/_utils/localAuthUtils';
 
 type LogoutButtonProps = {
     className?: string;

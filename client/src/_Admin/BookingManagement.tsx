@@ -5,7 +5,7 @@ import { Loader } from "lucide-react";
 import InfrastructureSelector from './InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 
 import {
     Infrastructure,
@@ -80,7 +80,7 @@ const BookingManagement: React.FC = () => {
     };
 
     return (
-        <ProtectedPageLayout
+        <BasePageLayout
             pageTitle="Booking & Timeslot Management"
             showDashboardButton
             alertMessage={message}
@@ -123,7 +123,7 @@ const BookingManagement: React.FC = () => {
                     />
                 </>
             )}
-        </ProtectedPageLayout>
+        </BasePageLayout>
     );
 };
 

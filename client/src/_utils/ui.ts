@@ -48,7 +48,8 @@ export const getBookingStatusOptions = (includeAll: boolean = true): { value: st
     { value: 'approved', label: 'Approved' },
     { value: 'rejected', label: 'Rejected' },
     { value: 'completed', label: 'Completed' },
-    { value: 'canceled', label: 'Canceled' }
+    { value: 'canceled', label: 'Canceled' },
+    { value: 'expired', label: 'Expired' }
   ];
   if (includeAll) {
     return [{ value: 'all', label: 'All Statuses' }, ...statuses];

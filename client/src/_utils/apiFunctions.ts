@@ -1,4 +1,4 @@
-/* API functions to be used by the client for communicating with the server */
+/* General-purpose API functions to be used by the client for communicating with the server */
 
 import {
   InfrastFormData,
@@ -83,15 +83,15 @@ export const fetchInfrastructureById = (id: number) => {
 /**
  * Fetch user's recent bookings
  */
-export const fetchUserBookings = () => {
-  return apiRequest('/bookings-user/user');
+export const fetchRecentUserBookings = () => {
+  return apiRequest('/bookings-user/recent');
 };
 
 /**
  * Fetch all user's bookings
  */
 export const fetchAllUserBookings = () => {
-  return apiRequest('/bookings-user/user/all');
+  return apiRequest('/bookings-user/all');
 };
 
 /**

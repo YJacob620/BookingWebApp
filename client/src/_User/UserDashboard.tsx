@@ -19,7 +19,7 @@ import {
   formatTimeString,
   getStatusColor,
   BookingEntry,
-  fetchUserBookings
+  fetchRecentUserBookings
 } from '@/_utils';
 import { BOOKING_HISTORY, CREATE_BOOKING, LOGIN } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
@@ -57,7 +57,7 @@ const UserDashboard = () => {
   const getRecentBookings = async () => {
     try {
       setIsLoading(true);
-      const data = await fetchUserBookings();
+      const data = await fetchRecentUserBookings();
       setBookings(data);
     } catch (err) {
       console.error('Error fetching bookings:', err);

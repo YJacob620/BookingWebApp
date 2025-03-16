@@ -4,7 +4,7 @@ const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
 // Get recent bookings for the current user
-router.get('/user', authenticateToken, async (req, res) => {
+router.get('/recent', authenticateToken, async (req, res) => {
     try {
         const userEmail = req.user.email;
 
@@ -28,7 +28,7 @@ router.get('/user', authenticateToken, async (req, res) => {
 });
 
 // Get all bookings for the current user
-router.get('/user/all', authenticateToken, async (req, res) => {
+router.get('/all', authenticateToken, async (req, res) => {
     try {
         const userEmail = req.user.email;
 

@@ -41,7 +41,7 @@ import {
     UserRole,
     Message
 } from '@/_utils';
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 
 const UserManagement: React.FC = () => {
 
@@ -212,7 +212,7 @@ const UserManagement: React.FC = () => {
     };
 
     return (
-        <ProtectedPageLayout
+        <BasePageLayout
             pageTitle="User Management"
             showDashboardButton
             alertMessage={message}
@@ -373,7 +373,7 @@ const UserManagement: React.FC = () => {
                     </DialogContent>
                 </Dialog>
             )}
-        </ProtectedPageLayout>
+        </BasePageLayout>
     );
 };
 

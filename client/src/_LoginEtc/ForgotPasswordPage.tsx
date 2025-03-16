@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Loader } from 'lucide-react';
 
 import { requestPasswordReset } from '@/_utils';
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 import { LOGIN } from '@/RoutePaths';
 
 
@@ -51,7 +51,7 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <ProtectedPageLayout
+    <BasePageLayout
       pageTitle="Forgot Password"
       explanationText="Enter your email to receive a password reset link"
     >
@@ -114,7 +114,7 @@ const ForgotPasswordPage: React.FC = () => {
           Back to Login
         </Link>
       </CardFooter>
-    </ProtectedPageLayout>
+    </BasePageLayout>
   );
 };
 

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar, Database, Users } from "lucide-react";
 
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 
 const AdminDashboard = () => {
     const menuItems = [
@@ -27,7 +27,7 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <ProtectedPageLayout
+        <BasePageLayout
             pageTitle="Admin Dashboard"
             showLogoutButton
             explanationText={"Select a section below to manage different aspects of the system"}
@@ -55,7 +55,7 @@ const AdminDashboard = () => {
                     </Link>
                 ))}
             </div>
-        </ProtectedPageLayout>
+        </BasePageLayout>
     );
 };
 

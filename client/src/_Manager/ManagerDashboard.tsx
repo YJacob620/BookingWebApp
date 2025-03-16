@@ -7,7 +7,7 @@ import { Database, Settings, CalendarRange } from "lucide-react";
 import { fetchMyInfrastructures, Infrastructure, Message } from '@/_utils';
 import { MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 
 
 const ManagerDashboard: React.FC = () => {
@@ -33,7 +33,7 @@ const ManagerDashboard: React.FC = () => {
     };
 
     return (
-        <ProtectedPageLayout
+        <BasePageLayout
             pageTitle="Infrastructure Manager Dashboard"
             explanationText="Manage your assigned infrastructures, timeslots, and booking requests."
             showLogoutButton
@@ -89,7 +89,7 @@ const ManagerDashboard: React.FC = () => {
                     You don't have any assigned infrastructures.
                 </div>
             )}
-        </ProtectedPageLayout>
+        </BasePageLayout>
     );
 };
 

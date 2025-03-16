@@ -7,7 +7,7 @@ import { Mail, Loader } from 'lucide-react';
 
 import { resendVerification, Message } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 
 interface LocationState {
   email?: string;
@@ -66,7 +66,7 @@ const VerificationPendingPage: React.FC = () => {
   };
 
   return (
-    <ProtectedPageLayout
+    <BasePageLayout
       pageTitle="Verify Your Email"
       alertMessage={message}
     >
@@ -122,7 +122,7 @@ const VerificationPendingPage: React.FC = () => {
           </Link>
         </div>
       </CardFooter>
-    </ProtectedPageLayout>
+    </BasePageLayout>
   );
 };
 

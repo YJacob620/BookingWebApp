@@ -15,7 +15,7 @@ import {
 
 import { Message, register, RegistrationFormData } from '@/_utils';
 import { LOGIN, VERIFICATION_PENDING } from '@/RoutePaths';
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 
 
 interface FormErrors {
@@ -164,7 +164,7 @@ const RegistrationPage: React.FC = () => {
     };
 
     return (
-        <ProtectedPageLayout
+        <BasePageLayout
             pageTitle="Create an Account"
             explanationText={"Register to access the infrastructure booking system"}
             alertMessage={message}
@@ -282,7 +282,7 @@ const RegistrationPage: React.FC = () => {
                     </form>
                 </CardContent>
             </Card>
-        </ProtectedPageLayout>
+        </BasePageLayout>
     );
 };
 

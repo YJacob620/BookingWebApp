@@ -17,7 +17,7 @@ import {
     InfrastFormData,
     getUserFromStorage
 } from '@/_utils';
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 
 
 const InfrastructureManagement: React.FC = () => {
@@ -160,7 +160,7 @@ const InfrastructureManagement: React.FC = () => {
     };
 
     return (
-        <ProtectedPageLayout
+        <BasePageLayout
             pageTitle="Infrastructure Management"
             showDashboardButton
             alertMessage={message}
@@ -226,7 +226,7 @@ const InfrastructureManagement: React.FC = () => {
                     )}
                 </TabsContent>
             </Tabs>
-        </ProtectedPageLayout>
+        </BasePageLayout>
     );
 };
 

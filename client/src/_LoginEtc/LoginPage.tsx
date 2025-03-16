@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
 import { resendVerification, login, User, getDashboardPath, Message } from '@/_utils';
-import ProtectedPageLayout from '../components/_ProtectedPageLayout';
+import BasePageLayout from '../components/_ProtectedPageLayout';
 import { FORGOT_PASSWORD, REGISTER } from '@/RoutePaths';
 
 // Interface for form data
@@ -106,7 +106,7 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <ProtectedPageLayout
+        <BasePageLayout
             pageTitle="Login"
             explanationText={"Sign in to access the scheduling system"}
             alertMessage={message}
@@ -207,7 +207,7 @@ const LoginPage: React.FC = () => {
                     </div>
                 </CardFooter>
             </Card>
-        </ProtectedPageLayout>
+        </BasePageLayout>
     );
 };
 

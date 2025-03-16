@@ -1,4 +1,4 @@
-// src/_utils/authUtils.ts
+/* Utilities for authentication from localStorage (and not the server) */
 
 import { NavigateFunction } from 'react-router-dom';
 import { LOGIN, ADMIN_DASHBOARD, MANAGER_DASHBOARD, USER_DASHBOARD } from '@/RoutePaths';
@@ -28,8 +28,8 @@ export const getDashboardPath = (
 ): string => {
   if (userRole === 'admin') return ADMIN_DASHBOARD;
   if (userRole === 'manager') return MANAGER_DASHBOARD;
-  if (userRole === 'guest') throw new Error("GUEST REDIRECTION NOT IMPLEMENTED");
-  if (USER_ROLES.includes(userRole)) return USER_DASHBOARD;
+  if (userRole === 'student' || userRole === 'faculty') return USER_DASHBOARD;
+  if (USER_ROLES.includes(userRole)) throw new Error(`"${userRole}" dashboard-redirection not implemented!`);
   throw new Error(`Invalid user role "${userRole}"`);
 };
 
@@ -44,10 +44,6 @@ export const isLocalUserDataValid = (): boolean => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
 
-    // Additional debug logging
-    console.debug("Auth check - User data exists:", !!userData);
-    console.debug("Auth check - Token exists:", !!token);
-
     if (!userData || !token) {
       return false;
     }
@@ -57,7 +53,6 @@ export const isLocalUserDataValid = (): boolean => {
 
     // Extra validation - ensure user object has required fields
     const isValid = !!(parsed && parsed.id && parsed.email && parsed.role);
-    console.debug("Auth check - User data valid:", isValid);
 
     return isValid;
   } catch (e) {
@@ -71,7 +66,7 @@ export const isLocalUserDataValid = (): boolean => {
  * 
  * @returns The user object or null if not logged in or invalid data
  */
-export const getCurrentUser = (): User | null => {
+export const getLocalUser = (): User | null => {
   try {
     const userData = localStorage.getItem('user');
     if (!userData) return null;
@@ -81,4 +76,13 @@ export const getCurrentUser = (): User | null => {
     console.error('Error parsing user data:', e);
     return null;
   }
+};
+
+/**
+ * Get the currently logged in user from localStorage
+ * 
+ * @returns The user object or null if not logged in or invalid data
+ */
+export const getLocalToken = (): String | null => {
+  return localStorage.getItem('token');
 };

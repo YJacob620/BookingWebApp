@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner';
 import { LOGIN } from '@/RoutePaths';
 import { UserRole } from '@/_utils';
-import { getDashboardPath } from '@/_utils/authUtils';
+import { getDashboardPath } from '@/_utils/localAuthUtils';
 import { verifyAdmin, verifyManager, verifyUser } from '@/_utils';
 
 interface TokenParams {

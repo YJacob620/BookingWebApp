@@ -7,7 +7,7 @@ import { CheckCircle, XCircle, Loader } from 'lucide-react';
 
 import { verifyEmailWithToken } from '@/_utils';
 import { ADMIN_DASHBOARD, LOGIN, USER_DASHBOARD } from '@/RoutePaths';
-import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
+import BasePageLayout from '@/components/_ProtectedPageLayout';
 
 
 const EmailVerificationPage: React.FC = () => {
@@ -61,7 +61,7 @@ const EmailVerificationPage: React.FC = () => {
   }, [token, navigate]);
 
   return (
-    <ProtectedPageLayout
+    <BasePageLayout
       pageTitle="Email Verification"
       explanationText="Verifying your email address"
       showLogoutButton
@@ -113,7 +113,7 @@ const EmailVerificationPage: React.FC = () => {
           </Link>
         )}
       </CardFooter>
-    </ProtectedPageLayout>
+    </BasePageLayout>
   );
 };
 
