@@ -1,26 +1,23 @@
-/* API and authentication functions to be used by the client for communicating with the server */
+/* API functions to be used by the client for communicating with the server */
 
 import {
   InfrastFormData,
   BatchCreationPayload,
   FilterQuestionData
-} from './index'
+} from './types';
 
 /**
  * Base URL for API calls
  */
 export const API_BASE_URL = 'http://localhost:3001/api';
 
-// --------------------------------------- Regular API Functions ---------------------------------------
-
 /**
- * (not exported) 
  * Generic API request function with authentication
  * @param endpoint - API endpoint
  * @param options - Fetch options
  * @returns Promise with response data
  */
-const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string> || {})
@@ -33,11 +30,6 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   // Only set Content-Type to application/json if not using FormData
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
-
-    // Only stringify the body if it's not already a string and not FormData
-    if (options.body && typeof options.body !== 'string') {
-      options.body = JSON.stringify(options.body);
-    }
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -45,12 +37,26 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     headers,
   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `API request failed with status ${response.status}`);
+  // Attempt to parse JSON response
+  let responseData;
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    responseData = await response.json();
+  } else {
+    responseData = await response.text();
   }
 
-  return response.json();
+  // Handle non-successful responses
+  if (!response.ok) {
+    const errorMessage = responseData?.message || `API request failed with status ${response.status}`;
+    const error = new Error(errorMessage);
+    // Add response data to the error for more context
+    (error as any).responseData = responseData;
+    (error as any).status = response.status;
+    throw error;
+  }
+
+  return responseData as T;
 };
 
 /**
@@ -120,7 +126,7 @@ export const userCancelBooking = (id: number) => {
 };
 
 /**
- * Aprove a booking (admin)
+ * Approve a booking (admin)
 */
 export const approveBooking = (bookingId: number) => {
   return apiRequest(`/bookings-admin/${bookingId}/approve`, {
@@ -185,7 +191,6 @@ export const fetchAllBookingEntries = (
  */
 export const createOrUpdateInfrastructure = (formData: InfrastFormData, infrastructureId?: number) => {
   const url = infrastructureId ? `/infrastructures-admin/${infrastructureId}` : '/infrastructures-admin';
-
   const method = infrastructureId ? 'PUT' : 'POST';
 
   return apiRequest(url, {
@@ -208,17 +213,11 @@ export const toggleInfrastructureStatus = (id: number) => {
 /**
  * Fetches available (only) timeslots for an infrastructure (for user)
  */
-export const fetchInfrastAvailTimeslots = (infrastructureId: number, params?: { startDate?: string, endDate?: string }) => {
+export const fetchInfrastAvailTimeslots = (infrastructureId: number, params?: { date?: string }) => {
   let url = `/bookings-user/${infrastructureId}/available-timeslots`;
 
-  if (params) {
-    const queryParams = new URLSearchParams();
-    if (params.startDate) queryParams.append('startDate', params.startDate);
-    if (params.endDate) queryParams.append('endDate', params.endDate);
-
-    if (queryParams.toString()) {
-      url += `?${queryParams.toString()}`;
-    }
+  if (params?.date) {
+    url += `?date=${params.date}`;
   }
 
   return apiRequest(url);
@@ -311,16 +310,18 @@ export const fetchInfrastructureQuestions = (infrastructureId: number) => {
   return apiRequest(`/infrastructures-manager-admin/${infrastructureId}/questions`);
 };
 
-// Create or update a question
-export const saveInfrastructureQuestion = (filterQuestionData: FilterQuestionData) => {
-  const method = filterQuestionData.id ? 'PUT' : 'POST';
-  const endpoint = filterQuestionData.id
-    ? `/infrastructures-manager-admin/${filterQuestionData.infrastructure_id}/questions/${filterQuestionData.id}`
-    : `/infrastructures-manager-admin/${filterQuestionData.infrastructure_id}/questions`;
+/**
+ * Create or update a question
+ */
+export const saveInfrastructureQuestion = (questionData: FilterQuestionData) => {
+  const method = questionData.id ? 'PUT' : 'POST';
+  const endpoint = questionData.id
+    ? `/infrastructures-manager-admin/${questionData.infrastructure_id}/questions/${questionData.id}`
+    : `/infrastructures-manager-admin/${questionData.infrastructure_id}/questions`;
 
   return apiRequest(endpoint, {
     method,
-    body: JSON.stringify(filterQuestionData),
+    body: JSON.stringify(questionData),
   });
 };
 
@@ -348,13 +349,7 @@ export const updateQuestionsOrder = (infrastructureId: number, questionsOrder: {
  * @returns Promise with email notification preferences
  */
 export const fetchEmailPreferences = async () => {
-  try {
-    const response = await apiRequest('/user/preferences/email');
-    return response;
-  } catch (error) {
-    console.error('Error fetching email preferences:', error);
-    throw error;
-  }
+  return apiRequest('/user/preferences/email');
 };
 
 /**
@@ -363,14 +358,8 @@ export const fetchEmailPreferences = async () => {
  * @returns Promise with updated preferences
  */
 export const updateEmailPreferences = async (enabled: boolean) => {
-  try {
-    const response = await apiRequest('/user/preferences/email', {
-      method: 'PUT',
-      body: JSON.stringify({ email_notifications: enabled }),
-    });
-    return response;
-  } catch (error) {
-    console.error('Error updating email preferences:', error);
-    throw error;
-  }
+  return apiRequest('/user/preferences/email', {
+    method: 'PUT',
+    body: JSON.stringify({ email_notifications: enabled }),
+  });
 };

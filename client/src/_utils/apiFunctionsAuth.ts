@@ -3,17 +3,45 @@
 import {
     User,
     RegistrationFormData,
-} from './index'
+} from './types'
+
+import {
+    API_BASE_URL
+} from '@/_utils'
 
 /**
-* (not exported) Helper function to adapt apiRequest to the return format used by authentication functions
-* @param endpoint - API endpoint
-* @param options - Request options
-* @returns Promise with { success, data } format
-*/
+ * Authentication API request function that works independently
+ * @param endpoint - API endpoint
+ * @param options - Fetch options
+ * @returns Promise with { success, data } format
+ */
 const authApiRequest = async (endpoint: string, options: RequestInit = {}) => {
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = {
+        ...(options.headers as Record<string, string> || {})
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Only set Content-Type to application/json if not using FormData
+    if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+    }
+
     try {
-        const data = await apiRequest(endpoint, options);
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `API request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
         return { success: true, data };
     } catch (error) {
         console.error(`API error for ${endpoint}:`, error);
@@ -112,6 +140,11 @@ export const resendVerification = async (email: string) => {
     });
 };
 
+/**
+ * Verify email with token
+ * @param token - Email verification token
+ * @returns Promise with verification response
+ */
 export const verifyEmailWithToken = async (token: string) => {
     return authApiRequest(`/verify-email/${token}`, {
         method: 'GET'
@@ -129,6 +162,7 @@ export const verifyAdmin = async (): Promise<boolean> => {
 
 /**
  * Verify infrastructure manager authentication
+ * @returns Promise with verification result
  */
 export const verifyManager = async (): Promise<boolean> => {
     const result = await authApiRequest('/verify-manager');
@@ -137,9 +171,9 @@ export const verifyManager = async (): Promise<boolean> => {
 
 /**
  * Verify regular user authentication
+ * @returns Promise with verification result
  */
 export const verifyUser = async (): Promise<boolean> => {
     const result = await authApiRequest('/verify-user');
     return result.success;
 };
-
