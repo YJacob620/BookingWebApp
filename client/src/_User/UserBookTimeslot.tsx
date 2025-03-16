@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarCheck } from "lucide-react";
@@ -19,7 +18,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format, isBefore, startOfDay } from "date-fns";
-import { Spinner } from '@/components/ui/spinner';
 
 import {
   Infrastructure,
@@ -28,10 +26,10 @@ import {
   bookTimeslot,
   fetchInfrastAvailTimeslots,
   bookTimeslotWithAnswers,
-  fetchInfrastructureQuestions
+  fetchInfrastructureQuestions,
+  FilterQuestionData
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
-import BackToDashboardButton from '@/components/_BackToDashboardButton';
 import { Input } from '@/components/ui/input';
 import BasePageLayout from '@/components/_BasePageLayout';
 
@@ -48,7 +46,7 @@ const BookTimeslot = () => {
   const [purpose, setPurpose] = useState<string>('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
   const [answers, setAnswers] = useState({});
 
   useEffect(() => {
