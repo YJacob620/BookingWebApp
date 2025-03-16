@@ -397,7 +397,7 @@ export const isAuthenticated = (): boolean => {
  * Fetches current user from local storage
  * @returns User object or null if not authenticated
  */
-export const fetchCurrentUser = (): User | null => {
+export const getUserFromStorage = (): User | null => {
   const userString = localStorage.getItem('user');
   if (!userString) return null;
 
@@ -464,14 +464,6 @@ export const register = async (userData: RegistrationFormData) => {
 };
 
 /**
- * Logout user
- */
-export const logout = () => {
-  localStorage.removeItem('user');
-  localStorage.removeItem('token');
-};
-
-/**
  * Send password reset request
  * @param email - User email
  * @returns Promise with password reset response
@@ -508,6 +500,12 @@ export const resendVerification = async (email: string) => {
   });
 };
 
+export const verifyEmailWithToken = async (token: string) => {
+  return authApiRequest(`/verify-email/${token}`, {
+    method: 'GET'
+  });
+};
+
 /**
  * Verify admin authentication
  * @returns Promise with verification result
@@ -517,17 +515,19 @@ export const verifyAdmin = async (): Promise<boolean> => {
   return result.success;
 };
 
-export const verifyEmailWithToken = async (token: string) => {
-  return authApiRequest(`/verify-email/${token}`, {
-    method: 'GET'
-  });
-};
-
 /**
-* Verify infrastructure manager authentication
+ * Verify infrastructure manager authentication
  */
 export const verifyManager = async (): Promise<boolean> => {
   const result = await authApiRequest('/verify-manager');
+  return result.success;
+};
+
+/**
+ * Verify regular user authentication
+ */
+export const verifyUser = async (): Promise<boolean> => {
+  const result = await authApiRequest('/verify-user');
   return result.success;
 };
 

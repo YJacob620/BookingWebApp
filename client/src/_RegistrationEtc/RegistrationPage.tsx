@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Info } from 'lucide-react';
 import {
@@ -14,8 +13,9 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import { register, RegistrationFormData } from '@/_utils';
+import { Message, register, RegistrationFormData } from '@/_utils';
 import { VERIFICATION_PENDING } from '@/RoutePaths';
+import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
 
 
 interface FormErrors {
@@ -37,8 +37,7 @@ const RegistrationPage: React.FC = () => {
     });
 
     const [errors, setErrors] = useState<FormErrors>({});
-    const [apiError, setApiError] = useState<string>('');
-    const [successMessage, setSuccessMessage] = useState<string>('');
+    const [message, setMessage] = useState<Message | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,8 +109,6 @@ const RegistrationPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setApiError('');
-        setSuccessMessage('');
 
         // Form validation
         if (!validateForm()) {
@@ -125,10 +122,11 @@ const RegistrationPage: React.FC = () => {
             const result = await register(formData);
 
             if (result.success) {
-                setSuccessMessage(
-                    result.data.message ||
-                    'Registration successful! Please check your email to verify your account.'
-                );
+                setMessage({
+                    type: 'success',
+                    text: result.data.message ||
+                        'Registration successful! Please check your email to verify your account.'
+                });
 
                 // Clear form
                 setFormData({
@@ -149,152 +147,142 @@ const RegistrationPage: React.FC = () => {
                     });
                 }, 3000);
             } else {
-                setApiError(result.data.message || 'Registration failed. Please try again.');
+                setMessage({
+                    type: 'error',
+                    text: result.data.message || 'Registration failed. Please try again.'
+                });
             }
         } catch (error) {
             console.error('Registration error:', error);
-            setApiError('An unexpected error occurred. Please try again later.');
+            setMessage({
+                type: 'error',
+                text: 'An unexpected error occurred. Please try again later.'
+            });
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <Card className="general-container">
-            <CardHeader className="space-y-1">
-                <CardTitle className="text-3xl">Create an Account</CardTitle>
-                <CardDescription className="explanation-text1 pt-3">
-                    Register to access the Scientific Infrastructure Booking System
-                </CardDescription>
-            </CardHeader>
-            <div className="min-w-100">
-                <Card className="card1 pt-4">
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {apiError && (
-                                <Alert className="alert-error">
-                                    <AlertDescription>{apiError}</AlertDescription>
-                                </Alert>
+        <ProtectedPageLayout
+            pageTitle="Create an Account"
+            explanationText={"Register to access the infrastructure booking system"}
+            alertMessage={message}
+        >
+            <Card className="card1 pt-4">
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Name</Label>
+                            <Input
+                                id="name"
+                                name="name"
+                                type="text"
+                                required
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                placeholder="Enter your name"
+                                className={errors.name ? "border-red-500" : ""}
+                            />
+                            {errors.name && (
+                                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
                             )}
+                        </div>
 
-                            {successMessage && (
-                                <Alert className="alert-success">
-                                    <AlertDescription>{successMessage}</AlertDescription>
-                                </Alert>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                required
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                placeholder="Enter your email"
+                                className={errors.email ? "border-red-500" : ""}
+                            />
+                            {errors.email && (
+                                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                             )}
+                        </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Name</Label>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    required
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter your name"
-                                    className={errors.name ? "border-red-500" : ""}
-                                />
-                                {errors.name && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-                                )}
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                name="password"
+                                type="password"
+                                required
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                placeholder="Create a password"
+                                className={errors.password ? "border-red-500" : ""}
+                            />
+                            {errors.password && (
+                                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                            )}
+                            <p className="text-xs explanation-text1">
+                                <Info className="inline mr-1 h-3 w-3" />
+                                Password must be at least 8 characters
+                            </p>
+                        </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter your email"
-                                    className={errors.email ? "border-red-500" : ""}
-                                />
-                                {errors.email && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                                )}
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="confirmPassword">Confirm Password</Label>
+                            <Input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type="password"
+                                required
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
+                                placeholder="Confirm your password"
+                                className={errors.confirmPassword ? "border-red-500" : ""}
+                            />
+                            {errors.confirmPassword && (
+                                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+                            )}
+                        </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    placeholder="Create a password"
-                                    className={errors.password ? "border-red-500" : ""}
-                                />
-                                {errors.password && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-                                )}
-                                <p className="text-xs explanation-text1">
-                                    <Info className="inline mr-1 h-3 w-3" />
-                                    Password must be at least 8 characters
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    name="confirmPassword"
-                                    type="password"
-                                    required
-                                    value={formData.confirmPassword}
-                                    onChange={handleInputChange}
-                                    placeholder="Confirm your password"
-                                    className={errors.confirmPassword ? "border-red-500" : ""}
-                                />
-                                {errors.confirmPassword && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="role">Role</Label>
-                                <Select
-                                    value={formData.role}
-                                    onValueChange={handleSelectChange}
-                                >
-                                    <SelectTrigger id="role" className={errors.role ? "border-red-500" : ""}>
-                                        <SelectValue placeholder="Select your role" />
-                                    </SelectTrigger>
-                                    <SelectContent className="card1">
-                                        <SelectItem value="student">Student</SelectItem>
-                                        <SelectItem value="faculty">Faculty</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {errors.role && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.role}</p>
-                                )}
-                            </div>
-
-                            <Button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full apply"
+                        <div className="space-y-2">
+                            <Label htmlFor="role">Role</Label>
+                            <Select
+                                value={formData.role}
+                                onValueChange={handleSelectChange}
                             >
-                                {isLoading ? 'Registering...' : 'Register'}
-                            </Button>
+                                <SelectTrigger id="role" className={errors.role ? "border-red-500" : ""}>
+                                    <SelectValue placeholder="Select your role" />
+                                </SelectTrigger>
+                                <SelectContent className="card1">
+                                    <SelectItem value="student">Student</SelectItem>
+                                    <SelectItem value="faculty">Faculty</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.role && (
+                                <p className="text-red-500 text-sm mt-1">{errors.role}</p>
+                            )}
+                        </div>
 
-                            <div className="text-center mt-4">
-                                <p className="explanation-text1">
-                                    Already have an account?{" "}
-                                    <Link to="/login" className="text-blue-400 hover:underline">
-                                        Log in
-                                    </Link>
-                                </p>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
-            </div>
-        </Card>
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full apply"
+                        >
+                            {isLoading ? 'Registering...' : 'Register'}
+                        </Button>
+
+                        <div className="text-center mt-4">
+                            <p className="explanation-text1">
+                                Already have an account?{" "}
+                                <Link to="/login" className="text-blue-400 hover:underline">
+                                    Log in
+                                </Link>
+                            </p>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+        </ProtectedPageLayout>
     );
 };
 

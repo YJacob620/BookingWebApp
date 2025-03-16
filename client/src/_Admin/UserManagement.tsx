@@ -38,11 +38,11 @@ import {
     removeInfrastructureFromManager,
     fetchUserInfrastructures
 } from '@/_utils';
-import { useRoleAuth } from '@/useRoleAuth';
+import { userRoleAuthentication } from '@/userRoleAuth';
 import BackToDashboardButton from '@/components/_BackToDashboardButton';
 
 const UserManagement: React.FC = () => {
-    const { isAdmin, isLoading: authLoading, error: authError } = useRoleAuth();
+    const { isAdmin, isLoading: authLoading, error: authError } = userRoleAuthentication();
 
     // State management
     const [users, setUsers] = useState([]);

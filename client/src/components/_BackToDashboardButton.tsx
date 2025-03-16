@@ -49,10 +49,10 @@ const BackToDashboardButton: React.FC = () => {
     return (
         <Button
             onClick={handleNavigate}
-            className="back-button"
+            className="back-button min-w-40"
         >
             <ArrowLeftCircle className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            Dashboard
         </Button>
     );
 };

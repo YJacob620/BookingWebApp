@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeftCircle, Loader } from "lucide-react";
+import { Loader } from "lucide-react";
 
 // Import components
 import InfrastructureSelector from './InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
-import { useRoleAuth } from '@/useRoleAuth';
+import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
 
 import {
     Infrastructure,
@@ -18,22 +14,11 @@ import {
     forceUpdatePastBookings,
     fetchAllBookingEntries
 } from '@/_utils';
-import { ADMIN_DASHBOARD } from '@/RoutePaths';
-import BackToDashboardButton from '@/components/_BackToDashboardButton';
-
 
 const BookingManagement: React.FC = () => {
-    const navigate = useNavigate();
-    const { isAdmin, isManager, isLoading: authLoading, error: authError } = useRoleAuth();
-
-    // Infrastructure state
     const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | undefined>(undefined);
-
-    // Booking entries state
     const [bookingEntries, setBookingEntries] = useState<BookingEntry[]>([]);
     const [isLoadingEntries, setIsLoadingEntries] = useState<boolean>(false);
-
-    // UI state
     const [message, setMessage] = useState<Message | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -68,13 +53,11 @@ const BookingManagement: React.FC = () => {
     // Handle messages displayed to the user
     const handleSuccess = (text: string) => {
         setMessage({ type: 'success', text });
-        // Clear message after 5 seconds
-        setTimeout(() => setMessage(null), 5000);
+        setTimeout(() => setMessage(null), 5000); // Clear message after 5 seconds
     };
 
     const handleError = (text: string) => {
         setMessage({ type: 'error', text });
-        // Clear message after 5 seconds
         setTimeout(() => setMessage(null), 5000);
     };
 
@@ -96,73 +79,50 @@ const BookingManagement: React.FC = () => {
         }
     };
 
-    // We'll simply return null during authentication loading
-    if (authLoading) {
-        return null;
-    }
-
-    if (!isAdmin) {
-        return null;
-    }
-
     return (
-        <Card className="general-container min-w-200">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-start mb-6">
-                    <BackToDashboardButton />
+        <ProtectedPageLayout
+            pageTitle="Booking & Timeslot Management"
+            alertMessage={message}
+        >
+            <p className='text-xl pb-1'>Select Infrastructure</p>
+            <InfrastructureSelector
+                onSelectInfrastructure={handleInfrastructureSelected}
+                onError={handleError}
+            />
+
+            {isLoadingEntries && selectedInfrastructure && (
+                <div className="flex justify-center my-8">
+                    <Loader className="h-8 w-8 animate-spin text-blue-500" />
+                    <span className="ml-2">Loading booking data...</span>
                 </div>
-
-                <div className="flex justify-between items-center mb-8">
-                    <h1>Booking & Timeslot Management</h1>
-                </div>
-
-                <p className='text-xl pb-1'>Select Infrastructure</p>
-                <InfrastructureSelector
-                    onSelectInfrastructure={handleInfrastructureSelected}
-                    onError={handleError}
-                />
-
-                {isLoadingEntries && selectedInfrastructure && (
-                    <div className="flex justify-center my-8">
-                        <Loader className="h-8 w-8 animate-spin text-blue-500" />
-                        <span className="ml-2">Loading booking data...</span>
-                    </div>
-                )}
-
-                {!isLoadingEntries && selectedInfrastructure && (
-                    <>
-                        <p className="text-xl">View Bookings and Timeslots</p>
-                        <p className="explanation-text1 pb-1">
-                            View future timeslots and bookings. Toggle between calendar-view and list-view to see details.
-                            <br />In calendar-view, clicking on an active date will take you to a filtered list-view of this date.
-                        </p>
-                        <BookingManagementViews
-                            bookingEntries={bookingEntries}
-                        />
-
-                        <p className="text-xl">Manage Bookings and Timeslots</p>
-                        <p className="explanation-text1 pb-1">
-                            View and manage all bookings/timeslots, including past ones.
-                        </p>
-                        <BookingManagementTabs
-                            selectedInfrastructure={selectedInfrastructure}
-                            bookingEntries={bookingEntries}
-                            onSuccess={handleSuccess}
-                            onError={handleError}
-                            onUpdatePastBookings={handleUpdatePastBookings}
-                            onDataChange={() => setRefreshTrigger(prev => prev + 1)}
-                        />
-                    </>
-                )}
-            </div>
-            {message && (
-                <Alert
-                    className={`${message.type === 'success' ? 'alert-success' : 'alert-error'}`}
-                >
-                    <AlertDescription>{message.text}</AlertDescription>
-                </Alert>
             )}
-        </Card>
+
+            {!isLoadingEntries && selectedInfrastructure && (
+                <>
+                    <p className="text-xl">View Bookings and Timeslots</p>
+                    <p className="explanation-text1 pb-1">
+                        View future timeslots and bookings. Toggle between calendar-view and list-view to see details.
+                        <br />In calendar-view, clicking on an active date will take you to a filtered list-view of this date.
+                    </p>
+                    <BookingManagementViews
+                        bookingEntries={bookingEntries}
+                    />
+
+                    <p className="text-xl">Manage Bookings and Timeslots</p>
+                    <p className="explanation-text1 pb-1">
+                        View and manage all bookings/timeslots, including past ones.
+                    </p>
+                    <BookingManagementTabs
+                        selectedInfrastructure={selectedInfrastructure}
+                        bookingEntries={bookingEntries}
+                        onSuccess={handleSuccess}
+                        onError={handleError}
+                        onUpdatePastBookings={handleUpdatePastBookings}
+                        onDataChange={() => setRefreshTrigger(prev => prev + 1)}
+                    />
+                </>
+            )}
+        </ProtectedPageLayout>
     );
 };
 

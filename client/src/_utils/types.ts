@@ -1,10 +1,14 @@
 /* Common interfaces shared across components */
 
+export const USER_ROLES = ['admin', 'manager', 'faculty', 'student', 'guest'] as const;
+
+export type UserRole = typeof USER_ROLES[number];
+
 export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'manager' | 'faculty' | 'student' | 'guest';
+  role: UserRole;
 }
 
 export interface RegistrationFormData {
@@ -61,7 +65,7 @@ export interface BatchCreationPayload {
 }
 
 export interface Message {
-  type: 'success' | 'error' | 'warning' | '';
+  type: 'success' | 'error' | 'warning';
   text: string;
 }
 

@@ -13,37 +13,154 @@ import EmailVerificationPage from './_RegistrationEtc/EmailVerificationPage.tsx'
 import VerificationPendingPage from './_RegistrationEtc/VerificationPendingPage.tsx';
 import ForgotPasswordPage from './_RegistrationEtc/ForgotPasswordPage.tsx';
 import ResetPasswordPage from './_RegistrationEtc/ResetPasswordPage.tsx';
-
 import UserManagement from './_Admin/UserManagement.tsx';
 import ManagerDashboard from './_Manager/ManagerDashboard.tsx';
-
+import AuthGuard from './components/_AuthGuard.tsx';
+import TokenAuthGuard from './components/_TokenAuthGuard.tsx';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Authentication Routes */}
-        <Route path={RoutePaths.LOGIN} element={<LoginPage />} />
-        <Route path={RoutePaths.REGISTER} element={<RegistrationPage />} />
-        <Route path={RoutePaths.VERIFY_EMAIL} element={<EmailVerificationPage />} />
-        <Route path={RoutePaths.VERIFICATION_PENDING} element={<VerificationPendingPage />} />
-        <Route path={RoutePaths.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
-        <Route path={RoutePaths.RESET_PASSWORD} element={<ResetPasswordPage />} />
+        {/* Public Routes - Authentication Check with Redirection */}
+        <Route
+          path={RoutePaths.LOGIN}
+          element={
+            <AuthGuard isPublicRoute={true}>
+              <LoginPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.REGISTER}
+          element={
+            <AuthGuard isPublicRoute={true}>
+              <RegistrationPage />
+            </AuthGuard>
+          }
+        />
+
+        {/* Token-based auth flow routes */}
+        <Route
+          path={RoutePaths.VERIFY_EMAIL}
+          element={
+            <TokenAuthGuard tokenParamName="token" pageTitle="Email Verification">
+              <EmailVerificationPage />
+            </TokenAuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.VERIFICATION_PENDING}
+          element={
+            <AuthGuard isPublicRoute={true}>
+              <VerificationPendingPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.FORGOT_PASSWORD}
+          element={
+            <AuthGuard isPublicRoute={true}>
+              <ForgotPasswordPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.RESET_PASSWORD}
+          element={
+            <TokenAuthGuard tokenParamName="token" pageTitle="Reset Password">
+              <ResetPasswordPage />
+            </TokenAuthGuard>
+          }
+        />
 
         {/* Admin Routes */}
-        <Route path={RoutePaths.ADMIN_DASHBOARD} element={<AdminDashboard />} />
-        <Route path={RoutePaths.INFRASTRUCTURE_MANAGEMENT} element={<InfrastructureManagement />} />
-        <Route path={RoutePaths.BOOKING_MANAGEMENT} element={<BookingManagement />} />
-        <Route path={RoutePaths.USER_MANAGEMENT} element={<UserManagement />} />
+        <Route
+          path={RoutePaths.ADMIN_DASHBOARD}
+          element={
+            <AuthGuard requiredRoles={['admin']}>
+              <AdminDashboard />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.INFRASTRUCTURE_MANAGEMENT}
+          element={
+            <AuthGuard requiredRoles={['admin']}>
+              <InfrastructureManagement />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.BOOKING_MANAGEMENT}
+          element={
+            <AuthGuard requiredRoles={['admin']}>
+              <BookingManagement />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.USER_MANAGEMENT}
+          element={
+            <AuthGuard requiredRoles={['admin']}>
+              <UserManagement />
+            </AuthGuard>
+          }
+        />
 
         {/* User Routes */}
-        <Route path={RoutePaths.USER_DASHBOARD} element={<UserDashboard />} />
-        <Route path={RoutePaths.CREATE_BOOKING} element={<BookTimeslot />} />
-        <Route path={RoutePaths.BOOKING_HISTORY} element={<BookingHistory />} />
+        <Route
+          path={RoutePaths.USER_DASHBOARD}
+          element={
+            <AuthGuard requiredRoles={['faculty', 'student']}>
+              <UserDashboard />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.CREATE_BOOKING}
+          element={
+            <AuthGuard requiredRoles={['faculty', 'student']}>
+              <BookTimeslot />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.BOOKING_HISTORY}
+          element={
+            <AuthGuard requiredRoles={['faculty', 'student']}>
+              <BookingHistory />
+            </AuthGuard>
+          }
+        />
 
         {/* Infrastructure Manager Routes */}
-        <Route path={RoutePaths.MANAGER_DASHBOARD} element={<ManagerDashboard />} />
-        <Route path={RoutePaths.MANAGER_INFRASTRUCTURE_MANAGEMENT} element={<InfrastructureManagement />} />
+        <Route
+          path={RoutePaths.MANAGER_DASHBOARD}
+          element={
+            <AuthGuard requiredRoles={['manager']}>
+              <ManagerDashboard />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.MANAGER_INFRASTRUCTURE_MANAGEMENT}
+          element={
+            <AuthGuard requiredRoles={['manager']}>
+              <InfrastructureManagement />
+            </AuthGuard>
+          }
+        />
+
+        {/* Shared routes for both Admin and Manager */}
+        <Route
+          path={RoutePaths.MANAGER_BOOKINGS}
+          element={
+            <AuthGuard requiredRoles={['admin', 'manager']}>
+              <BookingManagement />
+            </AuthGuard>
+          }
+        />
 
         {/* Redirect root path to login */}
         <Route path="/" element={<Navigate to={RoutePaths.LOGIN} />} />

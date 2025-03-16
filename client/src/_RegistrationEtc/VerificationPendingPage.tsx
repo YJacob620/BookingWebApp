@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, Loader } from 'lucide-react';
 
-import { resendVerification } from '@/_utils';
+import { resendVerification, isLocalUserDataValid, getDashboardPath } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
-
+import { userRoleAuthentication } from '@/userRoleAuth';
 
 interface LocationState {
   email?: string;
@@ -17,20 +17,35 @@ interface LocationState {
 const VerificationPendingPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin, isManager } = userRoleAuthentication();
+
   const state = location.state as LocationState || {};
 
   const [isResending, setIsResending] = useState<boolean>(false);
   const [resendSuccess, setResendSuccess] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [email, setEmail] = useState<string>(state.email || '');
+  const [message, setMessage] = useState<string>(
+    state.message || 'Please check your email to verify your account.'
+  );
 
-  const email = state.email || '';
-  const message = state.message || 'Please check your email to verify your account.';
+  useEffect(() => {
+    // Check if user is already logged in with validated credentials
+    const isLoggedIn = isLocalUserDataValid();
 
-  // Redirect to login if there's no email (user might have navigated here directly)
-  if (!email && !resendSuccess && !errorMessage) {
-    // Small delay to allow component to render before redirect
-    setTimeout(() => navigate(LOGIN), 100);
-  }
+    if (isLoggedIn) {
+      // Already logged in and verified, redirect to dashboard
+      navigate(getDashboardPath(isAdmin, isManager));
+      return;
+    }
+
+    // If there's no email (user might have navigated here directly without state)
+    if (!email && !location.state) {
+      // Redirect to login after a small delay to avoid flashing
+      const timer = setTimeout(() => navigate(LOGIN), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [email, isAdmin, isManager, location.state, navigate]);
 
   const handleResendVerification = async () => {
     if (!email) {
@@ -99,7 +114,7 @@ const VerificationPendingPage: React.FC = () => {
       <CardFooter className="flex flex-col gap-4">
         <Button
           onClick={handleResendVerification}
-          disabled={isResending}
+          disabled={isResending || !email}
           variant="outline"
           className="w-full md:w-auto"
         >

@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeftCircle, Plus, Database, HelpCircle } from "lucide-react";
+import { Plus, Database, HelpCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import InfrastructureManagementForm from './InfrastructureManagementForm';
 import InfrastructureManagementList from './InfrastructureManagementList';
 import InfrastructureQuestionsManager from './InfrastructureManagementQuestions';
-import { useRoleAuth } from '@/useRoleAuth';
+import { userRoleAuthentication } from '@/userRoleAuth';
 
 import {
     fetchInfrastructures,
@@ -22,15 +20,16 @@ import {
 } from '@/_utils';
 import { ADMIN_DASHBOARD, MANAGER_DASHBOARD, LOGIN } from '@/RoutePaths';
 import BackToDashboardButton from '@/components/_BackToDashboardButton';
+import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
 
 
 const InfrastructureManagement: React.FC = () => {
     const navigate = useNavigate();
-    const { isAdmin, isManager, isLoading: authLoading, error: authError } = useRoleAuth();
+    const { isAdmin, isManager, isLoading: authLoading, error: authError } = userRoleAuthentication();
 
     const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [message, setMessage] = useState<Message>({ type: '', text: '' });
+    const [message, setMessage] = useState<Message | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingInfrastructure, setEditingInfrastructure] = useState<Infrastructure | null>(null);
     const [activeTab, setActiveTab] = useState<string>("list");
@@ -169,20 +168,6 @@ const InfrastructureManagement: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Determine which dashboard to return to based on user role
-    const handleBackToDashboard = () => {
-        navigate(isAdmin ? ADMIN_DASHBOARD : MANAGER_DASHBOARD);
-    };
-
-    // Loading screen
-    if (authLoading || (isLoading && !message.text)) {
-        return (
-            <Card className="general-container">
-                <div className="text-center p-8">Loading...</div>
-            </Card>
-        );
-    }
-
     // Show auth error if there is one
     if (authError) {
         return (
@@ -195,86 +180,72 @@ const InfrastructureManagement: React.FC = () => {
     }
 
     return (
-        <Card className="general-container w-210">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-start mb-6">
-                    <BackToDashboardButton />
-                </div>
+        <ProtectedPageLayout
+            pageTitle="Infrastructure Management"
+            showDashboardButton
+            alertMessage={message}
+        >
 
-                <div className="flex justify-between items-center mb-8">
-                    <h1>Infrastructure Management</h1>
-                </div>
-
-                {message.text && (
-                    <Alert
-                        variant={message.type === 'success' ? 'default' : 'destructive'}
-                        className={`mb-6 ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}
+            <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full mb-6"
+            >
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="list" onClick={() => setSelectedInfrastructure(null)}>
+                        <Database className="mr-2 h-4 w-4" />
+                        {isAdmin ? 'All Infrastructures' : 'Your Infrastructures'}
+                    </TabsTrigger>
+                    {isAdmin && (
+                        <TabsTrigger value="form" onClick={handleCancelEdit}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            {isEditMode ? 'Edit Infrastructure' : 'Add Infrastructure'}
+                        </TabsTrigger>
+                    )}
+                    <TabsTrigger
+                        value="questions"
+                        disabled={!selectedInfrastructure}
                     >
-                        <AlertDescription>{message.text}</AlertDescription>
-                    </Alert>
-                )}
+                        <HelpCircle className="mr-2 h-4 w-4" />
+                        Manage Questions
+                    </TabsTrigger>
+                </TabsList>
 
-                <Tabs
-                    value={activeTab}
-                    onValueChange={setActiveTab}
-                    className="w-full mb-6"
-                >
-                    <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="list" onClick={() => setSelectedInfrastructure(null)}>
-                            <Database className="mr-2 h-4 w-4" />
-                            {isAdmin ? 'All Infrastructures' : 'Your Infrastructures'}
-                        </TabsTrigger>
-                        {isAdmin && (
-                            <TabsTrigger value="form" onClick={handleCancelEdit}>
-                                <Plus className="mr-2 h-4 w-4" />
-                                {isEditMode ? 'Edit Infrastructure' : 'Add Infrastructure'}
-                            </TabsTrigger>
-                        )}
-                        <TabsTrigger
-                            value="questions"
-                            disabled={!selectedInfrastructure}
-                        >
-                            <HelpCircle className="mr-2 h-4 w-4" />
-                            Manage Questions
-                        </TabsTrigger>
-                    </TabsList>
+                <TabsContent value="list" className="mt-4">
+                    <InfrastructureManagementList
+                        infrastructures={infrastructures}
+                        isLoading={isLoading}
+                        onEdit={handleEdit}
+                        onToggleStatus={toggleStatus}
+                        onManageQuestions={handleManageQuestions}
+                        isAdmin={isAdmin}
+                    />
+                </TabsContent>
 
-                    <TabsContent value="list" className="mt-4">
-                        <InfrastructureManagementList
-                            infrastructures={infrastructures}
-                            isLoading={isLoading}
-                            onEdit={handleEdit}
-                            onToggleStatus={toggleStatus}
-                            onManageQuestions={handleManageQuestions}
-                            isAdmin={isAdmin}
+                {isAdmin && (
+                    <TabsContent value="form" className="mt-4">
+                        <InfrastructureManagementForm
+                            isEditMode={isEditMode}
+                            editingInfrastructure={editingInfrastructure}
+                            onSubmit={handleSubmit}
+                            onCancelEdit={handleCancelEdit}
                         />
                     </TabsContent>
+                )}
 
-                    {isAdmin && (
-                        <TabsContent value="form" className="mt-4">
-                            <InfrastructureManagementForm
-                                isEditMode={isEditMode}
-                                editingInfrastructure={editingInfrastructure}
-                                onSubmit={handleSubmit}
-                                onCancelEdit={handleCancelEdit}
-                            />
-                        </TabsContent>
+                <TabsContent value="questions" className="mt-4">
+                    {selectedInfrastructure ? (
+                        <InfrastructureQuestionsManager
+                            infrastructureId={selectedInfrastructure.id}
+                        />
+                    ) : (
+                        <Card className="card1 p-6">
+                            <p className="text-center">Please select an infrastructure to manage its questions</p>
+                        </Card>
                     )}
-
-                    <TabsContent value="questions" className="mt-4">
-                        {selectedInfrastructure ? (
-                            <InfrastructureQuestionsManager
-                                infrastructureId={selectedInfrastructure.id}
-                            />
-                        ) : (
-                            <Card className="card1 p-6">
-                                <p className="text-center">Please select an infrastructure to manage its questions</p>
-                            </Card>
-                        )}
-                    </TabsContent>
-                </Tabs>
-            </div>
-        </Card>
+                </TabsContent>
+            </Tabs>
+        </ProtectedPageLayout>
     );
 };
 

@@ -6,7 +6,12 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { JWT_SECRET, VERIFICATION_TOKEN_EXPIRY, PASSWORD_RESET_EXPIRY } = require('../config/env');
 const emailService = require('../utils/emailService');
-const { authenticateToken, verifyAdmin, verifyInfrastructureManager, authLimiter, verificationLimiter } = require('../middleware/authMiddleware');
+const { authenticateToken,
+    verifyAdmin,
+    verifyInfrastructureManager,
+    authLimiter,
+    verificationLimiter
+} = require('../middleware/authMiddleware');
 
 
 // Login route - Updated to check verification status
@@ -180,6 +185,7 @@ router.post('/register', async (req, res) => {
         connection.release();
     }
 });
+
 // Email verification route
 router.get('/verify-email/:token', async (req, res) => {
     const { token } = req.params;
@@ -444,6 +450,11 @@ router.get('/verify-admin', authenticateToken, verifyAdmin, (req, res) => {
 // Infrastructure-manager verification endpoint
 router.get('/verify-manager', authenticateToken, verifyInfrastructureManager, (req, res) => {
     res.json({ message: 'Infrastructure manager verified' });
+});
+
+// Infrastructure-manager verification endpoint
+router.get('/verify-user', authenticateToken, (req, res) => {
+    res.json({ message: 'Regular user verified' });
 });
 
 module.exports = router;

@@ -9,19 +9,19 @@ import { fetchMyInfrastructures, Infrastructure } from '@/_utils';
 import { MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import LogoutButton from '@/components/_LogoutButton.tsx';
-import { useRoleAuth } from '@/useRoleAuth';
+import { userRoleAuthentication } from '@/userRoleAuth';
 
 
 const ManagerDashboard: React.FC = () => {
-    const { isAdmin, isManager, isLoading: authLoading, error: authError } = useRoleAuth();
+    const { isAdmin, isManager, isLoading: authLoading, error: authError } = userRoleAuthentication();
     const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (isManager) {
+        if (isManager || isAdmin) {
             getInfrastructures();
         }
-    }, [isManager]);
+    }, [isManager || isAdmin]);
 
     const getInfrastructures = async () => {
         try {

@@ -3,3 +3,4 @@ export * from './date';
 export * from './ui';
 export * from './apiAndAuth';
 export * from './types';
+export * from './authUtils';
