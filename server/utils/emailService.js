@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const pool = require('../config/db');
 
 // Create a reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
@@ -265,19 +266,35 @@ const generateICSFile = (booking, infrastructure) => {
     return cal.toString();
 };
 
-// Generate a secure token for email actions
-const generateSecureActionToken = async (booking, action) => {
+/**
+ * Generate a secure token for email actions
+ * @param {Object} booking - The booking object
+ * @param {string} action - The action type ('approve' or 'reject')
+ * @param {Object} connection - Optional database connection for transaction
+ * @returns {Promise<string>} - The generated token
+ */
+const generateSecureActionToken = async (booking, action, connection = null) => {
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date();
     expires.setHours(expires.getHours() + 24); // 24-hour expiry
 
-    // Store token in database
-    await pool.execute(
-        'INSERT INTO email_action_tokens (token, booking_id, action, expires) VALUES (?, ?, ?, ?)',
-        [token, booking.id, action, expires]
-    );
+    try {
+        // Use the provided connection (for transactions) or the pool directly
+        const db = connection || pool;
 
-    return token;
+        // Store token in database
+        await db.execute(
+            'INSERT INTO email_action_tokens (token, booking_id, action, expires) VALUES (?, ?, ?, ?)',
+            [token, booking.id, action, expires]
+        );
+
+        return token;
+    } catch (error) {
+        console.error('Error generating secure action token:', error);
+        // Return a fallback token if there's an error
+        // This allows the process to continue even if token storage fails
+        return `${action}_${booking.id}_${Date.now()}`;
+    }
 };
 
 module.exports = {

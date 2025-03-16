@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('./config/env'); // Validate environment variables
 const pool = require('./config/db'); // Create database connection pool
 const authenticationRoutes = require('./routes/authenticationRoutes');
@@ -60,6 +61,7 @@ app.use('/api/manager', infrastructuresRoutes_Manager);
 app.use('/api/userManagement-admin', userManagementRoutes_Admin);
 app.use('/api/infrastructures-manager-admin', infrastructuresRoutes_Manager_Admin);
 app.use('/api/user', preferencesRoutes_User_Manager);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Start the server only after async operations complete
 app.listen(PORT, () => {

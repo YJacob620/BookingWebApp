@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/authMiddleware');
+const { upload, getFileUrl } = require('../middleware/fileUploadMiddleware');
+const emailService = require('../utils/emailService');
 
 // Get recent bookings for the current user
 router.get('/recent', authenticateToken, async (req, res) => {
@@ -143,6 +145,14 @@ router.post('/request', authenticateToken, async (req, res) => {
             [userEmail, purpose, timeslot_id]
         );
 
+        // Get the updated booking record for email notification
+        const [bookings] = await connection.execute(
+            `SELECT * FROM bookings WHERE id = ?`,
+            [timeslot_id]
+        );
+
+        const booking = bookings[0];
+
         // Get infrastructure details
         const [infrastructures] = await connection.execute(
             'SELECT * FROM infrastructures WHERE id = ?',
@@ -152,19 +162,23 @@ router.post('/request', authenticateToken, async (req, res) => {
         // Get infrastructure managers
         const [managers] = await connection.execute(
             `SELECT u.id, u.name, u.email, u.email_notifications
-         FROM users u
-         JOIN infrastructure_managers im ON u.id = im.user_id
-         WHERE im.infrastructure_id = ?`,
+             FROM users u
+             JOIN infrastructure_managers im ON u.id = im.user_id
+             WHERE im.infrastructure_id = ?`,
             [timeslot.infrastructure_id]
         );
 
-        // Generate token for email actions
-        const approveToken = await emailService.generateSecureActionToken(result, 'approve');
+        // Generate token for email actions (if the emailService has this method)
+        let approveToken = null;
+        if (typeof emailService.generateSecureActionToken === 'function') {
+            approveToken = await emailService.generateSecureActionToken(booking, 'approve');
+        }
 
         // Send notification email to managers
-        if (infrastructures.length > 0 && managers.length > 0) {
+        if (infrastructures.length > 0 && managers.length > 0 &&
+            typeof emailService.sendBookingRequestNotification === 'function') {
             await emailService.sendBookingRequestNotification(
-                result,
+                booking,
                 infrastructures[0],
                 managers,
                 approveToken
@@ -192,19 +206,22 @@ router.post('/request', authenticateToken, async (req, res) => {
 });
 
 // Request a booking with additional answers and file uploads (user)
-router.post('/request-with-answers', authenticateToken, async (req, res) => {
+router.post('/request-with-answers', authenticateToken, upload.any(), async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
-        // Use multer or similar middleware to handle file uploads
-        // For this implementation, we'll assume formidable or similar is configured
-
-        const { timeslot_id, purpose, answers } = req.body;
+        // Extract the data from the request body
+        const timeslot_id = req.body.timeslot_id;
+        const purpose = req.body.purpose || '';
         const userEmail = req.user.email;
 
+        // Basic validation
         if (!timeslot_id) {
-            return res.status(400).json({ message: 'Timeslot ID is required' });
+            return res.status(400).json({
+                message: 'Timeslot ID is required',
+                receivedBody: JSON.stringify(req.body) // For debugging
+            });
         }
 
         // First, check if the timeslot exists and is available
@@ -223,7 +240,7 @@ router.post('/request-with-answers', authenticateToken, async (req, res) => {
         const timeslot = timeslots[0];
 
         // Book the timeslot by updating its record
-        const [result] = await connection.execute(
+        await connection.execute(
             `UPDATE bookings
              SET booking_type = 'booking',
                  user_email = ?,
@@ -233,23 +250,70 @@ router.post('/request-with-answers', authenticateToken, async (req, res) => {
             [userEmail, purpose, timeslot_id]
         );
 
-        // If we have answers, save them to the database
-        if (answers && Object.keys(answers).length > 0) {
-            // Process each answer
-            for (const [questionId, answer] of Object.entries(answers)) {
-                // For files, handle upload and save path
-                let answerText = null;
-                let documentPath = null;
+        // Get the updated booking
+        const [bookings] = await connection.execute(
+            `SELECT * FROM bookings WHERE id = ?`,
+            [timeslot_id]
+        );
 
-                if (answer instanceof File) {
-                    // Save file to filesystem and store path
-                    documentPath = `/uploads/${Date.now()}_${answer.name}`;
-                    // Here you'd implement file saving logic
-                } else {
-                    answerText = answer?.toString() || null;
+        const booking = bookings[0];
+
+        // Process answers if any
+        let answersObj = {};
+
+        // Try to parse answers from different possible formats
+        if (req.body.answersJSON) {
+            try {
+                answersObj = JSON.parse(req.body.answersJSON);
+            } catch (e) {
+                console.error('Error parsing answersJSON:', e);
+            }
+        }
+
+        // Handle individual answer fields
+        for (const key in req.body) {
+            if (key.startsWith('answer_')) {
+                const questionId = key.replace('answer_', '');
+                answersObj[questionId] = {
+                    type: 'text',
+                    value: req.body[key]
+                };
+            }
+        }
+
+        // Process files from multer
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const fieldName = file.fieldname;
+
+                // Extract question ID from field name (format: file_123)
+                if (fieldName.startsWith('file_')) {
+                    const questionId = fieldName.replace('file_', '');
+                    answersObj[questionId] = {
+                        type: 'file',
+                        filePath: file.path,
+                        originalName: file.originalname
+                    };
                 }
+            }
+        }
 
-                // Save answer to database
+        // Process the answers
+        for (const [questionId, answerData] of Object.entries(answersObj)) {
+            let answerText = null;
+            let documentPath = null;
+
+            if (answerData.type === 'file' && answerData.filePath) {
+                // For files, store the path
+                documentPath = answerData.filePath;
+                answerText = answerData.originalName || 'Uploaded file';
+            } else if (answerData.type === 'text' && answerData.value) {
+                // For text answers
+                answerText = answerData.value;
+            }
+
+            // Save answer to database
+            if (answerText !== null || documentPath !== null) {
                 await connection.execute(
                     `INSERT INTO booking_answers 
                      (booking_id, question_id, answer_text, document_path) 
@@ -274,20 +338,37 @@ router.post('/request-with-answers', authenticateToken, async (req, res) => {
             [timeslot.infrastructure_id]
         );
 
-        // Generate token for email actions
-        const approveToken = await emailService.generateSecureActionToken(result, 'approve');
-
-        // Send notification email to managers
-        if (infrastructures.length > 0 && managers.length > 0) {
-            await emailService.sendBookingRequestNotification(
-                result,
-                infrastructures[0],
-                managers,
-                approveToken
-            );
+        // Generate token for email actions - PASS THE CONNECTION
+        let approveToken = null;
+        if (typeof emailService.generateSecureActionToken === 'function') {
+            try {
+                // Pass the connection for transaction consistency
+                approveToken = await emailService.generateSecureActionToken(booking, 'approve', connection);
+            } catch (tokenError) {
+                console.warn('Failed to generate action token:', tokenError);
+                // Continue with the process even if token generation fails
+            }
         }
 
+        // Commit the transaction BEFORE sending emails
+        // This reduces the transaction time significantly
         await connection.commit();
+
+        // Send notification email to managers - AFTER committing the transaction
+        if (infrastructures.length > 0 && managers.length > 0 &&
+            typeof emailService.sendBookingRequestNotification === 'function') {
+            try {
+                await emailService.sendBookingRequestNotification(
+                    booking,
+                    infrastructures[0],
+                    managers,
+                    approveToken
+                );
+            } catch (emailError) {
+                console.error('Failed to send notification email:', emailError);
+                // Don't let email failures affect the API response
+            }
+        }
 
         res.status(201).json({
             message: 'Booking request submitted successfully',
@@ -301,7 +382,11 @@ router.post('/request-with-answers', authenticateToken, async (req, res) => {
     } catch (err) {
         await connection.rollback();
         console.error('Database error:', err);
-        res.status(500).json({ message: 'Error creating booking request', error: err.message });
+        res.status(500).json({
+            message: 'Error creating booking request',
+            error: err.message,
+            stack: err.stack
+        });
     } finally {
         connection.release();
     }

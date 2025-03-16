@@ -29,7 +29,8 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Only set Content-Type to application/json if not using FormData
+  // Important: Only set Content-Type to application/json if not using FormData
+  // When using FormData, we need to let the browser set the Content-Type with the proper boundary
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
@@ -39,26 +40,48 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
     headers,
   });
 
-  // Attempt to parse JSON response
-  let responseData;
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    responseData = await response.json();
-  } else {
-    responseData = await response.text();
-  }
+  // Clone the response to allow multiple reads if needed
+  const responseClone = response.clone();
 
   // Handle non-successful responses
   if (!response.ok) {
-    const errorMessage = responseData?.message || `API request failed with status ${response.status}`;
+    let errorMessage = `API request failed with status ${response.status}`;
+
+    try {
+      // Try to parse error as JSON
+      const errorData = await responseClone.json();
+      errorMessage = errorData.message || errorMessage;
+    } catch (e) {
+      // If not JSON, get as text
+      try {
+        const errorText = await response.text();
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      } catch (textError) {
+        // If both fail, use the status text
+        errorMessage = response.statusText || errorMessage;
+      }
+    }
+
     const error = new Error(errorMessage);
-    // Add response data to the error for more context
-    (error as any).responseData = responseData;
-    (error as any).status = response.status;
     throw error;
   }
 
-  return responseData as T;
+  // Attempt to parse JSON response
+  try {
+    const responseData = await response.json();
+    return responseData as T;
+  } catch (e) {
+    // If not JSON, return the raw text
+    try {
+      const text = await responseClone.text();
+      return text as unknown as T;
+    } catch (textError) {
+      // If both fail, return an empty object
+      return {} as T;
+    }
+  }
 };
 
 /**
@@ -105,10 +128,55 @@ export const bookTimeslot = (data: { timeslot_id: number, purpose: string }) => 
  * @returns Promise with booking response
  */
 export const bookTimeslotWithAnswers = async (formData: FormData) => {
-  return apiRequest('/bookings-user/request-with-answers', {
+  // When using FormData, we need a special apiRequest call that doesn't set the Content-Type header
+  const token = localStorage.getItem('token');
+  const headers: Record<string, string> = {};
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Do NOT set Content-Type for FormData
+  // The browser will set it automatically with the correct boundary
+
+  const response = await fetch(`${API_BASE_URL}/bookings-user/request-with-answers`, {
     method: 'POST',
+    headers,
     body: formData
   });
+
+  // Clone the response before reading its body to avoid consuming the stream
+  const responseClone = response.clone();
+
+  if (!response.ok) {
+    let errorMessage = `API request failed with status ${response.status}`;
+    try {
+      // Try to read as JSON first
+      const errorData = await responseClone.json();
+      errorMessage = errorData.message || errorMessage;
+    } catch (e) {
+      // If not JSON, try to read as text
+      try {
+        const errorText = await response.text();
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      } catch (textError) {
+        // If both fail, use the status text
+        errorMessage = response.statusText || errorMessage;
+      }
+    }
+
+    throw new Error(errorMessage);
+  }
+
+  try {
+    // Try to parse as JSON
+    return await response.json();
+  } catch (e) {
+    // If parsing as JSON fails, return the raw text
+    return { message: await responseClone.text() };
+  }
 };
 
 /**

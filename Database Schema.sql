@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `bookings` (
         REFERENCES infrastructures(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS infrastructure_managers ( --  Table for infrastructure questions
+CREATE TABLE IF NOT EXISTS infrastructure_managers ( 
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     infrastructure_id INT NOT NULL,
@@ -68,7 +68,8 @@ CREATE TABLE IF NOT EXISTS infrastructure_managers ( --  Table for infrastructur
     UNIQUE KEY (user_id, infrastructure_id)
 );
 
-CREATE TABLE IF NOT EXISTS infrastructure_questions ( --  Table for infrastructure answers
+--  Table for infrastructure filter-questions
+CREATE TABLE IF NOT EXISTS infrastructure_questions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     infrastructure_id INT NOT NULL,
     question_text TEXT NOT NULL,
@@ -80,6 +81,7 @@ CREATE TABLE IF NOT EXISTS infrastructure_questions ( --  Table for infrastructu
     FOREIGN KEY (infrastructure_id) REFERENCES infrastructures(id) ON DELETE CASCADE
 );
 
+ --  Table for user answers on the filter-questions
 CREATE TABLE IF NOT EXISTS booking_answers (
     id INT PRIMARY KEY AUTO_INCREMENT,
     booking_id INT NOT NULL,
@@ -90,6 +92,21 @@ CREATE TABLE IF NOT EXISTS booking_answers (
     FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES infrastructure_questions(id) ON DELETE CASCADE
 );
+
+-- Table for secure email tokens
+CREATE TABLE IF NOT EXISTS `email_action_tokens` (
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `token` VARCHAR(255) NOT NULL,
+  `booking_id` INT NOT NULL,
+  `action` ENUM('approve', 'reject') NOT NULL,
+  `expires` TIMESTAMP NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `used` TINYINT(1) NOT NULL DEFAULT 0,
+  `used_at` TIMESTAMP NULL DEFAULT NULL,
+  INDEX `idx_token` (`token`),
+  INDEX `idx_booking_id` (`booking_id`),
+  FOREIGN KEY (`booking_id`) REFERENCES `bookings`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 -- Constraint that ensures that user_email will be NULL if and only if booking_type will be 'timeslot'.

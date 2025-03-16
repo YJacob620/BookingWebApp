@@ -56,7 +56,6 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
       if (tokenParams) {
         // If no token present, redirect to login
         if (!token) {
-          console.log('No token found for token-based auth flow');
           navigate(LOGIN);
           return;
         }

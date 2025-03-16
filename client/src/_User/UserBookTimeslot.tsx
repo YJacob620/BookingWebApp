@@ -178,36 +178,51 @@ const BookTimeslot = () => {
       }
     }
 
-    // Create FormData for file uploads
-    const formData = new FormData();
-    formData.append('timeslot_id', selectedTimeslotId.toString());
-    formData.append('purpose', purpose);
-
-    // Add answers to form data if there are questions
-    if (questions.length > 0) {
-      Object.entries(answers).forEach(([questionId, answer]) => {
-        if (answer instanceof File) {
-          formData.append(`answers[${questionId}]`, answer);
-        } else if (answer !== null && answer !== undefined) {
-          formData.append(`answers[${questionId}]`, answer.toString());
-        }
-      });
-    }
-
     try {
       setIsLoading(true);
-      // If there are no questions, use regular bookTimeslot
-      if (questions.length === 0) {
+
+      // Check if we have any file uploads
+      const hasFileUploads = Object.values(answers).some(answer => answer instanceof File);
+
+      if (!hasFileUploads && questions.length === 0) {
+        // Simple case: No file uploads and no questions - use the simpler JSON API
         await bookTimeslot({
           timeslot_id: selectedTimeslotId,
-          purpose: purpose
+          purpose: purpose || ''
         });
       } else {
-        // Use FormData version for questions and file uploads
+        // We have questions or file uploads - use FormData
+        const formData = new FormData();
+
+        // Add timeslot_id as a string - CRITICAL FOR SERVER
+        formData.append('timeslot_id', selectedTimeslotId.toString());
+        formData.append('purpose', purpose || '');
+
+        // Process answers
+        if (questions.length > 0) {
+          // Create a clean object for JSON serialization
+          const answersForJson: Record<string, any> = {};
+
+          Object.entries(answers).forEach(([questionId, answer]) => {
+            if (answer instanceof File) {
+              // Handle file upload
+              const fieldName = `file_${questionId}`;
+              formData.append(fieldName, answer);
+              answersForJson[questionId] = { type: 'file', fieldName };
+            } else if (answer !== null && answer !== undefined) {
+              // Handle text answers
+              formData.append(`answer_${questionId}`, answer.toString());
+              answersForJson[questionId] = { type: 'text', value: answer.toString() };
+            }
+          });
+
+          // Add structured answers as JSON
+          formData.append('answersJSON', JSON.stringify(answersForJson));
+        }
         await bookTimeslotWithAnswers(formData);
       }
 
-      // Success logic
+      // Success message
       setMessage({
         type: 'success',
         text: 'Your booking request has been submitted successfully!'
@@ -261,7 +276,6 @@ const BookTimeslot = () => {
     // If we're still loading timeslots, disable future dates
     if (isLoadingTimeslots) return true;
 
-    // console.log("date:", date);
     const isAvailable = availableDates.some(d => d.getTime() === date.getTime());
     return !isAvailable;
   };
