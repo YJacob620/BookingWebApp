@@ -28,13 +28,13 @@ import {
   bookTimeslotWithAnswers,
   fetchInfrastructureQuestions,
   FilterQuestionData,
-  FilterQuestionAnswerData
+  FilterQuestionAnswer,
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
 import { Input } from '@/components/ui/input';
 import BasePageLayout from '@/components/_BasePageLayout';
 
-type FilterQuestionAnswerMap = Record<number, FilterQuestionAnswerData | null>;
+type UserAnswersMap = Record<number, FilterQuestionAnswer>;
 
 const BookTimeslot = () => {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ const BookTimeslot = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
-  const [answers, setAnswers] = useState<FilterQuestionAnswerMap>({});
+  const [answers, setAnswers] = useState<UserAnswersMap>({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -78,13 +78,48 @@ const BookTimeslot = () => {
     }
   };
 
-  // Fetch ALL available timeslots for the selected infrastructure
+  // Fetch all available timeslots for the selected infrastructure
   useEffect(() => {
     if (selectedInfrastructureId) {
       fetchAllAvailableTimeslots();
     } else {
       setAllTimeslots([]);
       setAvailableTimeslots([]);
+    }
+  }, [selectedInfrastructureId]);
+
+  // Filter timeslots for the selected date
+  useEffect(() => {
+    if (selectedDate && allTimeslots.length > 0) {
+      const selectedDay = startOfDay(selectedDate).getTime();
+
+      const filtered = allTimeslots.filter(slot => {
+        const slotDay = startOfDay(slot.booking_date).getTime();
+        return slotDay === selectedDay;
+      });
+
+      setAvailableTimeslots(filtered);
+    } else {
+      setAvailableTimeslots([]);
+    }
+  }, [selectedDate, allTimeslots]);
+
+  // Load questions when infrastructure is selected
+  useEffect(() => {
+    if (selectedInfrastructureId) {
+      fetchInfrastructureQuestions(selectedInfrastructureId)
+        .then(data => {
+          setQuestions(data);
+          // Initialize answers state with empty values
+          const initialAnswers: UserAnswersMap = {};
+          data.forEach(q => {
+            initialAnswers[q.id] = q.question_type === 'document' ? null : '';
+          });
+          setAnswers(initialAnswers);
+        })
+        .catch(err => {
+          console.error('Error fetching questions:', err);
+        });
     }
   }, [selectedInfrastructureId]);
 
@@ -114,23 +149,6 @@ const BookTimeslot = () => {
 
     return uniqueDates;
   }, [allTimeslots]);
-
-
-  // Filter timeslots for the selected date
-  useEffect(() => {
-    if (selectedDate && allTimeslots.length > 0) {
-      const selectedDay = startOfDay(selectedDate).getTime();
-
-      const filtered = allTimeslots.filter(slot => {
-        const slotDay = startOfDay(slot.booking_date).getTime();
-        return slotDay === selectedDay;
-      });
-
-      setAvailableTimeslots(filtered);
-    } else {
-      setAvailableTimeslots([]);
-    }
-  }, [selectedDate, allTimeslots]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,7 +219,7 @@ const BookTimeslot = () => {
       setSelectedDate(undefined);
 
       // Reset answers
-      const initialAnswers: FilterQuestionAnswerMap = {};
+      const initialAnswers: UserAnswersMap = {};
       questions.forEach(q => {
         initialAnswers[q.id] = q.question_type === 'document' ? null : '';
       });
@@ -248,24 +266,6 @@ const BookTimeslot = () => {
     return !isAvailable;
   };
 
-  // Load questions when infrastructure is selected
-  useEffect(() => {
-    if (selectedInfrastructureId) {
-      fetchInfrastructureQuestions(selectedInfrastructureId)
-        .then(data => {
-          setQuestions(data);
-          // Initialize answers state with empty values
-          const initialAnswers: FilterQuestionAnswerMap = {};
-          data.forEach(q => {
-            initialAnswers[q.id] = q.question_type === 'document' ? null : '';
-          });
-          setAnswers(initialAnswers);
-        })
-        .catch(err => {
-          console.error('Error fetching questions:', err);
-        });
-    }
-  }, [selectedInfrastructureId]);
 
   // Render dynamic question fields
   const renderQuestionFields = () => {
@@ -314,14 +314,14 @@ const BookTimeslot = () => {
             <Input
               type="file"
               onChange={e => {
-                const file = e.target.files[0];
+                const file = e.target.files?.[0] || null;
                 setAnswers({ ...answers, [q.id]: file });
               }}
               required={q.is_required}
             />
-            {answers[q.id] && (
+            {answers[q.id] instanceof File && (
               <p className="text-sm text-gray-400 mt-1">
-                Selected: {answers[q.id].name}
+                Selected: {(answers[q.id] as File).name}
               </p>
             )}
           </div>

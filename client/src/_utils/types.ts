@@ -86,9 +86,6 @@ export interface FilterQuestionData {
 }
 
 /**
- * Interface for the answers to infrastructure filter questions.
- * Maps question IDs to their respective answer values.
+ * Answer to an infrastructure filter-question
  */
-export interface FilterQuestionAnswerData {
-  [questionId: number]: (string | number | File | null);
-}
+export type FilterQuestionAnswer = string | number | File | null;
