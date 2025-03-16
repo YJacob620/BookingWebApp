@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 
 import { Message, register, RegistrationFormData } from '@/_utils';
-import { VERIFICATION_PENDING } from '@/RoutePaths';
+import { LOGIN, VERIFICATION_PENDING } from '@/RoutePaths';
 import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
 
 
@@ -274,7 +274,7 @@ const RegistrationPage: React.FC = () => {
                         <div className="text-center mt-4">
                             <p className="explanation-text1">
                                 Already have an account?{" "}
-                                <Link to="/login" className="text-blue-400 hover:underline">
+                                <Link to={LOGIN} className="link">
                                     Log in
                                 </Link>
                             </p>

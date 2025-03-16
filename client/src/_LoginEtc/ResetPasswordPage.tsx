@@ -162,7 +162,7 @@ const ResetPasswordPage: React.FC = () => {
         )}
       </CardContent>
       <CardFooter className="flex justify-center">
-        <Link to="/login">
+        <Link to={LOGIN}>
           <Button variant="ghost">
             Back to Login
           </Button>

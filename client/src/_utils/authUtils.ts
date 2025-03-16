@@ -43,13 +43,23 @@ export const isLocalUserDataValid = (): boolean => {
   try {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
+
+    // Additional debug logging
+    console.debug("Auth check - User data exists:", !!userData);
+    console.debug("Auth check - Token exists:", !!token);
+
     if (!userData || !token) {
       return false;
     }
 
     // Try to parse user data to verify it's valid JSON
-    JSON.parse(userData);
-    return true;
+    const parsed = JSON.parse(userData);
+
+    // Extra validation - ensure user object has required fields
+    const isValid = !!(parsed && parsed.id && parsed.email && parsed.role);
+    console.debug("Auth check - User data valid:", isValid);
+
+    return isValid;
   } catch (e) {
     console.error('Corrupted user data in localStorage', e);
     return false;

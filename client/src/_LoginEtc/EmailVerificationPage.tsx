@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 
 import { verifyEmailWithToken } from '@/_utils';
-import { ADMIN_DASHBOARD, USER_DASHBOARD } from '@/RoutePaths';
+import { ADMIN_DASHBOARD, LOGIN, USER_DASHBOARD } from '@/RoutePaths';
+import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
 
 
 const EmailVerificationPage: React.FC = () => {
@@ -26,7 +27,6 @@ const EmailVerificationPage: React.FC = () => {
       }
 
       try {
-        // Use a new utility function for email verification
         const result = await verifyEmailWithToken(token);
 
         if (result.success) {
@@ -61,13 +61,11 @@ const EmailVerificationPage: React.FC = () => {
   }, [token, navigate]);
 
   return (
-    <Card className="general-container">
-      <CardHeader>
-        <CardTitle className="text-3xl">Email Verification</CardTitle>
-        <CardDescription className="explanation-text1 pt-3">
-          Verifying your email address
-        </CardDescription>
-      </CardHeader>
+    <ProtectedPageLayout
+      pageTitle="Email Verification"
+      explanationText="Verifying your email address"
+      showLogoutButton
+    >
       <CardContent className="flex flex-col items-center justify-center">
         {isLoading ? (
           <div className="text-center p-8">
@@ -100,7 +98,7 @@ const EmailVerificationPage: React.FC = () => {
                 Request New Verification Email
               </Button>
             </Link>
-            <Link to="/login">
+            <Link to={LOGIN}>
               <Button variant="ghost">
                 Return to Login
               </Button>
@@ -108,14 +106,14 @@ const EmailVerificationPage: React.FC = () => {
           </div>
         )}
         {!isLoading && isVerified && (
-          <Link to="/login">
+          <Link to={LOGIN}>
             <Button>
               Go to Login
             </Button>
           </Link>
         )}
       </CardFooter>
-    </Card>
+    </ProtectedPageLayout>
   );
 };
 

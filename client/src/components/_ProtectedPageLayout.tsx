@@ -78,15 +78,15 @@ const ProtectedPageLayout: React.FC<ProtectedPageLayoutProps> = ({
 
         {alertMessage && (
           <Alert
-            className={`-mt-2 mb-6 ${alertMessage.type === 'success'
-                ? 'alert-success'
-                : alertMessage.type === 'error'
-                  ? 'alert-error'
-                  : alertMessage.type === 'warning'
-                    ? 'alert-warning'
-                    : alertMessage.type === 'neutral'
-                      ? 'alert-neutral'
-                      : ''
+            className={`mb-6 ${alertMessage.type === 'success'
+              ? 'alert-success'
+              : alertMessage.type === 'error'
+                ? 'alert-error'
+                : alertMessage.type === 'warning'
+                  ? 'alert-warning'
+                  : alertMessage.type === 'neutral'
+                    ? 'alert-neutral'
+                    : ''
               }`}
           >
             <AlertDescription>{alertMessage.text}</AlertDescription>

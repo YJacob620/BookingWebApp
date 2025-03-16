@@ -82,6 +82,7 @@ const BookingManagement: React.FC = () => {
     return (
         <ProtectedPageLayout
             pageTitle="Booking & Timeslot Management"
+            showDashboardButton
             alertMessage={message}
         >
             <p className='text-xl pb-1'>Select Infrastructure</p>

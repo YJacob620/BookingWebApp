@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { CardHeader, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
+import { CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, Loader } from 'lucide-react';
@@ -68,18 +68,12 @@ const VerificationPendingPage: React.FC = () => {
   return (
     <ProtectedPageLayout
       pageTitle="Verify Your Email"
-      explanationText="Manage your assigned infrastructures, timeslots, and booking requests."
       alertMessage={message}
     >
-      <CardHeader>
-        <CardDescription className="explanation-text1 pt-3">
-          We've sent a verification link to your email
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center">
+      <CardContent className="flex flex-col items-center justify-center -mt-8">
         <div className="text-center p-8">
-          <Mail className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-4">Check Your Inbox</h2>
+          <Mail className="h-16 w-16 text-blue-500 mx-auto" />
+          <h2 className="text-2xl font-bold mb-2">Check Your Inbox</h2>
 
           <p className="mb-6">
             We've sent a verification email to:<br />
@@ -108,7 +102,6 @@ const VerificationPendingPage: React.FC = () => {
         <Button
           onClick={handleResendVerification}
           disabled={isResending || !email}
-          variant="outline"
           className="w-full md:w-auto"
         >
           {isResending ? (
@@ -122,8 +115,8 @@ const VerificationPendingPage: React.FC = () => {
         </Button>
 
         <div className="flex justify-center w-full">
-          <Link to="/login">
-            <Button variant="ghost">
+          <Link to={LOGIN}>
+            <Button>
               Return to Login
             </Button>
           </Link>

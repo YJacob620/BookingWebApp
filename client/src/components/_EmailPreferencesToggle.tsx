@@ -75,7 +75,7 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({ classNa
     return (
         <Card className={className}>
             <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col sm:flex-col sm:items-center sm:justify-between">
                     <div className="mb-4 sm:mb-0">
                         <h3 className="text-lg font-medium mb-1">Email Notifications</h3>
                         <p className="text-sm text-gray-400">
@@ -84,7 +84,7 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({ classNa
                                 : 'You will not receive any email notifications from the system'}
                         </p>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex justify-center space-x-2 mt-3">
                         <Label htmlFor="email-notifications" className="sr-only">
                             Email Notifications
                         </Label>

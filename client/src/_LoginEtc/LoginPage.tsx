@@ -7,7 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
 import { resendVerification, login, User, getDashboardPath, Message } from '@/_utils';
-import ProtectedPageLayout from './components/_ProtectedPageLayout';
+import ProtectedPageLayout from '../components/_ProtectedPageLayout';
+import { FORGOT_PASSWORD, REGISTER } from '@/RoutePaths';
 
 // Interface for form data
 interface LoginFormData {
@@ -164,7 +165,7 @@ const LoginPage: React.FC = () => {
                                 <p className='text-left pl-0.5'>
                                     Password
                                 </p>
-                                <Link to="/forgot-password" className="text-xs text-blue-400 hover:underline">
+                                <Link to={FORGOT_PASSWORD} className="link text-sm">
                                     Forgot password?
                                 </Link>
                             </div>
@@ -199,7 +200,7 @@ const LoginPage: React.FC = () => {
                     <div className="text-center mt-4">
                         <p className="text-gray-400">
                             Don't have an account?{" "}
-                            <Link to="/register" className="text-blue-400 hover:underline">
+                            <Link to={REGISTER} className="text-blue-400 hover:underline">
                                 Register here
                             </Link>
                         </p>

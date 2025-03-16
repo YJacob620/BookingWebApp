@@ -21,7 +21,7 @@ import {
   BookingEntry,
   fetchUserBookings
 } from '@/_utils';
-import { LOGIN } from '@/RoutePaths';
+import { BOOKING_HISTORY, CREATE_BOOKING, LOGIN } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import LogoutButton from '@/components/_LogoutButton.tsx';
 
@@ -89,7 +89,7 @@ const UserDashboard = () => {
         </div>
 
         {/* Welcome section */}
-        <Card className="bg-transparent border-transparent shadow-none mb-6">
+        <Card className="bg-transparent border-transparent shadow-none">
           <CardContent className="pt-6">
             <h2 className="text-xl font-semibold mb-2">Welcome, {user?.name || user?.email}</h2>
             <p className="explanation-text1">
@@ -100,8 +100,8 @@ const UserDashboard = () => {
 
         {/* Quick actions */}
         <EmailPreferencesToggle />
-        <div className="mb-8">
-          <Link to="/create-booking">
+        <div className="my-8">
+          <Link to={CREATE_BOOKING}>
             <Button className="bg-blue-600 hover:bg-blue-700">
               <CalendarPlus className="mr-2 h-4 w-4" />
               New Booking
@@ -173,7 +173,7 @@ const UserDashboard = () => {
 
             {bookings.length > 0 && (
               <div className="mt-4 flex justify-center">
-                <Link to="/booking-history">
+                <Link to={BOOKING_HISTORY}>
                   <Button>View And Manage All Bookings</Button>
                 </Link>
               </div>

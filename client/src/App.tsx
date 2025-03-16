@@ -1,76 +1,75 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import * as RoutePaths from './RoutePaths';
 
-import LoginPage from './LoginPage.tsx';
+import LoginPage from './_LoginEtc/LoginPage.tsx';
 import AdminDashboard from './_Admin/AdminDashboard.tsx';
 import InfrastructureManagement from './_Admin/InfrastructureManagement.tsx';
 import BookingManagement from './_Admin/BookingManagement.tsx';
 import BookTimeslot from './_User/UserBookTimeslot.tsx';
 import UserDashboard from './_User/UserDashboard.tsx';
 import BookingHistory from './_User/UserBookingHistory.tsx';
-import RegistrationPage from './_RegistrationEtc/RegistrationPage.tsx';
-import EmailVerificationPage from './_RegistrationEtc/EmailVerificationPage.tsx';
-import VerificationPendingPage from './_RegistrationEtc/VerificationPendingPage.tsx';
-import ForgotPasswordPage from './_RegistrationEtc/ForgotPasswordPage.tsx';
-import ResetPasswordPage from './_RegistrationEtc/ResetPasswordPage.tsx';
+import RegistrationPage from './_LoginEtc/RegistrationPage.tsx';
+import EmailVerificationPage from './_LoginEtc/EmailVerificationPage.tsx';
+import VerificationPendingPage from './_LoginEtc/VerificationPendingPage.tsx';
+import ForgotPasswordPage from './_LoginEtc/ForgotPasswordPage.tsx';
+import ResetPasswordPage from './_LoginEtc/ResetPasswordPage.tsx';
 import UserManagement from './_Admin/UserManagement.tsx';
 import ManagerDashboard from './_Manager/ManagerDashboard.tsx';
-import AuthGuard from './components/_AuthGuard.tsx';
-import TokenAuthGuard from './components/_TokenAuthGuard.tsx';
+import AuthenticationGuard from './components/_AuthenticationGuard.tsx';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes - Authentication Check with Redirection */}
+        {/* Public Routes (no authentication required) */}
         <Route
           path={RoutePaths.LOGIN}
           element={
-            <AuthGuard>
+            <AuthenticationGuard>
               <LoginPage />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.REGISTER}
           element={
-            <AuthGuard>
+            <AuthenticationGuard>
               <RegistrationPage />
-            </AuthGuard>
-          }
-        />
-
-        {/* Token-based auth flow routes */}
-        <Route
-          path={RoutePaths.VERIFY_EMAIL}
-          element={
-            <TokenAuthGuard tokenParamName="token" pageTitle="Email Verification">
-              <EmailVerificationPage />
-            </TokenAuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.VERIFICATION_PENDING}
           element={
-            <AuthGuard>
+            <AuthenticationGuard>
               <VerificationPendingPage />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.FORGOT_PASSWORD}
           element={
-            <AuthGuard>
+            <AuthenticationGuard>
               <ForgotPasswordPage />
-            </AuthGuard>
+            </AuthenticationGuard>
+          }
+        />
+
+        {/* Token-based Routes */}
+        <Route
+          path={RoutePaths.VERIFY_EMAIL}
+          element={
+            <AuthenticationGuard tokenParams={{ paramName: "token" }}>
+              <EmailVerificationPage />
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.RESET_PASSWORD}
           element={
-            <TokenAuthGuard tokenParamName="token" pageTitle="Reset Password">
+            <AuthenticationGuard tokenParams={{ paramName: "token" }}>
               <ResetPasswordPage />
-            </TokenAuthGuard>
+            </AuthenticationGuard>
           }
         />
 
@@ -78,33 +77,33 @@ function App() {
         <Route
           path={RoutePaths.ADMIN_DASHBOARD}
           element={
-            <AuthGuard requiredRoles={['admin']}>
+            <AuthenticationGuard requiredRoles={['admin']}>
               <AdminDashboard />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.INFRASTRUCTURE_MANAGEMENT}
           element={
-            <AuthGuard requiredRoles={['admin']}>
+            <AuthenticationGuard requiredRoles={['admin']}>
               <InfrastructureManagement />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.BOOKING_MANAGEMENT}
           element={
-            <AuthGuard requiredRoles={['admin']}>
+            <AuthenticationGuard requiredRoles={['admin']}>
               <BookingManagement />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.USER_MANAGEMENT}
           element={
-            <AuthGuard requiredRoles={['admin']}>
+            <AuthenticationGuard requiredRoles={['admin']}>
               <UserManagement />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
 
@@ -112,25 +111,25 @@ function App() {
         <Route
           path={RoutePaths.USER_DASHBOARD}
           element={
-            <AuthGuard requiredRoles={['faculty', 'student']}>
+            <AuthenticationGuard requiredRoles={['faculty', 'student']}>
               <UserDashboard />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.CREATE_BOOKING}
           element={
-            <AuthGuard requiredRoles={['faculty', 'student']}>
+            <AuthenticationGuard requiredRoles={['faculty', 'student', 'guest']}>
               <BookTimeslot />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.BOOKING_HISTORY}
           element={
-            <AuthGuard requiredRoles={['faculty', 'student']}>
+            <AuthenticationGuard requiredRoles={['faculty', 'student']}>
               <BookingHistory />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
 
@@ -138,17 +137,17 @@ function App() {
         <Route
           path={RoutePaths.MANAGER_DASHBOARD}
           element={
-            <AuthGuard requiredRoles={['manager']}>
+            <AuthenticationGuard requiredRoles={['manager']}>
               <ManagerDashboard />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
         <Route
           path={RoutePaths.MANAGER_INFRASTRUCTURE_MANAGEMENT}
           element={
-            <AuthGuard requiredRoles={['manager']}>
+            <AuthenticationGuard requiredRoles={['manager']}>
               <InfrastructureManagement />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
 
@@ -156,9 +155,9 @@ function App() {
         <Route
           path={RoutePaths.MANAGER_BOOKINGS}
           element={
-            <AuthGuard requiredRoles={['admin', 'manager']}>
+            <AuthenticationGuard requiredRoles={['admin', 'manager']}>
               <BookingManagement />
-            </AuthGuard>
+            </AuthenticationGuard>
           }
         />
 

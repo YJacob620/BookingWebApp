@@ -196,6 +196,10 @@ textarea:hover {
   @apply rounded-md border border-gray-700 overflow-hidden;
 }
 
+.link {
+  @apply text-blue-400 hover:underline;
+}
+
 @layer base {
   * {
     @apply border-gray-400;
