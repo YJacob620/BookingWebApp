@@ -9,6 +9,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  is_blacklisted: boolean
 }
 
 export interface RegistrationFormData {
@@ -65,7 +66,7 @@ export interface BatchCreationPayload {
 }
 
 export interface Message {
-  type: 'success' | 'error' | 'warning';
+  type: 'success' | 'error' | 'warning' | 'neutral';
   text: string;
 }
 

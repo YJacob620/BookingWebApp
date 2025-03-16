@@ -38,7 +38,7 @@ const TokenAuthGuard: React.FC<TokenAuthGuardProps> = ({
   const navigate = useNavigate();
   const params = useParams();
   const location = useLocation();
-  const { isAdmin, isManager, isLoading } = userRoleAuthentication();
+  const { authenticatedRole, isLoading } = userRoleAuthentication();
 
   // Get token from URL (either params or query string)
   const getToken = (): string | null => {
@@ -59,9 +59,9 @@ const TokenAuthGuard: React.FC<TokenAuthGuardProps> = ({
     // Check if user is already logged in with valid data
     const isLoggedIn = isLocalUserDataValid();
 
-    if (isLoggedIn) {
+    if (isLoggedIn && authenticatedRole) {
       // User is already logged in, redirect to their dashboard
-      navigate(getDashboardPath(isAdmin, isManager));
+      navigate(getDashboardPath(authenticatedRole));
       return;
     }
 
@@ -75,7 +75,7 @@ const TokenAuthGuard: React.FC<TokenAuthGuardProps> = ({
     // Token exists and user is not logged in, allow access to the page
     // The page component will handle token validation logic
 
-  }, [isLoading, isAdmin, isManager, navigate, token]);
+  }, [isLoading, authenticatedRole, navigate, token]);
 
   // Apply page title if provided
   if (pageTitle) {

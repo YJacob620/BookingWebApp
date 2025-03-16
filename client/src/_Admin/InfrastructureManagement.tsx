@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Plus, Database, HelpCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -7,7 +6,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import InfrastructureManagementForm from './InfrastructureManagementForm';
 import InfrastructureManagementList from './InfrastructureManagementList';
 import InfrastructureQuestionsManager from './InfrastructureManagementQuestions';
-import { userRoleAuthentication } from '@/userRoleAuth';
 
 import {
     fetchInfrastructures,
@@ -16,16 +14,13 @@ import {
     toggleInfrastructureStatus,
     Infrastructure,
     Message,
-    InfrastFormData
+    InfrastFormData,
+    getUserFromStorage
 } from '@/_utils';
-import { ADMIN_DASHBOARD, MANAGER_DASHBOARD, LOGIN } from '@/RoutePaths';
-import BackToDashboardButton from '@/components/_BackToDashboardButton';
 import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
 
 
 const InfrastructureManagement: React.FC = () => {
-    const navigate = useNavigate();
-    const { isAdmin, isManager, isLoading: authLoading, error: authError } = userRoleAuthentication();
 
     const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -35,21 +30,17 @@ const InfrastructureManagement: React.FC = () => {
     const [activeTab, setActiveTab] = useState<string>("list");
     const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-    // Check authentication and handle unauthorized access
     useEffect(() => {
-        if (!authLoading && !isAdmin && !isManager) {
-            // Not authorized as either admin or manager
-            navigate(LOGIN);
-        }
-    }, [authLoading, isAdmin, isManager, navigate]);
+        setIsAdmin(getUserFromStorage()?.role === "admin");
+    }, [refreshTrigger]);  // Only depend on refreshTrigger
 
-    // Fetch infrastructures when role is determined or refresh is triggered
     useEffect(() => {
-        if (!authLoading && (isAdmin || isManager)) {
-            getInfrastructures();
+        if (isAdmin) {
+            getInfrastructures();  // Runs whenever isAdmin changes
         }
-    }, [authLoading, isAdmin, isManager, refreshTrigger]);
+    }, [isAdmin]);
 
     const getInfrastructures = async () => {
         try {
@@ -168,38 +159,28 @@ const InfrastructureManagement: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Show auth error if there is one
-    if (authError) {
-        return (
-            <Card className="general-container">
-                <div className="text-center p-8 text-red-500">
-                    Authentication Error: {authError}
-                </div>
-            </Card>
-        );
-    }
-
     return (
         <ProtectedPageLayout
             pageTitle="Infrastructure Management"
             showDashboardButton
             alertMessage={message}
         >
-
             <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
-                className="w-full mb-6"
+                className="mb-6 w-180"
             >
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="list" onClick={() => setSelectedInfrastructure(null)}>
+                    <TabsTrigger value="list" onClick={() => {
+                        setSelectedInfrastructure(null);
+                        handleCancelEdit();
+                    }}>
                         <Database className="mr-2 h-4 w-4" />
                         {isAdmin ? 'All Infrastructures' : 'Your Infrastructures'}
                     </TabsTrigger>
                     {isAdmin && (
-                        <TabsTrigger value="form" onClick={handleCancelEdit}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            {isEditMode ? 'Edit Infrastructure' : 'Add Infrastructure'}
+                        <TabsTrigger value="form">
+                            {isEditMode ? 'Editing Infrastructure' : (<><Plus className="mr-2 h-4 w-4" /> Add Infrastructure</>)}
                         </TabsTrigger>
                     )}
                     <TabsTrigger

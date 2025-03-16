@@ -148,12 +148,20 @@ textarea:hover {
   @apply bg-zinc-950 h-8;
 }
 
+.alert-success {
+  @apply bg-green-800 text-green-100;
+}
+
 .alert-error {
   @apply bg-red-900 text-red-100;
 }
 
-.alert-success {
-  @apply bg-green-800 text-green-100;
+.alert-warning {
+  @apply bg-yellow-900 text-yellow-100;
+}
+
+.alert-neutral {
+  @apply bg-blue-900 text-blue-100;
 }
 
 .discard {

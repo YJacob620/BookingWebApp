@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Search, UserCheck, UserX, Shield } from 'lucide-react';
 import {
     Table,
@@ -36,34 +35,33 @@ import {
     fetchInfrastructures,
     assignInfrastructureToManager,
     removeInfrastructureFromManager,
-    fetchUserInfrastructures
+    fetchUserInfrastructures,
+    User,
+    Infrastructure,
+    UserRole,
+    Message
 } from '@/_utils';
-import { userRoleAuthentication } from '@/userRoleAuth';
-import BackToDashboardButton from '@/components/_BackToDashboardButton';
+import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
 
 const UserManagement: React.FC = () => {
-    const { isAdmin, isLoading: authLoading, error: authError } = userRoleAuthentication();
 
     // State management
-    const [users, setUsers] = useState([]);
-    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
-    const [infrastructures, setInfrastructures] = useState([]);
+    const [message, setMessage] = useState<Message | null>(null);
+    const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
 
     // Dialog state
     const [isManagerDialogOpen, setIsManagerDialogOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [assignedInfrastructures, setAssignedInfrastructures] = useState<number[]>([]);
 
     useEffect(() => {
-        if (isAdmin) {
-            loadUsers();
-            loadInfrastructures();
-        }
-    }, [isAdmin]);
+        loadUsers();
+        loadInfrastructures();
+    }, []);
 
     useEffect(() => {
         filterUsers();
@@ -76,7 +74,10 @@ const UserManagement: React.FC = () => {
             setUsers(data);
         } catch (error) {
             console.error('Error loading users:', error);
-            setError('Failed to load users');
+            setMessage({
+                type: 'error',
+                text: 'Failed to load users'
+            });
         } finally {
             setIsLoading(false);
         }
@@ -107,7 +108,7 @@ const UserManagement: React.FC = () => {
         setFilteredUsers(filtered);
     };
 
-    const handleRoleChange = async (userId: number, newRole: string) => {
+    const handleRoleChange = async (userId: number, newRole: UserRole) => {
         try {
             await updateUserRole(userId, newRole);
 
@@ -118,7 +119,10 @@ const UserManagement: React.FC = () => {
                 )
             );
 
-            setSuccess(`User role updated successfully`);
+            setMessage({
+                type: 'success',
+                text: 'User role updated successfully'
+            });
 
             // If changing to/from infrastructure_manager, reload user data to get assigned infrastructures
             if (newRole === 'manager' ||
@@ -127,13 +131,15 @@ const UserManagement: React.FC = () => {
             }
 
             // Clear success message after 3 seconds
-            setTimeout(() => setSuccess(null), 3000);
+            setTimeout(() => setMessage(null), 3000);
         } catch (error) {
             console.error('Error updating user role:', error);
-            setError('Failed to update user role');
+            setMessage({
+                type: 'error',
+                text: 'Failed to update user role'
+            });
 
-            // Clear error message after 3 seconds
-            setTimeout(() => setError(null), 3000);
+            setTimeout(() => setMessage(null), 3000);
         }
     };
 
@@ -148,16 +154,21 @@ const UserManagement: React.FC = () => {
                 )
             );
 
-            setSuccess(`User ${!currentStatus ? 'blacklisted' : 'un-blacklisted'} successfully`);
+            setMessage({
+                type: 'success',
+                text: `User ${!currentStatus ? 'blacklisted' : 'un-blacklisted'} successfully`
+            });
 
-            // Clear success message after 3 seconds
-            setTimeout(() => setSuccess(null), 3000);
+            setTimeout(() => setMessage(null), 3000);
         } catch (error) {
             console.error('Error toggling blacklist status:', error);
-            setError('Failed to update blacklist status');
+            setMessage({
+                type: 'error',
+                text: 'Failed to update blacklist status'
+            });
 
             // Clear error message after 3 seconds
-            setTimeout(() => setError(null), 3000);
+            setTimeout(() => setMessage(null), 3000);
         }
     };
 
@@ -167,7 +178,7 @@ const UserManagement: React.FC = () => {
         // Load assigned infrastructures for this manager
         try {
             // Use the admin version that takes a user ID parameter
-            const data = await fetchUserInfrastructures(user.id);
+            const data: Infrastructure[] = await fetchUserInfrastructures(user.id);
             setAssignedInfrastructures(data.map(infra => infra.id));
         } catch (error) {
             console.error('Error loading manager infrastructures:', error);
@@ -190,207 +201,179 @@ const UserManagement: React.FC = () => {
             }
         } catch (error) {
             console.error('Error updating infrastructure assignment:', error);
-            setError('Failed to update infrastructure assignment');
+            setMessage({
+                type: 'error',
+                text: 'Failed to update infrastructure assignment'
+            });
 
             // Clear error message after 3 seconds
-            setTimeout(() => setError(null), 3000);
+            setTimeout(() => setMessage(null), 3000);
         }
     };
 
-    if (authLoading) {
-        return (
-            <div className="min-h-screen general-container flex items-center justify-center">
-                <div className="text-xl">Loading...</div>
-            </div>
-        );
-    }
-
-    if (!isAdmin) {
-        return null;
-    }
-
     return (
-        <Card className="general-container">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-start mb-6">
-                    <BackToDashboardButton />
+        <ProtectedPageLayout
+            pageTitle="User Management"
+            showDashboardButton
+            alertMessage={message}
+        >
+            {/* Search bar */}
+            <div className="mb-6">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                        placeholder="Search users by name, email, or role..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                    />
                 </div>
+            </div>
 
-                <div className="flex justify-between items-center mb-8">
-                    <h1>User Management</h1>
-                </div>
-
-                {error && (
-                    <Alert className="mb-6 alert-error">
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                )}
-
-                {success && (
-                    <Alert className="mb-6 alert-success">
-                        <AlertDescription>{success}</AlertDescription>
-                    </Alert>
-                )}
-
-                {/* Search bar */}
-                <div className="mb-6">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                            placeholder="Search users by name, email, or role..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
-                    </div>
-                </div>
-
-                {/* Users table */}
-                <Card className="card1">
-                    <CardContent className="p-6">
-                        {isLoading ? (
-                            <div className="text-center py-10">Loading users...</div>
-                        ) : (
-                            <div className="table-wrapper">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Role</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredUsers.length > 0 ? (
-                                            filteredUsers.map((user) => (
-                                                <TableRow key={user.id} className="border-gray-700">
-                                                    <TableCell className="font-medium">{user.name}</TableCell>
-                                                    <TableCell>{user.email}</TableCell>
-                                                    <TableCell>
-                                                        <Select
-                                                            value={user.role}
-                                                            onValueChange={(value) => handleRoleChange(user.id, value)}
-                                                            disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent changing the first admin
+            {/* Users table */}
+            <Card className="card1">
+                <CardContent className="p-6">
+                    {isLoading ? (
+                        <div className="text-center py-10">Loading users...</div>
+                    ) : (
+                        <div className="table-wrapper">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Role</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredUsers.length > 0 ? (
+                                        filteredUsers.map((user) => (
+                                            <TableRow key={user.id} className="border-gray-700">
+                                                <TableCell className="font-medium">{user.name}</TableCell>
+                                                <TableCell>{user.email}</TableCell>
+                                                <TableCell>
+                                                    <Select
+                                                        value={user.role}
+                                                        onValueChange={(value: UserRole) => handleRoleChange(user.id, value)}
+                                                        disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent changing the first admin
+                                                    >
+                                                        <SelectTrigger className="w-40 h-12 text-left text-sm">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="admin">Admin</SelectItem>
+                                                            <SelectItem value="manager">Infrastructure Manager</SelectItem>
+                                                            <SelectItem value="faculty">Faculty</SelectItem>
+                                                            <SelectItem value="student">Student</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge className={user.is_blacklisted ? 'bg-red-700' : 'bg-green-700'}>
+                                                        {user.is_blacklisted ? 'Blacklisted' : 'Active'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex space-x-2">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => handleBlacklistToggle(user.id, user.is_blacklisted)}
+                                                            className={user.is_blacklisted ? 'text-green-500' : 'text-red-500'}
+                                                            disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent blacklisting the first admin
                                                         >
-                                                            <SelectTrigger className="w-36">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="admin">Admin</SelectItem>
-                                                                <SelectItem value="infrastructure_manager">Infrastructure Manager</SelectItem>
-                                                                <SelectItem value="faculty">Faculty</SelectItem>
-                                                                <SelectItem value="student">Student</SelectItem>
-                                                                <SelectItem value="guest">Guest</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge className={user.is_blacklisted ? 'bg-red-700' : 'bg-green-700'}>
-                                                            {user.is_blacklisted ? 'Blacklisted' : 'Active'}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex space-x-2">
+                                                            {user.is_blacklisted ? (
+                                                                <><UserCheck className="h-4 w-4 mr-1" /> Un-blacklist</>
+                                                            ) : (
+                                                                <><UserX className="h-4 w-4 mr-1" /> Blacklist</>
+                                                            )}
+                                                        </Button>
+
+                                                        {user.role === 'manager' && (
                                                             <Button
                                                                 size="sm"
                                                                 variant="ghost"
-                                                                onClick={() => handleBlacklistToggle(user.id, user.is_blacklisted)}
-                                                                className={user.is_blacklisted ? 'text-green-500' : 'text-red-500'}
-                                                                disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent blacklisting the first admin
+                                                                onClick={() => openManagerDialog(user)}
+                                                                className="text-blue-500"
                                                             >
-                                                                {user.is_blacklisted ? (
-                                                                    <><UserCheck className="h-4 w-4 mr-1" /> Un-blacklist</>
-                                                                ) : (
-                                                                    <><UserX className="h-4 w-4 mr-1" /> Blacklist</>
-                                                                )}
+                                                                <Shield className="h-4 w-4 mr-1" /> Manage Access
                                                             </Button>
-
-                                                            {user.role === 'manager' && (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="ghost"
-                                                                    onClick={() => openManagerDialog(user)}
-                                                                    className="text-blue-500"
-                                                                >
-                                                                    <Shield className="h-4 w-4 mr-1" /> Manage Access
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={5} className="h-24 text-center">
-                                                    <div className="text-gray-400">
-                                                        {users.length > 0
-                                                            ? 'No users match your search criteria.'
-                                                            : 'No users found.'}
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* Infrastructure assignment dialog */}
-                {selectedUser && (
-                    <Dialog open={isManagerDialogOpen} onOpenChange={setIsManagerDialogOpen}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Manage Infrastructure Access</DialogTitle>
-                                <DialogDescription>
-                                    Assign or remove infrastructure access for {selectedUser.name}
-                                </DialogDescription>
-                            </DialogHeader>
-
-                            <div className="py-4">
-                                <p className="text-sm text-gray-400 mb-4">
-                                    Toggle access to each infrastructure below:
-                                </p>
-
-                                <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                                    {infrastructures.map((infra) => {
-                                        const isAssigned = assignedInfrastructures.includes(infra.id);
-
-                                        return (
-                                            <div key={infra.id} className="flex items-center justify-between py-2 border-b border-gray-700">
-                                                <div>
-                                                    <p className="font-medium">{infra.name}</p>
-                                                    {infra.location && (
-                                                        <p className="text-xs text-gray-400">{infra.location}</p>
-                                                    )}
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="h-24 text-center">
+                                                <div className="text-gray-400">
+                                                    {users.length > 0
+                                                        ? 'No users match your search criteria.'
+                                                        : 'No users found.'}
                                                 </div>
-                                                <Switch
-                                                    checked={isAssigned}
-                                                    onCheckedChange={(checked) => handleInfrastructureToggle(infra.id, checked)}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-
-                                    {infrastructures.length === 0 && (
-                                        <p className="text-center text-gray-400">No infrastructures available</p>
+                                            </TableCell>
+                                        </TableRow>
                                     )}
-                                </div>
-                            </div>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
 
-                            <DialogFooter>
-                                <Button onClick={() => setIsManagerDialogOpen(false)}>
-                                    Done
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                )}
-            </div>
-        </Card>
+            {/* Infrastructure assignment dialog */}
+            {selectedUser && (
+                <Dialog open={isManagerDialogOpen} onOpenChange={setIsManagerDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Manage Infrastructure Access</DialogTitle>
+                            <DialogDescription>
+                                Assign or remove infrastructure access for {selectedUser.name}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="py-4">
+                            <p className="text-sm text-gray-400 mb-4">
+                                Toggle access to each infrastructure below:
+                            </p>
+
+                            <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                                {infrastructures.map((infra) => {
+                                    const isAssigned = assignedInfrastructures.includes(infra.id);
+
+                                    return (
+                                        <div key={infra.id} className="flex items-center justify-between py-2 border-b border-gray-700">
+                                            <div>
+                                                <p className="font-medium">{infra.name}</p>
+                                                {infra.location && (
+                                                    <p className="text-xs text-gray-400">{infra.location}</p>
+                                                )}
+                                            </div>
+                                            <Switch
+                                                checked={isAssigned}
+                                                onCheckedChange={(checked) => handleInfrastructureToggle(infra.id, checked)}
+                                            />
+                                        </div>
+                                    );
+                                })}
+
+                                {infrastructures.length === 0 && (
+                                    <p className="text-center text-gray-400">No infrastructures available</p>
+                                )}
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button onClick={() => setIsManagerDialogOpen(false)}>
+                                Done
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </ProtectedPageLayout>
     );
 };
 

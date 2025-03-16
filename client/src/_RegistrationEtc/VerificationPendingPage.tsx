@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { CardHeader, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, Loader } from 'lucide-react';
 
-import { resendVerification, isLocalUserDataValid, getDashboardPath } from '@/_utils';
+import { resendVerification, Message } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
-import { userRoleAuthentication } from '@/userRoleAuth';
+import ProtectedPageLayout from '@/components/_ProtectedPageLayout';
 
 interface LocationState {
   email?: string;
@@ -17,35 +17,26 @@ interface LocationState {
 const VerificationPendingPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAdmin, isManager } = userRoleAuthentication();
 
   const state = location.state as LocationState || {};
 
   const [isResending, setIsResending] = useState<boolean>(false);
   const [resendSuccess, setResendSuccess] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [email, setEmail] = useState<string>(state.email || '');
-  const [message, setMessage] = useState<string>(
-    state.message || 'Please check your email to verify your account.'
-  );
+  const [email] = useState<string>(state.email || '');
+  const [message] = useState<Message | null>({
+    type: "neutral",
+    text: state.message || 'Please check your email to verify your account.'
+  });
 
   useEffect(() => {
-    // Check if user is already logged in with validated credentials
-    const isLoggedIn = isLocalUserDataValid();
-
-    if (isLoggedIn) {
-      // Already logged in and verified, redirect to dashboard
-      navigate(getDashboardPath(isAdmin, isManager));
-      return;
-    }
-
     // If there's no email (user might have navigated here directly without state)
     if (!email && !location.state) {
       // Redirect to login after a small delay to avoid flashing
       const timer = setTimeout(() => navigate(LOGIN), 100);
       return () => clearTimeout(timer);
     }
-  }, [email, isAdmin, isManager, location.state, navigate]);
+  }, [email, location.state, navigate]);
 
   const handleResendVerification = async () => {
     if (!email) {
@@ -75,9 +66,12 @@ const VerificationPendingPage: React.FC = () => {
   };
 
   return (
-    <Card className="general-container">
+    <ProtectedPageLayout
+      pageTitle="Verify Your Email"
+      explanationText="Manage your assigned infrastructures, timeslots, and booking requests."
+      alertMessage={message}
+    >
       <CardHeader>
-        <CardTitle className="text-3xl">Verify Your Email</CardTitle>
         <CardDescription className="explanation-text1 pt-3">
           We've sent a verification link to your email
         </CardDescription>
@@ -94,7 +88,6 @@ const VerificationPendingPage: React.FC = () => {
 
           <div className="space-y-4">
             {/* Use the dynamic message here */}
-            <p>{message}</p>
             <p className="text-sm explanation-text1">If you don't see the email, check your spam folder.</p>
           </div>
 
@@ -136,7 +129,7 @@ const VerificationPendingPage: React.FC = () => {
           </Link>
         </div>
       </CardFooter>
-    </Card>
+    </ProtectedPageLayout>
   );
 };
 

@@ -24,7 +24,7 @@ interface AuthGuardProps {
  * This component handles authentication checks, authorization based on user roles,
  * loading states, and redirects for protected pages.
  */
-const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRoles, loadingComponent, }) => {
+const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRoles }) => {
   const navigate = useNavigate();
   const { authenticatedRole, isLoading, error } = userRoleAuthentication();
 
@@ -54,7 +54,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRoles, loadingC
 
   // Show loading component/spinner while checking authentication
   if (isLoading) {
-    return loadingComponent || (
+    return (
       <div className="min-h-screen general-container flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
