@@ -90,7 +90,6 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
  * Fetch all relevant infrastructures (admin or infrastructure-manager only)
  */
 export const fetchInfrastructures = (): Promise<Infrastructure[]> => {
-  console.warn("FETCHED INFRAST!!");
   const user: User = getLocalUser();
   if (user?.role === "admin") {
     return apiRequest('/infrastructures/admin');

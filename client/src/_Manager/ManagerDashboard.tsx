@@ -1,94 +1,58 @@
-import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Database, Settings, CalendarRange } from "lucide-react";
-
-import { fetchInfrastructures, Infrastructure, Message } from '@/_utils';
-import { MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
+import { Card, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Calendar, Database } from "lucide-react";
+import * as RoutePaths from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import BasePageLayout from '@/components/_BasePageLayout';
 
-
-const ManagerDashboard: React.FC = () => {
-    const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
-    const [message, setMessage] = useState<Message | null>(null);
-
-
-    useEffect(() => {
-        getInfrastructures();
-    }, []);
-
-    const getInfrastructures = async () => {
-        try {
-            const data = await fetchInfrastructures();
-            setInfrastructures(data);
-        } catch (error) {
-            console.error('Error fetching infrastructures:', error);
-            setMessage({
-                type: 'error',
-                text: 'Failed to fetch your managed infrastructures'
-            });
+const ManagerDashboard = () => {
+    const menuItems = [
+        {
+            title: 'Infrastructures',
+            link: RoutePaths.MANAGER_INFRASTRUCTURE_MANAGEMENT,
+            description: 'Manage your assigned infrastructures',
+            icon: <Database className="h-6 w-6" />
+        },
+        {
+            title: 'Bookings & Timeslots',
+            link: RoutePaths.BOOKING_MANAGEMENT,
+            description: 'Manage booking requests and available time slots',
+            icon: <Calendar className="h-6 w-6" />
         }
-    };
+    ];
 
     return (
         <BasePageLayout
-            pageTitle="Infrastructure Manager Dashboard"
-            explanationText="Manage your assigned infrastructures, timeslots, and booking requests."
+            pageTitle="Infrastructure-Manager Dashboard"
             showLogoutButton
-            alertMessage={message}
+            explanationText={"Manage your assigned infrastructures and booking requests"}
+            className={"w-170"}
         >
-            <EmailPreferencesToggle />
-            {/* Infrastructure Management Button - Links to shared page */}
-            <div className="mb-6 mt-6">
-                <Link to={MANAGER_INFRASTRUCTURE_MANAGEMENT}>
-                    <Button className="bg-blue-600 hover:bg-blue-700">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Manage Infrastructures & Filter-Questions
-                    </Button>
-                </Link>
-            </div>
+            <EmailPreferencesToggle className="mb-6" />
 
-            <h2 className="text-xl font-semibold">Your Assigned Infrastructures</h2>
-            <p className='explanation-text1 mb-4'>Click on one to manage its bookings and timeslots</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {infrastructures.map((infra) => (
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 min-w-120">
+                {menuItems.map((item, index) => (
                     <Link
-                        key={infra.id}
-                        to={getManagerBookingsPath(infra.id)}
+                        key={index}
+                        to={item.link}
                         className="block no-underline"
                     >
                         <Card className="card2">
-                            <CardContent className="p-6">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h2 className="text-xl font-semibold mb-2">{infra.name}</h2>
-                                        <p className="text-sm text-gray-400">{infra.location || 'No location'}</p>
-                                    </div>
-                                    <div className="flex">
-                                        <Database className="h-6 w-6 text-blue-400 mr-2" />
-                                        <CalendarRange className="h-6 w-6 text-green-400" />
-                                    </div>
-                                </div>
-                                <p className="mt-4 text-sm text-gray-300 line-clamp-2">{infra.description}</p>
-                                <div className="mt-4">
-                                    <span className={`px-2 py-1 rounded ${infra.is_active ? 'bg-green-800 text-green-100' : 'bg-red-800 text-red-100'}`}>
-                                        {infra.is_active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </div>
-                            </CardContent>
+                            <CardHeader>
+                                <CardTitle className="text-gray-100 text-2xl font-medium">
+                                    {item.title}
+                                </CardTitle>
+                                <CardDescription className="text-gray-400 font-medium">
+                                    {item.description}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardFooter className="mt-auto flex justify-center text-gray-100">
+                                {item.icon}
+                            </CardFooter>
                         </Card>
                     </Link>
                 ))}
             </div>
-
-            {infrastructures.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
-                    You don't have any assigned infrastructures.
-                </div>
-            )}
         </BasePageLayout>
     );
 };

@@ -22,6 +22,8 @@ interface BasePageLayoutProps {
   alertMessage?: Message | null;
 
   explanationText?: String
+
+  className?: String
 }
 
 /**
@@ -34,6 +36,7 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
   showLogoutButton = false,
   alertMessage,
   explanationText,
+  className
 }) => {
   // Apply page title if provided
   if (pageTitle && typeof document !== 'undefined') {
@@ -41,7 +44,7 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
   }
 
   return (
-    <Card className="general-container">
+    <Card className={`general-container ${className}`}>
       <div className="max-w-7xl mx-3">
         <div
           className={`grid ${showDashboardButton && showLogoutButton ? 'grid-cols-2' : 'grid-cols-1'}`}

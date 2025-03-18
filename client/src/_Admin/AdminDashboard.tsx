@@ -22,7 +22,7 @@ const AdminDashboard = () => {
         {
             title: 'Bookings & Timeslots',
             link: RoutePaths.BOOKING_MANAGEMENT,
-            description: 'Manage bookings and available time slots',
+            description: 'Manage booking requests and available time slots',
             icon: <Calendar className="h-6 w-6" />
         }
     ];
@@ -32,8 +32,9 @@ const AdminDashboard = () => {
             pageTitle="Admin Dashboard"
             showLogoutButton
             explanationText={"Select a section below to manage different aspects of the system"}
+            className={"w-170"}
         >
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 min-w-120">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                 {menuItems.map((item, index) => (
                     <Link
                         key={index}
