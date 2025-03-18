@@ -235,7 +235,9 @@ export const forceUpdatePastBookings = () => {
 };
 
 /**
- * Fetches all booking entries (both bookings and timeslots) for a specific infrastructure (admin only)
+ * Fetches all booking entries (both bookings and timeslots) for a specific infrastructure
+ * Works for both admins and managers with appropriate permissions
+ * 
  * @param infrastructureId - ID of the infrastructure
  * @param params - Optional parameters for filtering (startDate, endDate, limit)
  * @returns Promise with all booking entries
@@ -248,7 +250,12 @@ export const fetchAllBookingEntries = (
     limit?: number
   }
 ): Promise<BookingEntry[]> => {
-  let url = `/bookings/admin/${infrastructureId}/all-entries`;
+  const user: User = getLocalUser();
+
+  // Determine the correct endpoint based on user role
+  let url = user?.role === 'admin'
+    ? `/bookings/admin/${infrastructureId}/all-entries`
+    : `/infrastructures/manager/${infrastructureId}/bookings`;
 
   if (params) {
     const queryParams = new URLSearchParams();

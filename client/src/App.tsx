@@ -95,7 +95,7 @@ function App() {
         <Route
           path={RoutePaths.BOOKING_MANAGEMENT}
           element={
-            <AuthenticationGuard requiredRoles={['admin']}>
+            <AuthenticationGuard requiredRoles={['admin', 'manager']}>
               <BookingManagement />
             </AuthenticationGuard>
           }

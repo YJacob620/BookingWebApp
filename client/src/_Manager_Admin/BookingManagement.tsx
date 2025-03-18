@@ -12,7 +12,8 @@ import {
     BookingEntry,
     Message,
     forceUpdatePastBookings,
-    fetchAllBookingEntries
+    fetchAllBookingEntries,
+    getLocalUser
 } from '@/_utils';
 
 const BookingManagement: React.FC = () => {
@@ -21,6 +22,7 @@ const BookingManagement: React.FC = () => {
     const [isLoadingEntries, setIsLoadingEntries] = useState<boolean>(false);
     const [message, setMessage] = useState<Message | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const isAdmin = getLocalUser()?.role === 'admin';
 
     // Fetch all booking entries when infrastructure is selected or refresh is triggered
     useEffect(() => {
@@ -113,6 +115,7 @@ const BookingManagement: React.FC = () => {
                         onError={handleError}
                         onUpdatePastBookings={handleUpdatePastBookings}
                         onDataChange={() => setRefreshTrigger(prev => prev + 1)}
+                        isAdmin={isAdmin}
                     />
                 </>
             )}

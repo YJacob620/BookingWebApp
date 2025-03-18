@@ -16,9 +16,9 @@ const ManagerDashboard = () => {
         {
             title: 'Bookings & Timeslots',
             link: RoutePaths.BOOKING_MANAGEMENT,
-            description: 'Manage booking requests and available time slots',
+            description: 'Manage booking requests and available time slots for your assigned infrastructures',
             icon: <Calendar className="h-6 w-6" />
-        }
+        },
     ];
 
     return (

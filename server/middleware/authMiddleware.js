@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const pool = require('../config/db');
 const { JWT_SECRET } = require('../config/env');
 
 // Middleware to verify JWT token
@@ -22,7 +23,7 @@ const authenticateToken = (req, res, next) => {
 // Middleware to verify admin role
 const verifyAdmin = (req, res, next) => {
     if (req.user.role !== 'admin') {
-        return res.status(403).json();
+        return res.status(403).json({ message: 'Admin access required' });
     }
     next();
 };
@@ -30,9 +31,34 @@ const verifyAdmin = (req, res, next) => {
 // Middleware to verify infrastructure manager role
 const verifyInfrastructureManager = async (req, res, next) => {
     if (req.user.role !== 'manager') {
-        return res.status(403).json();
+        return res.status(403).json({ message: 'Manager access required' });
     }
     next();
+};
+
+// Middleware to verify if the user is either an admin or a manager
+const verifyAdminOrManager = (req, res, next) => {
+    if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+        return res.status(403).json({ message: 'Access denied: Admin or Manager role required' });
+    }
+
+    // Store the role in the request for later use
+    req.userRole = req.user.role;
+    next();
+};
+
+// Helper function to check if a manager has access to an infrastructure
+const checkManagerInfrastructureAccess = async (userId, infrastructureId, connection = pool) => {
+    try {
+        const [rows] = await connection.execute(
+            'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
+            [userId, infrastructureId]
+        );
+        return rows.length > 0;
+    } catch (error) {
+        console.error('Error checking infrastructure access:', error);
+        throw new Error('Failed to verify infrastructure access');
+    }
 };
 
 // Middleware to verify if a user is a manager for a specific infrastructure
@@ -50,12 +76,9 @@ const verifyInfrastructureAccess = async (req, res, next) => {
 
     try {
         // Check if the user is a manager for this infrastructure
-        const [rows] = await pool.execute(
-            'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
-            [req.user.userId, infrastructureId]
-        );
+        const hasAccess = await checkManagerInfrastructureAccess(req.user.userId, infrastructureId);
 
-        if (rows.length === 0) {
+        if (!hasAccess) {
             return res.status(403).json({ message: 'You do not have access to this infrastructure' });
         }
 
@@ -70,5 +93,7 @@ module.exports = {
     authenticateToken,
     verifyAdmin,
     verifyInfrastructureManager,
-    verifyInfrastructureAccess
+    verifyInfrastructureAccess,
+    verifyAdminOrManager,
+    checkManagerInfrastructureAccess
 };

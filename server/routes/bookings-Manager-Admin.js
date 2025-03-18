@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken, verifyAdmin } = require('../middleware/authMiddleware');
+const {
+    authenticateToken,
+    verifyAdminOrManager,
+    checkManagerInfrastructureAccess
+} = require('../middleware/authMiddleware');
 
-// Create timeslots (admin only)
-router.post('/create-timeslots', authenticateToken, verifyAdmin, async (req, res) => {
+// Create timeslots (admin or manager for their infrastructures)
+router.post('/create-timeslots', authenticateToken, verifyAdminOrManager, async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -54,6 +58,15 @@ router.post('/create-timeslots', authenticateToken, verifyAdmin, async (req, res
                 return res.status(400).json({
                     message: 'Number of slots per day is required',
                 });
+            }
+        }
+
+        // For managers, check if they have access to this infrastructure
+        if (req.userRole === 'manager') {
+            const hasAccess = await checkManagerInfrastructureAccess(req.user.userId, infrastructureID, connection);
+            if (!hasAccess) {
+                await connection.rollback();
+                return res.status(403).json({ message: 'You do not have access to this infrastructure' });
             }
         }
 
@@ -126,13 +139,33 @@ router.post('/create-timeslots', authenticateToken, verifyAdmin, async (req, res
     }
 });
 
-// Cancel timeslots (admin only)
-router.delete('/timeslots', authenticateToken, verifyAdmin, async (req, res) => {
+// Cancel timeslots (admin or manager for their infrastructures)
+router.delete('/timeslots', authenticateToken, verifyAdminOrManager, async (req, res) => {
     try {
         const { ids } = req.body;
 
         if (!ids || !Array.isArray(ids) || ids.length === 0) {
             return res.status(400).json({ message: 'No timeslots specified for cancellation' });
+        }
+
+        // For managers, check if they have access to the timeslots
+        if (req.userRole === 'manager') {
+            // Get the infrastructure IDs for the timeslots
+            const placeholders = ids.map(() => '?').join(',');
+            const [timeslots] = await pool.execute(
+                `SELECT id, infrastructure_id FROM bookings WHERE id IN (${placeholders})`,
+                ids
+            );
+
+            // Check access for each infrastructure
+            for (const timeslot of timeslots) {
+                const hasAccess = await checkManagerInfrastructureAccess(req.user.userId, timeslot.infrastructure_id);
+                if (!hasAccess) {
+                    return res.status(403).json({
+                        message: 'You do not have access to one or more of the specified timeslots'
+                    });
+                }
+            }
         }
 
         // Update status to 'canceled' instead of deleting
@@ -155,8 +188,8 @@ router.delete('/timeslots', authenticateToken, verifyAdmin, async (req, res) => 
     }
 });
 
-// Approve a booking request (admin only)
-router.put('/:id/approve', authenticateToken, verifyAdmin, async (req, res) => {
+// Approve a booking request (admin or responsible manager)
+router.put('/:id/approve', authenticateToken, verifyAdminOrManager, async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -174,6 +207,22 @@ router.put('/:id/approve', authenticateToken, verifyAdmin, async (req, res) => {
         }
 
         const booking = bookings[0];
+
+        // For managers, check if they have access to this infrastructure
+        if (req.userRole === 'manager') {
+            const hasAccess = await checkManagerInfrastructureAccess(
+                req.user.userId,
+                booking.infrastructure_id,
+                connection
+            );
+
+            if (!hasAccess) {
+                await connection.rollback();
+                return res.status(403).json({
+                    message: 'You do not have access to approve bookings for this infrastructure'
+                });
+            }
+        }
 
         // Update the booking status to approved
         await connection.execute(
@@ -196,9 +245,9 @@ router.put('/:id/approve', authenticateToken, verifyAdmin, async (req, res) => {
     }
 });
 
-// Reject or cancel a booking request / approved booking (admin only). 
+// Reject or cancel a booking request / approved booking (admin or responsible manager) 
 // This will also create a new available timeslot at the time of the old booking.
-router.put('/:id/reject-or-cancel', authenticateToken, verifyAdmin, async (req, res) => {
+router.put('/:id/reject-or-cancel', authenticateToken, verifyAdminOrManager, async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -219,6 +268,24 @@ router.put('/:id/reject-or-cancel', authenticateToken, verifyAdmin, async (req, 
 
         if (bookings.length === 0) {
             return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        const booking = bookings[0];
+
+        // For managers, check if they have access to this infrastructure
+        if (req.userRole === 'manager') {
+            const hasAccess = await checkManagerInfrastructureAccess(
+                req.user.userId,
+                booking.infrastructure_id,
+                connection
+            );
+
+            if (!hasAccess) {
+                await connection.rollback();
+                return res.status(403).json({
+                    message: 'You do not have access to manage bookings for this infrastructure'
+                });
+            }
         }
 
         // Call the stored procedure for rejecting or canceling
@@ -243,8 +310,13 @@ router.put('/:id/reject-or-cancel', authenticateToken, verifyAdmin, async (req, 
 });
 
 // Force update of all booking and timeslot statuses (admin only)
-router.post('/force-bookings-status-update', authenticateToken, verifyAdmin, async (req, res) => {
+router.post('/force-bookings-status-update', authenticateToken, verifyAdminOrManager, async (req, res) => {
     try {
+        // Only admins can force update all statuses
+        if (req.userRole !== 'admin') {
+            return res.status(403).json({ message: 'Only administrators can force update all statuses' });
+        }
+
         // Call the stored procedure directly
         const [result] = await pool.execute('CALL update_past_statuses()');
 
@@ -276,12 +348,21 @@ router.post('/force-bookings-status-update', authenticateToken, verifyAdmin, asy
     }
 });
 
-// Get all entries (both bookings and timeslots) for an infrastructure (admin only).
-// This unified endpoint allows client-side filtering instead of separate endpoints.
-router.get('/:infrastructureId/all-entries', authenticateToken, verifyAdmin, async (req, res) => {
+// Get all entries (both bookings and timeslots) for an infrastructure
+router.get('/:infrastructureId/all-entries', authenticateToken, verifyAdminOrManager, async (req, res) => {
     try {
         const { infrastructureId } = req.params;
         const { startDate, endDate, limit } = req.query;
+
+        // For managers, check if they have access to this infrastructure
+        if (req.userRole === 'manager') {
+            const hasAccess = await checkManagerInfrastructureAccess(req.user.userId, infrastructureId);
+            if (!hasAccess) {
+                return res.status(403).json({
+                    message: 'You do not have access to view bookings for this infrastructure'
+                });
+            }
+        }
 
         // Join with users table to get user roles for bookings and infrastructure info
         let query = `
