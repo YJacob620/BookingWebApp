@@ -33,19 +33,12 @@ const InfrastructureManagement: React.FC = () => {
 
     useEffect(() => {
         setIsAdmin(getLocalUser()?.role === "admin");
-    }, [refreshTrigger]);  // Only depend on refreshTrigger
-
-    useEffect(() => {
-        if (isAdmin) {
-            getInfrastructures();  // Runs whenever isAdmin changes
-        }
-    }, [isAdmin]);
+        getInfrastructures();
+    }, [refreshTrigger]);
 
     const getInfrastructures = async () => {
         try {
             setIsLoading(true);
-
-            // Use the correct API call based on role
             const data = await fetchInfrastructures();
             setInfrastructures(data);
         } catch (error) {
