@@ -1,9 +1,10 @@
-// server/routes/bookings-User.js
+/* Router functions regarding bookings for regular users */
+
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/authMiddleware');
-const { upload, getFileUrl } = require('../middleware/fileUploadMiddleware');
+const { upload } = require('../middleware/fileUploadMiddleware');
 const emailService = require('../utils/emailService');
 
 // Get recent bookings for the current user

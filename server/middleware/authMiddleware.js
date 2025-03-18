@@ -51,7 +51,11 @@ const authenticateAdminOrManager = (req, res, next) => {
 };
 
 // Helper function to check if a manager has access to an infrastructure
-const checkManagerInfrastructureAccess = async (userId, infrastructureId, connection = pool) => {
+const checkInfrastructureAccess = async (userId, infrastructureId, connection = pool) => {
+    if (req.userRole === 'admin') {
+        return true;
+    }
+
     try {
         const [rows] = await connection.execute(
             'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
@@ -64,39 +68,10 @@ const checkManagerInfrastructureAccess = async (userId, infrastructureId, connec
     }
 };
 
-// Middleware to verify if a user is a manager for a specific infrastructure
-const verifyInfrastructureAccess = async (req, res, next) => {
-    // Skip check for admins (they have access to everything)
-    if (req.user.role === 'admin') {
-        return next();
-    }
-
-    const infrastructureId = req.params.infrastructureId || req.body.infrastructureId;
-
-    if (!infrastructureId) {
-        return res.status(400).json({ message: 'Infrastructure ID is required' });
-    }
-
-    try {
-        // Check if the user is a manager for this infrastructure
-        const hasAccess = await checkManagerInfrastructureAccess(req.user.userId, infrastructureId);
-
-        if (!hasAccess) {
-            return res.status(403).json({ message: 'You do not have access to this infrastructure' });
-        }
-
-        next();
-    } catch (error) {
-        console.error('Error checking infrastructure access:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-
 module.exports = {
     authenticateToken,
     authenticateAdmin,
     authenticateManager,
     authenticateAdminOrManager,
-    verifyInfrastructureAccess,
-    checkManagerInfrastructureAccess
+    checkInfrastructureAccess
 };
