@@ -4,13 +4,12 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const {
-    authenticateToken,
-    verifyAdminOrManager,
+    authenticateAdminOrManager,
     checkManagerInfrastructureAccess
 } = require('../middleware/authMiddleware');
 
 // Create timeslots (admin or manager for their infrastructures)
-router.post('/create-timeslots', authenticateToken, verifyAdminOrManager, async (req, res) => {
+router.post('/create-timeslots', authenticateAdminOrManager, async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -142,7 +141,7 @@ router.post('/create-timeslots', authenticateToken, verifyAdminOrManager, async 
 });
 
 // Cancel timeslots (admin or manager for their infrastructures)
-router.delete('/timeslots', authenticateToken, verifyAdminOrManager, async (req, res) => {
+router.delete('/timeslots', authenticateAdminOrManager, async (req, res) => {
     try {
         const { ids } = req.body;
 
@@ -191,7 +190,7 @@ router.delete('/timeslots', authenticateToken, verifyAdminOrManager, async (req,
 });
 
 // Approve a booking request (admin or responsible manager)
-router.put('/:id/approve', authenticateToken, verifyAdminOrManager, async (req, res) => {
+router.put('/:id/approve', authenticateAdminOrManager, async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -249,7 +248,7 @@ router.put('/:id/approve', authenticateToken, verifyAdminOrManager, async (req, 
 
 // Reject or cancel a booking request / approved booking (admin or responsible manager) 
 // This will also create a new available timeslot at the time of the old booking.
-router.put('/:id/reject-or-cancel', authenticateToken, verifyAdminOrManager, async (req, res) => {
+router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -312,7 +311,7 @@ router.put('/:id/reject-or-cancel', authenticateToken, verifyAdminOrManager, asy
 });
 
 // Force update of all booking and timeslot statuses (admin only)
-router.post('/force-bookings-status-update', authenticateToken, verifyAdminOrManager, async (req, res) => {
+router.post('/force-bookings-status-update', authenticateAdminOrManager, async (req, res) => {
     try {
         // Only admins can force update all statuses
         if (req.userRole !== 'admin') {
@@ -351,7 +350,7 @@ router.post('/force-bookings-status-update', authenticateToken, verifyAdminOrMan
 });
 
 // Get all entries (both bookings and timeslots) for an infrastructure
-router.get('/:infrastructureId/all-entries', authenticateToken, verifyAdminOrManager, async (req, res) => {
+router.get('/:infrastructureId/all-entries', authenticateAdminOrManager, async (req, res) => {
     try {
         const { infrastructureId } = req.params;
         const { startDate, endDate, limit } = req.query;

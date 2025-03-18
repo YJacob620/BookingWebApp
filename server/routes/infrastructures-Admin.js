@@ -3,10 +3,10 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken, verifyAdmin } = require('../middleware/authMiddleware');
+const { authenticateAdmin } = require('../middleware/authMiddleware');
 
 // Get all infrastructures (admin only)
-router.get('/', authenticateToken, verifyAdmin, async (req, res) => {
+router.get('/', authenticateAdmin, async (req, res) => {
     try {
         const [rows] = await pool.execute(
             'SELECT * FROM infrastructures ORDER BY name'
@@ -19,7 +19,7 @@ router.get('/', authenticateToken, verifyAdmin, async (req, res) => {
 });
 
 // Create infrastructure (admin only)
-router.post('/', authenticateToken, verifyAdmin, async (req, res) => {
+router.post('/', authenticateAdmin, async (req, res) => {
     const { name, description, location, is_active } = req.body;
 
     // Validate required fields
@@ -58,7 +58,7 @@ router.post('/', authenticateToken, verifyAdmin, async (req, res) => {
 });
 
 // Toggle infrastructure status (admin only)
-router.post('/:id/toggle-status', authenticateToken, verifyAdmin, async (req, res) => {
+router.post('/:id/toggle-status', authenticateAdmin, async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -89,7 +89,7 @@ router.post('/:id/toggle-status', authenticateToken, verifyAdmin, async (req, re
 });
 
 // Edit infrastructure (admin only)
-router.put('/:id', authenticateToken, verifyAdmin, async (req, res) => {
+router.put('/:id', authenticateAdmin, async (req, res) => {
     const { id } = req.params;
     const { name, description, location, is_active } = req.body;
 
@@ -125,27 +125,6 @@ router.put('/:id', authenticateToken, verifyAdmin, async (req, res) => {
         } else {
             res.status(500).json({ message: 'Error updating infrastructure' });
         }
-    }
-});
-
-// Get single infrastructure (admin only)
-router.get('/:id', authenticateToken, async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const [rows] = await pool.execute(
-            'SELECT * FROM infrastructures WHERE id = ?',
-            [id]
-        );
-
-        if (rows.length === 0) {
-            res.status(404).json({ message: 'Infrastructure not found' });
-        } else {
-            res.json(rows[0]);
-        }
-    } catch (error) {
-        console.error('Error fetching infrastructure:', error);
-        res.status(500).json({ message: 'Error fetching infrastructure details' });
     }
 });
 

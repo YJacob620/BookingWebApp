@@ -7,10 +7,8 @@ const pool = require('../config/db');
 const { JWT_SECRET, VERIFICATION_TOKEN_EXPIRY, PASSWORD_RESET_EXPIRY } = require('../config/env');
 const emailService = require('../utils/emailService');
 const { authenticateToken,
-    verifyAdmin,
-    verifyInfrastructureManager,
-    authLimiter,
-    verificationLimiter
+    authenticateAdmin,
+    authenticateManager,
 } = require('../middleware/authMiddleware');
 
 
@@ -316,11 +314,6 @@ router.post('/resend-verification', async (req, res) => {
     }
 });
 
-// Example protected route
-router.get('/protected', authenticateToken, (req, res) => {
-    res.json({ message: 'Protected data', user: req.user });
-});
-
 // Request password reset
 router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
@@ -443,12 +436,12 @@ router.post('/reset-password/:token', async (req, res) => {
 });
 
 // Admin verification endpoint
-router.get('/verify-admin', authenticateToken, verifyAdmin, (req, res) => {
+router.get('/verify-admin', authenticateAdmin, (req, res) => {
     res.json({ message: 'Admin verified' });
 });
 
 // Infrastructure-manager verification endpoint
-router.get('/verify-manager', authenticateToken, verifyInfrastructureManager, (req, res) => {
+router.get('/verify-manager', authenticateManager, (req, res) => {
     res.json({ message: 'Infrastructure manager verified' });
 });
 

@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken, verifyAdmin } = require('../middleware/authMiddleware');
+const { authenticateAdmin } = require('../middleware/authMiddleware');
 
 // Get all users (admin only)
-router.get('/users', authenticateToken, verifyAdmin, async (req, res) => {
+router.get('/users', authenticateAdmin, async (req, res) => {
     try {
         const [rows] = await pool.execute(
             `SELECT 
@@ -21,7 +21,7 @@ router.get('/users', authenticateToken, verifyAdmin, async (req, res) => {
 });
 
 // Update user role (admin only)
-router.put('/users/:id/role', authenticateToken, verifyAdmin, async (req, res) => {
+router.put('/users/:id/role', authenticateAdmin, async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
 
@@ -66,7 +66,7 @@ router.put('/users/:id/role', authenticateToken, verifyAdmin, async (req, res) =
 });
 
 // Update user blacklist status (admin only)
-router.put('/users/:id/blacklist', authenticateToken, verifyAdmin, async (req, res) => {
+router.put('/users/:id/blacklist', authenticateAdmin, async (req, res) => {
     const { id } = req.params;
     const { blacklist } = req.body;
 
@@ -95,7 +95,7 @@ router.put('/users/:id/blacklist', authenticateToken, verifyAdmin, async (req, r
 });
 
 // Get infrastructures assigned to a manager (admin only)
-router.get('/users/:id/infrastructures', authenticateToken, verifyAdmin, async (req, res) => {
+router.get('/users/:id/infrastructures', authenticateAdmin, async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -115,7 +115,7 @@ router.get('/users/:id/infrastructures', authenticateToken, verifyAdmin, async (
 });
 
 // Assign infrastructure to a manager (admin only)
-router.post('/users/:id/infrastructures', authenticateToken, verifyAdmin, async (req, res) => {
+router.post('/users/:id/infrastructures', authenticateAdmin, async (req, res) => {
     const { id } = req.params;
     const { infrastructureId } = req.body;
 
@@ -168,7 +168,7 @@ router.post('/users/:id/infrastructures', authenticateToken, verifyAdmin, async 
 });
 
 // Remove infrastructure from a manager (admin only)
-router.delete('/users/:id/infrastructures/:infrastructureId', authenticateToken, verifyAdmin, async (req, res) => {
+router.delete('/users/:id/infrastructures/:infrastructureId', authenticateAdmin, async (req, res) => {
     const { id, infrastructureId } = req.params;
 
     try {

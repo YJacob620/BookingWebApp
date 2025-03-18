@@ -20,31 +20,34 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Middleware to verify admin role
-const verifyAdmin = (req, res, next) => {
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Admin access required' });
-    }
-    next();
+const authenticateAdmin = (req, res, next) => {
+    authenticateToken(req, res, () => {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Admin access required' });
+        }
+        next();
+    });
 };
 
-// Middleware to verify infrastructure manager role
-const verifyInfrastructureManager = async (req, res, next) => {
-    if (req.user.role !== 'manager') {
-        return res.status(403).json({ message: 'Manager access required' });
-    }
-    next();
+const authenticateManager = (req, res, next) => {
+    authenticateToken(req, res, () => {
+        if (req.user.role !== 'manager') {
+            return res.status(403).json({ message: 'Manager access required' });
+        }
+        next();
+    });
 };
 
-// Middleware to verify if the user is either an admin or a manager
-const verifyAdminOrManager = (req, res, next) => {
-    if (req.user.role !== 'admin' && req.user.role !== 'manager') {
-        return res.status(403).json({ message: 'Access denied: Admin or Manager role required' });
-    }
+const authenticateAdminOrManager = (req, res, next) => {
+    authenticateToken(req, res, () => {
+        if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+            return res.status(403).json({ message: 'Access denied: Admin or Manager role required' });
+        }
 
-    // Store the role in the request for later use
-    req.userRole = req.user.role;
-    next();
+        // Store the role for later use
+        req.userRole = req.user.role;
+        next();
+    });
 };
 
 // Helper function to check if a manager has access to an infrastructure
@@ -91,9 +94,9 @@ const verifyInfrastructureAccess = async (req, res, next) => {
 
 module.exports = {
     authenticateToken,
-    verifyAdmin,
-    verifyInfrastructureManager,
+    authenticateAdmin,
+    authenticateManager,
+    authenticateAdminOrManager,
     verifyInfrastructureAccess,
-    verifyAdminOrManager,
     checkManagerInfrastructureAccess
 };

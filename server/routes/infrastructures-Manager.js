@@ -3,11 +3,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken, verifyInfrastructureManager, verifyInfrastructureAccess } = require('../middleware/authMiddleware');
+const { authenticateManager } = require('../middleware/authMiddleware');
 
 
 // Get infrastructures managed by the current manager (infers manager from token)
-router.get('/', authenticateToken, verifyInfrastructureManager, async (req, res) => {
+router.get('/', authenticateManager, async (req, res) => {
     try {
         const [rows] = await pool.execute(
             `SELECT i.*

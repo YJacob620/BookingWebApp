@@ -3,11 +3,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateToken, verifyAdmin, verifyInfrastructureManager, verifyInfrastructureAccess } = require('../middleware/authMiddleware');
+const { authenticateAdminOrManager, verifyInfrastructureAccess } = require('../middleware/authMiddleware');
 
 // Get all questions for an infrastructure (admin or manager of this infrastructure)
 router.get('/:infrastructureId/questions',
-    authenticateToken,
+    authenticateAdminOrManager,
     async (req, res) => {
         const { infrastructureId } = req.params;
         const userId = req.user.userId;
@@ -68,7 +68,7 @@ router.get('/:infrastructureId/questions',
 
 // Add a new question (admin or manager of this infrastructure)
 router.post('/:infrastructureId/questions',
-    authenticateToken,
+    authenticateAdminOrManager,
     async (req, res) => {
         const { infrastructureId } = req.params;
         const { question_text, question_type, is_required, options, display_order } = req.body;
@@ -128,7 +128,7 @@ router.post('/:infrastructureId/questions',
 
 // Update a question (admin or manager of this infrastructure)
 router.put('/:infrastructureId/questions/:questionId',
-    authenticateToken,
+    authenticateAdminOrManager,
     async (req, res) => {
         const { infrastructureId, questionId } = req.params;
         const { question_text, question_type, is_required, options } = req.body;
@@ -189,7 +189,7 @@ router.put('/:infrastructureId/questions/:questionId',
 
 // Delete a question (admin or manager of this infrastructure)
 router.delete('/:infrastructureId/questions/:questionId',
-    authenticateToken,
+    authenticateAdminOrManager,
     async (req, res) => {
         const { infrastructureId, questionId } = req.params;
 
@@ -230,7 +230,7 @@ router.delete('/:infrastructureId/questions/:questionId',
 
 // Update question order (admin or manager of this infrastructure)
 router.put('/:infrastructureId/questions/reorder',
-    authenticateToken,
+    authenticateAdminOrManager,
     async (req, res) => {
         const { infrastructureId } = req.params;
         const { questions } = req.body;
