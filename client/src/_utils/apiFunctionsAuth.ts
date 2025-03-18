@@ -1,7 +1,6 @@
 /* Authentication API functions to be used by the client for communicating with the server */
 
 import {
-    User,
     RegistrationFormData,
 } from './types'
 
@@ -51,22 +50,6 @@ const authApiRequest = async (endpoint: string, options: RequestInit = {}) => {
             message = error.message;
         }
         return { success: false, data: { message } };
-    }
-};
-
-/**
- * Fetches current user from local storage
- * @returns User object or null if not authenticated
- */
-export const getUserFromStorage = (): User | null => {
-    const userString = localStorage.getItem('user');
-    if (!userString) return null;
-
-    try {
-        return JSON.parse(userString) as User;
-    } catch (err) {
-        console.error('Error parsing user data:', err);
-        return null;
     }
 };
 

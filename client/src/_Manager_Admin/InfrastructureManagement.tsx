@@ -15,7 +15,7 @@ import {
     Infrastructure,
     Message,
     InfrastFormData,
-    getUserFromStorage
+    getLocalUser
 } from '@/_utils';
 import BasePageLayout from '@/components/_BasePageLayout';
 
@@ -33,7 +33,7 @@ const InfrastructureManagement: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
     useEffect(() => {
-        setIsAdmin(getUserFromStorage()?.role === "admin");
+        setIsAdmin(getLocalUser()?.role === "admin");
     }, [refreshTrigger]);  // Only depend on refreshTrigger
 
     useEffect(() => {

@@ -3,7 +3,7 @@ import * as RoutePaths from './RoutePaths';
 
 import LoginPage from './_LoginEtc/LoginPage.tsx';
 import AdminDashboard from './_Admin/AdminDashboard.tsx';
-import InfrastructureManagement from './_Admin/InfrastructureManagement.tsx';
+import InfrastructureManagement from './_Manager_Admin/InfrastructureManagement.tsx';
 import BookingManagement from './_Admin/BookingManagement.tsx';
 import BookTimeslot from './_User/UserBookTimeslot.tsx';
 import UserDashboard from './_User/UserDashboard.tsx';
@@ -16,6 +16,8 @@ import ResetPasswordPage from './_LoginEtc/ResetPasswordPage.tsx';
 import UserManagement from './_Admin/UserManagement.tsx';
 import ManagerDashboard from './_Manager/ManagerDashboard.tsx';
 import AuthenticationGuard from './components/_AuthenticationGuard.tsx';
+import EmailActionConfirmation from './_Manager/EmailActionConfirmation';
+
 
 function App() {
   return (
@@ -148,6 +150,12 @@ function App() {
             <AuthenticationGuard requiredRoles={['manager']}>
               <InfrastructureManagement />
             </AuthenticationGuard>
+          }
+        />
+        <Route
+          path={RoutePaths.EMAIL_ACTION_CONFIRMATION}
+          element={
+            <EmailActionConfirmation />
           }
         />
 

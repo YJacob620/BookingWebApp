@@ -1,3 +1,4 @@
+// server/routes/bookings-User.js
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
@@ -106,17 +107,30 @@ router.post('/:id/cancel', authenticateToken, async (req, res) => {
     }
 });
 
-// Request a booking (user) - JSON version
-router.post('/request', authenticateToken, async (req, res) => {
+// Request a booking (user). Handles filter-question answers (and file uploads)
+router.post('/request', authenticateToken, upload.any(), async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
-        const { timeslot_id, purpose } = req.body;
         const userEmail = req.user.email;
+        let timeslot_id, purpose;
+
+        // Handle both JSON and FormData requests
+        if (req.is('multipart/form-data')) {
+            // FormData request (with potential file uploads and answers)
+            timeslot_id = req.body.timeslot_id;
+            purpose = req.body.purpose || '';
+        } else {
+            // JSON request
+            ({ timeslot_id, purpose = '' } = req.body);
+        }
 
         if (!timeslot_id) {
-            return res.status(400).json({ message: 'Timeslot ID is required' });
+            return res.status(400).json({
+                message: 'Timeslot ID is required',
+                receivedBody: JSON.stringify(req.body)
+            });
         }
 
         // First, check if the timeslot exists and is available
@@ -153,176 +167,73 @@ router.post('/request', authenticateToken, async (req, res) => {
 
         const booking = bookings[0];
 
-        // Get infrastructure details
-        const [infrastructures] = await connection.execute(
-            'SELECT * FROM infrastructures WHERE id = ?',
-            [timeslot.infrastructure_id]
-        );
+        // Process answers if any (for FormData requests)
+        if (req.is('multipart/form-data')) {
+            let answersObj = {};
 
-        // Get infrastructure managers
-        const [managers] = await connection.execute(
-            `SELECT u.id, u.name, u.email, u.email_notifications
-             FROM users u
-             JOIN infrastructure_managers im ON u.id = im.user_id
-             WHERE im.infrastructure_id = ?`,
-            [timeslot.infrastructure_id]
-        );
-
-        // Generate token for email actions (if the emailService has this method)
-        let approveToken = null;
-        if (typeof emailService.generateSecureActionToken === 'function') {
-            approveToken = await emailService.generateSecureActionToken(booking, 'approve');
-        }
-
-        // Send notification email to managers
-        if (infrastructures.length > 0 && managers.length > 0 &&
-            typeof emailService.sendBookingRequestNotification === 'function') {
-            await emailService.sendBookingRequestNotification(
-                booking,
-                infrastructures[0],
-                managers,
-                approveToken
-            );
-        }
-
-        await connection.commit();
-
-        res.status(201).json({
-            message: 'Booking request submitted successfully',
-            booking_id: timeslot_id,
-            infrastructure_id: timeslot.infrastructure_id,
-            booking_date: timeslot.booking_date,
-            start_time: timeslot.start_time,
-            end_time: timeslot.end_time
-        });
-
-    } catch (err) {
-        await connection.rollback();
-        console.error('Database error:', err);
-        res.status(500).json({ message: 'Error creating booking request', error: err.message });
-    } finally {
-        connection.release();
-    }
-});
-
-// Request a booking with additional answers and file uploads (user)
-router.post('/request-with-answers', authenticateToken, upload.any(), async (req, res) => {
-    const connection = await pool.getConnection();
-    try {
-        await connection.beginTransaction();
-
-        // Extract the data from the request body
-        const timeslot_id = req.body.timeslot_id;
-        const purpose = req.body.purpose || '';
-        const userEmail = req.user.email;
-
-        // Basic validation
-        if (!timeslot_id) {
-            return res.status(400).json({
-                message: 'Timeslot ID is required',
-                receivedBody: JSON.stringify(req.body) // For debugging
-            });
-        }
-
-        // First, check if the timeslot exists and is available
-        const [timeslots] = await connection.execute(
-            `SELECT * FROM bookings 
-             WHERE id = ? 
-             AND booking_type = 'timeslot' 
-             AND status = 'available'`,
-            [timeslot_id]
-        );
-
-        if (timeslots.length === 0) {
-            return res.status(404).json({ message: 'Timeslot not found or not available' });
-        }
-
-        const timeslot = timeslots[0];
-
-        // Book the timeslot by updating its record
-        await connection.execute(
-            `UPDATE bookings
-             SET booking_type = 'booking',
-                 user_email = ?,
-                 status = 'pending',
-                 purpose = ?
-             WHERE id = ?`,
-            [userEmail, purpose, timeslot_id]
-        );
-
-        // Get the updated booking
-        const [bookings] = await connection.execute(
-            `SELECT * FROM bookings WHERE id = ?`,
-            [timeslot_id]
-        );
-
-        const booking = bookings[0];
-
-        // Process answers if any
-        let answersObj = {};
-
-        // Try to parse answers from different possible formats
-        if (req.body.answersJSON) {
-            try {
-                answersObj = JSON.parse(req.body.answersJSON);
-            } catch (e) {
-                console.error('Error parsing answersJSON:', e);
+            // Try to parse answers from different possible formats
+            if (req.body.answersJSON) {
+                try {
+                    answersObj = JSON.parse(req.body.answersJSON);
+                } catch (e) {
+                    console.error('Error parsing answersJSON:', e);
+                }
             }
-        }
 
-        // Handle individual answer fields
-        for (const key in req.body) {
-            if (key.startsWith('answer_')) {
-                const questionId = key.replace('answer_', '');
-                answersObj[questionId] = {
-                    type: 'text',
-                    value: req.body[key]
-                };
-            }
-        }
-
-        // Process files from multer
-        if (req.files && req.files.length > 0) {
-            for (const file of req.files) {
-                const fieldName = file.fieldname;
-
-                // Extract question ID from field name (format: file_123)
-                if (fieldName.startsWith('file_')) {
-                    const questionId = fieldName.replace('file_', '');
+            // Handle individual answer fields
+            for (const key in req.body) {
+                if (key.startsWith('answer_')) {
+                    const questionId = key.replace('answer_', '');
                     answersObj[questionId] = {
-                        type: 'file',
-                        filePath: file.path,
-                        originalName: file.originalname
+                        type: 'text',
+                        value: req.body[key]
                     };
+                }
+            }
+
+            // Process files from multer
+            if (req.files && req.files.length > 0) {
+                for (const file of req.files) {
+                    const fieldName = file.fieldname;
+
+                    // Extract question ID from field name (format: file_123)
+                    if (fieldName.startsWith('file_')) {
+                        const questionId = fieldName.replace('file_', '');
+                        answersObj[questionId] = {
+                            type: 'file',
+                            filePath: file.path,
+                            originalName: file.originalname
+                        };
+                    }
+                }
+            }
+
+            // Process the answers
+            for (const [questionId, answerData] of Object.entries(answersObj)) {
+                let answerText = null;
+                let documentPath = null;
+
+                if (answerData.type === 'file' && answerData.filePath) {
+                    // For files, store the path
+                    documentPath = answerData.filePath;
+                    answerText = answerData.originalName || 'Uploaded file';
+                } else if (answerData.type === 'text' && answerData.value) {
+                    // For text answers
+                    answerText = answerData.value;
+                }
+
+                // Save answer to database
+                if (answerText !== null || documentPath !== null) {
+                    await connection.execute(
+                        `INSERT INTO booking_answers 
+                         (booking_id, question_id, answer_text, document_path) 
+                         VALUES (?, ?, ?, ?)`,
+                        [timeslot_id, questionId, answerText, documentPath]
+                    );
                 }
             }
         }
 
-        // Process the answers
-        for (const [questionId, answerData] of Object.entries(answersObj)) {
-            let answerText = null;
-            let documentPath = null;
-
-            if (answerData.type === 'file' && answerData.filePath) {
-                // For files, store the path
-                documentPath = answerData.filePath;
-                answerText = answerData.originalName || 'Uploaded file';
-            } else if (answerData.type === 'text' && answerData.value) {
-                // For text answers
-                answerText = answerData.value;
-            }
-
-            // Save answer to database
-            if (answerText !== null || documentPath !== null) {
-                await connection.execute(
-                    `INSERT INTO booking_answers 
-                     (booking_id, question_id, answer_text, document_path) 
-                     VALUES (?, ?, ?, ?)`,
-                    [timeslot_id, questionId, answerText, documentPath]
-                );
-            }
-        }
-
         // Get infrastructure details
         const [infrastructures] = await connection.execute(
             'SELECT * FROM infrastructures WHERE id = ?',
@@ -338,7 +249,7 @@ router.post('/request-with-answers', authenticateToken, upload.any(), async (req
             [timeslot.infrastructure_id]
         );
 
-        // Generate token for email actions - PASS THE CONNECTION
+        // Generate token for email actions
         let approveToken = null;
         if (typeof emailService.generateSecureActionToken === 'function') {
             try {
@@ -354,18 +265,18 @@ router.post('/request-with-answers', authenticateToken, upload.any(), async (req
         // This reduces the transaction time significantly
         await connection.commit();
 
-        // Send notification email to managers - AFTER committing the transaction
+        // Send notifications to both managers and user
         if (infrastructures.length > 0 && managers.length > 0 &&
-            typeof emailService.sendBookingRequestNotification === 'function') {
+            typeof emailService.sendBookingNotifications === 'function') {
             try {
-                await emailService.sendBookingRequestNotification(
+                await emailService.sendBookingNotifications(
                     booking,
                     infrastructures[0],
                     managers,
                     approveToken
                 );
             } catch (emailError) {
-                console.error('Failed to send notification email:', emailError);
+                console.error('Failed to send notification emails:', emailError);
                 // Don't let email failures affect the API response
             }
         }
@@ -392,8 +303,7 @@ router.post('/request-with-answers', authenticateToken, upload.any(), async (req
     }
 });
 
-// Get available timeslots for an infrastructure with optional date filter (user). 
-// Can be within a specified date range.
+// Get available timeslots for an infrastructure with optional date filter (user)
 router.get('/:infrastructureId/available-timeslots', authenticateToken, async (req, res) => {
     try {
         const { infrastructureId } = req.params;

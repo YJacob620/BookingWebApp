@@ -114,6 +114,8 @@ export const fetchAllUserBookings = (): Promise<BookingEntry[]> => {
 
 /**
  * Request a booking (user)
+ * @param data - Object containing timeslot_id and purpose
+ * @returns Promise with booking response
  */
 export const bookTimeslot = (data: { timeslot_id: number, purpose: string }) => {
   return apiRequest('/bookings-user/request', {
@@ -139,7 +141,7 @@ export const bookTimeslotWithAnswers = async (formData: FormData) => {
   // Do NOT set Content-Type for FormData
   // The browser will set it automatically with the correct boundary
 
-  const response = await fetch(`${API_BASE_URL}/bookings-user/request-with-answers`, {
+  const response = await fetch(`${API_BASE_URL}/bookings-user/request`, {
     method: 'POST',
     headers,
     body: formData

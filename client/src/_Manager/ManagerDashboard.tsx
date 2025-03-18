@@ -45,7 +45,7 @@ const ManagerDashboard: React.FC = () => {
                 <Link to={MANAGER_INFRASTRUCTURE_MANAGEMENT}>
                     <Button className="bg-blue-600 hover:bg-blue-700">
                         <Settings className="mr-2 h-4 w-4" />
-                        Manage Infrastructures & Questions
+                        Manage Infrastructures & Filter-Questions
                     </Button>
                 </Link>
             </div>

@@ -1,4 +1,3 @@
-// server/routes/emailActions.js
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
@@ -39,6 +38,20 @@ router.get('/:action/:token', async (req, res) => {
         }
 
         const booking = bookings[0];
+
+        // Check if booking status is still pending (hasn't been already processed)
+        if (booking.status !== 'pending') {
+            // Mark token as used since it can't be used anymore
+            await connection.execute(
+                'UPDATE email_action_tokens SET used = 1, used_at = NOW() WHERE id = ?',
+                [tokenRecord.id]
+            );
+
+            await connection.commit();
+
+            // Redirect to a page indicating status already changed
+            return res.redirect(`${process.env.FRONTEND_URL}/email-action-confirmation?action=${action}&status=already-processed&current=${booking.status}`);
+        }
 
         // Process the action
         if (action === 'approve') {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader } from "lucide-react";
 
 // Import components
-import InfrastructureSelector from './InfrastructureSelector';
+import InfrastructureSelector from '../_Manager_Admin/InfrastructureSelector';
 import BookingManagementViews from './BookingManagementViews';
 import BookingManagementTabs from './BookingManagementTabs';
 import BasePageLayout from '@/components/_BasePageLayout';

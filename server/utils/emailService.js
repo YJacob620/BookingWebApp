@@ -98,11 +98,38 @@ const verifyEmailConfig = async () => {
     }
 };
 
-// Send booking request notification to infrastructure managers
-const sendBookingRequestNotification = async (booking, infrastructure, managers, secureToken) => {
-    const approveUrl = `${process.env.FRONTEND_URL}/api/approve/${secureToken}`;
-    const rejectUrl = `${process.env.FRONTEND_URL}/api/reject/${secureToken}`;
+/**
+ * Main wrapper function that handles all booking notifications
+ * @param {Object} booking - Booking details
+ * @param {Object} infrastructure - Infrastructure details
+ * @param {Array} managers - List of infrastructure managers
+ * @param {string} secureToken - Token for action links
+ * @returns {Promise} - Result of sending notifications
+ */
+const sendBookingNotifications = async (booking, infrastructure, managers, secureToken) => {
+    try {
+        // 1. Send notifications to managers
+        await sendBookingRequestNotificationToManagers(booking, infrastructure, managers, secureToken);
 
+        // 2. Send confirmation to the user
+        await sendBookingRequestConfirmationToUser(booking, infrastructure);
+
+        return true;
+    } catch (error) {
+        console.error('Error sending booking notifications:', error);
+        return false;
+    }
+};
+
+/**
+ * Send booking request notification to infrastructure managers
+ * @param {Object} booking - Booking details
+ * @param {Object} infrastructure - Infrastructure details
+ * @param {Array} managers - List of infrastructure managers
+ * @param {string} secureToken - Token for action links
+ * @returns {Promise} - Nodemailer response
+ */
+const sendBookingRequestNotificationToManagers = async (booking, infrastructure, managers, secureToken) => {
     // Get user details
     const [users] = await pool.execute('SELECT name, email FROM users WHERE email = ?', [booking.user_email]);
     const user = users[0] || { name: 'User', email: booking.user_email };
@@ -114,44 +141,95 @@ const sendBookingRequestNotification = async (booking, infrastructure, managers,
         return;
     }
 
+    // The correct URLs for the action routes
+    const approveUrl = `${process.env.FRONTEND_URL}/api/email-actions/approve/${secureToken}`;
+    const rejectUrl = `${process.env.FRONTEND_URL}/api/email-actions/reject/${secureToken}`;
+
+    // Send email to each manager individually
+    return Promise.all(activeManagers.map(manager => {
+        const mailOptions = {
+            from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+            to: manager.email,
+            subject: `New Booking Request for ${infrastructure.name}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">New Booking Request</h2>
+                    <p>Hello ${manager.name || 'Infrastructure Manager'},</p>
+                    <p>A new booking request has been submitted for <strong>${infrastructure.name}</strong>.</p>
+                    
+                    <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                        <p><strong>User:</strong> ${user.name} (${user.email})</p>
+                        <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
+                        <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
+                        <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
+                    </div>
+                    
+                    ${secureToken ? `
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${approveUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; font-weight: bold;">Approve Request</a>
+                        <a href="${rejectUrl}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reject Request</a>
+                    </div>
+                    ` : ''}
+                    
+                    <p>You can also log in to the system to manage this request and view all the details.</p>
+                    <p>Best regards,<br>Scientific Infrastructure Team</p>
+                    
+                    <p style="font-size: 12px; color: #666; margin-top: 30px;">
+                        If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/unsubscribe/${manager.email}">unsubscribe</a>.
+                    </p>
+                </div>
+            `
+        };
+
+        return transporter.sendMail(mailOptions);
+    }));
+};
+
+/**
+ * Send booking request confirmation to the user
+ * @param {Object} booking - Booking details
+ * @param {Object} infrastructure - Infrastructure details
+ * @returns {Promise} - Nodemailer response
+ */
+const sendBookingRequestConfirmationToUser = async (booking, infrastructure) => {
+    // Get user details
+    const [users] = await pool.execute('SELECT name, email, email_notifications FROM users WHERE email = ?', [booking.user_email]);
+    const user = users[0];
+
+    // Check if user exists and has email notifications enabled
+    if (!user || !user.email_notifications) {
+        console.log('User not found or has opted out of email notifications');
+        return;
+    }
+
     const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
-        to: activeManagers.map(m => m.email).join(','),
-        subject: `New Booking Request for ${infrastructure.name}`,
+        to: user.email,
+        subject: `Booking Request Received for ${infrastructure.name}`,
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">New Booking Request</h2>
-                <p>Hello,</p>
-                <p>A new booking request has been submitted for <strong>${infrastructure.name}</strong>.</p>
+                <h2 style="color: #333;">Booking Request Received</h2>
+                <p>Hello ${user.name},</p>
+                <p>We have received your booking request for <strong>${infrastructure.name}</strong>.</p>
                 
                 <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-                    <p><strong>User:</strong> ${user.name} (${user.email})</p>
                     <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
                     <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
                     <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
-                    <!-- Additional question answers would be included here -->
+                    <p><strong>Status:</strong> <span style="color: #FF9800;">Pending</span></p>
                 </div>
                 
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${approveUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; font-weight: bold;">Approve Request</a>
-                    <a href="${rejectUrl}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reject Request</a>
-                </div>
-                
-                <p>You can also log in to the system to manage this request and view all the details.</p>
+                <p>An infrastructure manager will review your request shortly. You will receive another email when your request is approved or rejected.</p>
                 <p>Best regards,<br>Scientific Infrastructure Team</p>
                 
                 <p style="font-size: 12px; color: #666; margin-top: 30px;">
-                    If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/unsubscribe/${manager.email}">unsubscribe</a>.
+                    If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/unsubscribe/${user.email}">unsubscribe</a>.
                 </p>
             </div>
         `
     };
 
-    return Promise.all(activeManagers.map(manager => {
-        const customMailOptions = { ...mailOptions };
-        customMailOptions.to = manager.email;
-        return transporter.sendMail(customMailOptions);
-    }));
+    return transporter.sendMail(mailOptions);
 };
 
 // Send booking status update notification to user with calendar invite
@@ -302,7 +380,10 @@ module.exports = {
     sendVerificationEmail,
     sendPasswordResetEmail,
     verifyEmailConfig,
-    sendBookingRequestNotification,
+    sendBookingRequestNotification: sendBookingRequestNotificationToManagers, // For backward compatibility
+    sendBookingNotifications, // New wrapper function
+    sendBookingRequestNotificationToManagers,
+    sendBookingRequestConfirmationToUser,
     sendBookingStatusUpdate,
     generateSecureActionToken
 };

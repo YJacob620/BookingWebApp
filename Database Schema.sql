@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS `bookings` (
         'expired',
         'canceled'
     ) NOT NULL DEFAULT 'available',
+    `last_status_change` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `purpose` text,
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -58,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `bookings` (
         REFERENCES infrastructures(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS infrastructure_managers ( 
+CREATE TABLE IF NOT EXISTS `infrastructure_managers` ( 
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     infrastructure_id INT NOT NULL,
