@@ -22,15 +22,15 @@ const authenticateToken = (req, res, next) => {
 // Middleware to verify admin role
 const verifyAdmin = (req, res, next) => {
     if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Admin access required' });
+        return res.status(403).json();
     }
     next();
 };
 
 // Middleware to verify infrastructure manager role
 const verifyInfrastructureManager = async (req, res, next) => {
-    if (req.user.role !== 'manager' && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Infrastructure manager access required' });
+    if (req.user.role !== 'manager') {
+        return res.status(403).json();
     }
     next();
 };

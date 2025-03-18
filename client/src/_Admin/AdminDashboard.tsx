@@ -1,26 +1,27 @@
 import { Link } from 'react-router-dom';
 import { Card, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar, Database, Users } from "lucide-react";
+import * as RoutePaths from '@/RoutePaths';
 
 import BasePageLayout from '@/components/_BasePageLayout';
 
 const AdminDashboard = () => {
     const menuItems = [
         {
-            title: 'User Management',
-            link: '/user-management',
+            title: 'Users',
+            link: RoutePaths.USER_MANAGEMENT,
             description: 'Manage users, assign roles, and control infrastructure access',
             icon: <Users className="h-6 w-6" />
         },
         {
-            title: 'Infrastructures Management',
-            link: '/infrastructure-management',
-            description: 'Create or edit scientific infrastructures',
+            title: 'Infrastructures',
+            link: RoutePaths.INFRASTRUCTURE_MANAGEMENT,
+            description: 'Manage scientific infrastructures',
             icon: <Database className="h-6 w-6" />
         },
         {
             title: 'Bookings & Timeslots',
-            link: '/booking-management',
+            link: RoutePaths.BOOKING_MANAGEMENT,
             description: 'Manage bookings and available time slots',
             icon: <Calendar className="h-6 w-6" />
         }
