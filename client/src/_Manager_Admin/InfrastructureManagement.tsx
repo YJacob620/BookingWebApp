@@ -9,7 +9,6 @@ import InfrastructureQuestionsManager from './InfrastructureManagementQuestions'
 
 import {
     fetchInfrastructures,
-    fetchMyInfrastructures,
     createOrUpdateInfrastructure,
     toggleInfrastructureStatus,
     Infrastructure,
@@ -47,10 +46,7 @@ const InfrastructureManagement: React.FC = () => {
             setIsLoading(true);
 
             // Use the correct API call based on role
-            const data = isAdmin
-                ? await fetchInfrastructures()  // Admin endpoint
-                : await fetchMyInfrastructures(); // Manager endpoint
-
+            const data = await fetchInfrastructures();
             setInfrastructures(data);
         } catch (error) {
             console.error('Error fetching infrastructures:', error);
@@ -199,7 +195,6 @@ const InfrastructureManagement: React.FC = () => {
                         onEdit={handleEdit}
                         onToggleStatus={toggleStatus}
                         onManageQuestions={handleManageQuestions}
-                        isAdmin={isAdmin}
                     />
                 </TabsContent>
 

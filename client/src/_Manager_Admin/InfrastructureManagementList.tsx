@@ -17,7 +17,7 @@ import {
     HelpCircle
 } from "lucide-react";
 
-import { Infrastructure } from '@/_utils';
+import { getLocalUser, Infrastructure } from '@/_utils';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 
 interface SortConfig {
@@ -31,7 +31,6 @@ interface InfrastructureListProps {
     onEdit: (infrastructure: Infrastructure) => void;
     onToggleStatus: (id: number, currentStatus: boolean) => Promise<void>;
     onManageQuestions: (infrastructure: Infrastructure) => void;
-    isAdmin: boolean;
 }
 
 const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
@@ -40,10 +39,10 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     onEdit,
     onToggleStatus,
     onManageQuestions,
-    isAdmin
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
+    const isAdmin: boolean = (getLocalUser()?.role === "admin");
 
     const handleSort = (key: keyof Infrastructure) => {
         setSortConfig(prev => ({

@@ -1,11 +1,13 @@
 /* General-purpose API functions to be used by the client for communicating with the server */
 
+import { getLocalUser } from '@/_utils';
 import {
   InfrastFormData,
   BatchCreationPayload,
   FilterQuestionData,
   BookingEntry,
-  Infrastructure
+  Infrastructure,
+  User
 } from './types';
 
 /**
@@ -85,10 +87,25 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
 };
 
 /**
- * Fetch all infrastructures (admin only)
+ * Fetch all infrastructures (admin or infrastructure-manager only)
  */
 export const fetchInfrastructures = (): Promise<Infrastructure[]> => {
-  return apiRequest('/infrastructures-admin');
+  const user: User = getLocalUser();
+  if (user?.role === "admin") {
+    return apiRequest('/infrastructures-admin');
+  }
+  if (user?.role === "manager") {
+    return apiRequest('/infrastructures-manager');
+  }
+  console.error("Couldn't fetch infrastructures");
+  return Promise.resolve([]);
+};
+
+/**
+ * For managers to fetch their own assigned infrastructures
+ */
+export const fetchMyInfrastructures = (): Promise<Infrastructure[]> => {
+  return apiRequest('/manager/my-infrastructures');
 };
 
 /**
@@ -168,7 +185,6 @@ export const bookTimeslotWithAnswers = async (formData: FormData) => {
         errorMessage = response.statusText || errorMessage;
       }
     }
-
     throw new Error(errorMessage);
   }
 
@@ -334,13 +350,6 @@ export const toggleUserBlacklist = (userId: number, blacklist: boolean) => {
     method: 'PUT',
     body: JSON.stringify({ blacklist }),
   });
-};
-
-/**
- * For managers to fetch their own assigned infrastructures
- */
-export const fetchMyInfrastructures = (): Promise<Infrastructure[]> => {
-  return apiRequest('/manager/my-infrastructures');
 };
 
 /**

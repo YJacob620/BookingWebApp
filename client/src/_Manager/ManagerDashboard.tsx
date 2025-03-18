@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Database, Settings, CalendarRange } from "lucide-react";
 
-import { fetchMyInfrastructures, Infrastructure, Message } from '@/_utils';
+import { fetchInfrastructures, Infrastructure, Message } from '@/_utils';
 import { MANAGER_INFRASTRUCTURE_MANAGEMENT, getManagerBookingsPath } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import BasePageLayout from '@/components/_BasePageLayout';
@@ -21,7 +21,7 @@ const ManagerDashboard: React.FC = () => {
 
     const getInfrastructures = async () => {
         try {
-            const data = await fetchMyInfrastructures();
+            const data = await fetchInfrastructures();
             setInfrastructures(data);
         } catch (error) {
             console.error('Error fetching infrastructures:', error);

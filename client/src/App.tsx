@@ -4,7 +4,7 @@ import * as RoutePaths from './RoutePaths';
 import LoginPage from './_LoginEtc/LoginPage.tsx';
 import AdminDashboard from './_Admin/AdminDashboard.tsx';
 import InfrastructureManagement from './_Manager_Admin/InfrastructureManagement.tsx';
-import BookingManagement from './_Admin/BookingManagement.tsx';
+import BookingManagement from './_Manager_Admin/BookingManagement.tsx';
 import BookTimeslot from './_User/UserBookTimeslot.tsx';
 import UserDashboard from './_User/UserDashboard.tsx';
 import BookingHistory from './_User/UserBookingHistory.tsx';

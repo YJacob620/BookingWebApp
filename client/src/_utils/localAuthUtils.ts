@@ -66,15 +66,14 @@ export const isLocalUserDataValid = (): boolean => {
  * 
  * @returns The user object or null if not logged in or invalid data
  */
-export const getLocalUser = (): User | null => {
-  try {
-    const userData = localStorage.getItem('user');
-    if (!userData) return null;
+export const getLocalUser = (): User => {
+  const userData = localStorage.getItem('user');
+  if (!userData) throw new Error("No user is logged in");
 
+  try {
     return JSON.parse(userData) as User;
   } catch (e) {
-    console.error('Error parsing user data:', e);
-    return null;
+    throw new Error(`Error parsing user data: ${e}`);
   }
 };
 
