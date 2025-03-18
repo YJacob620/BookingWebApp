@@ -57,7 +57,7 @@ app.use('/api/infrastructures/admin', infrastructuresRoutes_Admin);
 app.use('/api/infrastructures/manager-admin', infrastructuresRoutes_Manager_Admin);
 app.use('/api/infrastructures/manager', infrastructuresRoutes_Manager);
 app.use('/api/infrastructures/user', infrastructuresRoutes_User);
-app.use('/api/bookings/admin', bookingRoutes_Manager_Admin);
+app.use('/api/bookings/manager-admin', bookingRoutes_Manager_Admin);
 app.use('/api/bookings/user', bookingRoutes_User);
 app.use('/api/user_management', userManagementRoutes_Admin);
 app.use('/api/user', preferencesRoutes_User_Manager);

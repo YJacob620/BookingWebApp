@@ -210,7 +210,7 @@ export const userCancelBooking = (id: number) => {
  * Approve a booking (admin)
 */
 export const approveBooking = (bookingId: number) => {
-  return apiRequest(`/bookings/admin/${bookingId}/approve`, {
+  return apiRequest(`/bookings/manager-admin/${bookingId}/approve`, {
     method: 'PUT'
   });
 };
@@ -219,7 +219,7 @@ export const approveBooking = (bookingId: number) => {
  * Reject or cancel a booking (admin)
 */
 export const rejectOrCancelBooking = (bookingId: number, newStatus: 'rejected' | 'canceled') => {
-  return apiRequest(`/bookings/admin/${bookingId}/reject-or-cancel`, {
+  return apiRequest(`/bookings/manager-admin/${bookingId}/reject-or-cancel`, {
     method: 'PUT',
     body: JSON.stringify({ status: newStatus }),
   });
@@ -229,7 +229,7 @@ export const rejectOrCancelBooking = (bookingId: number, newStatus: 'rejected' |
  * Force update past bookings statuses (admin only)
  */
 export const forceUpdatePastBookings = () => {
-  return apiRequest('/bookings/admin/force-bookings-status-update', {
+  return apiRequest('/bookings/manager-admin/force-bookings-status-update', {
     method: 'POST',
   });
 };
@@ -250,12 +250,7 @@ export const fetchAllBookingEntries = (
     limit?: number
   }
 ): Promise<BookingEntry[]> => {
-  const user: User = getLocalUser();
-
-  // Determine the correct endpoint based on user role
-  let url = user?.role === 'admin'
-    ? `/bookings/admin/${infrastructureId}/all-entries`
-    : `/infrastructures/manager/${infrastructureId}/bookings`;
+  let url = `/bookings/manager-admin/${infrastructureId}/all-entries`;
 
   if (params) {
     const queryParams = new URLSearchParams();
@@ -316,7 +311,7 @@ export const fetchInfrastAvailTimeslots =
  * Create timeslots (admin only)
  */
 export const createTimeslots = (data: BatchCreationPayload) => {
-  return apiRequest('/bookings/admin/create-timeslots', {
+  return apiRequest('/bookings/manager-admin/create-timeslots', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -326,7 +321,7 @@ export const createTimeslots = (data: BatchCreationPayload) => {
  * Delete/cancel timeslots (admin only)
  */
 export const cancelTimeslots = (ids: number[]) => {
-  return apiRequest('/bookings/admin/timeslots', {
+  return apiRequest('/bookings/manager-admin/timeslots', {
     method: 'DELETE',
     body: JSON.stringify({ ids }),
   });
