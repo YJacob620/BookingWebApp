@@ -14,7 +14,11 @@ import {
   Check,
   X,
   CalendarX,
-  ArrowUpDown
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from "lucide-react";
 import {
   Select,
@@ -35,6 +39,7 @@ import {
   rejectOrCancelBooking,
   Infrastructure,
   BookingEntry,
+  SortConfig
 } from '@/_utils';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 
@@ -44,11 +49,6 @@ interface BookingListProps {
   onStatusChange: (message: string) => void;
   onError: (message: string) => void;
   onDataChange: () => void;
-}
-
-interface SortConfig {
-  key: keyof BookingEntry | null;
-  direction: 'asc' | 'desc';
 }
 
 const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
@@ -65,29 +65,67 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'booking_date', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(5);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   // Load bookings when infrastructure changes or after actions
   useEffect(() => {
     if (selectedInfrastructure) {
-      setBookings(items)
+      setBookings(items);
       setIsLoading(false);
+      // Reset to first page when data changes
+      setCurrentPage(1);
     } else {
       setIsLoading(true);
     }
-  }, [selectedInfrastructure]);
+  }, [selectedInfrastructure, items]);
 
   // Apply filters when bookings, status filter, date filter, or search query changes
   useEffect(() => {
     applyFilters();
+    // Reset to first page when filters change
+    setCurrentPage(1);
   }, [bookings, statusFilter, dateFilter, searchQuery]);
+
+  // Calculate total pages when filtered data or rows per page changes
+  useEffect(() => {
+    setTotalPages(Math.max(1, Math.ceil(filteredBookings.length / rowsPerPage)));
+    // Ensure current page is valid
+    if (currentPage > Math.ceil(filteredBookings.length / rowsPerPage) && filteredBookings.length > 0) {
+      setCurrentPage(Math.ceil(filteredBookings.length / rowsPerPage));
+    }
+  }, [filteredBookings, rowsPerPage]);
 
   // Handle sorting
   const handleSort = (key: keyof BookingEntry) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
+    setSortConfig(prev => {
+      // If clicking on the same column that's already sorted
+      if (prev.key === key) {
+        return {
+          key,
+          direction: prev.direction === 'asc' ? 'desc' : 'asc'
+        };
+      }
+      // If clicking on a different column
+      else {
+        // For booking_date, default to 'desc' (newest first)
+        if (key === 'booking_date') {
+          return {
+            key,
+            direction: 'desc'
+          };
+        }
+        // For other columns, default to 'asc'
+        return {
+          key,
+          direction: 'asc'
+        };
+      }
+    });
   };
 
   const sortedData = useMemo(() => {
@@ -100,8 +138,13 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           const dateA = new Date(a.booking_date);
           const dateB = new Date(b.booking_date);
 
+          // First compare dates
+          const dateCompare = sortConfig.direction === 'desc'
+            ? dateB.getTime() - dateA.getTime()
+            : dateA.getTime() - dateB.getTime();
+
           // If dates are equal, sort by start_time
-          if (dateA.getTime() === dateB.getTime()) {
+          if (dateCompare === 0) {
             const timeA = a.start_time;
             const timeB = b.start_time;
             return sortConfig.direction === 'asc'
@@ -109,13 +152,11 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
               : timeB.localeCompare(timeA);
           }
 
-          return sortConfig.direction === 'desc'
-            ? dateA.getTime() - dateB.getTime()
-            : dateB.getTime() - dateA.getTime();
+          return dateCompare;
         }
 
         // Sort by user
-        if (sortConfig.key === 'user_email') {
+        else if (sortConfig.key === 'user_email') {
           const valA = a[sortConfig.key] || '';
           const valB = b[sortConfig.key] || '';
 
@@ -123,10 +164,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
             ? valA.localeCompare(valB)
             : valB.localeCompare(valA);
         }
-
-        // Default sorting for other columns
-        // Type guard to ensure key is not null before accessing
-        if (!sortConfig.key) return 0;
 
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
@@ -143,6 +180,12 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
     return sorted;
   }, [filteredBookings, sortConfig]);
+
+  // Get current page data
+  const currentData = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    return sortedData.slice(startIndex, startIndex + rowsPerPage);
+  }, [sortedData, currentPage, rowsPerPage]);
 
   const applyFilters = () => {
     let filtered = [...bookings];
@@ -186,6 +229,17 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     }
 
     setFilteredBookings(filtered);
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () => setCurrentPage(prev => Math.max(1, prev - 1));
+  const goToNextPage = () => setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
+
+  const handleRowsPerPageChange = (value: string) => {
+    setRowsPerPage(Number(value));
+    setCurrentPage(1); // Reset to first page when changing rows per page
   };
 
   const handleApproveBooking = async (bookingId: number) => {
@@ -300,122 +354,189 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       {isLoading ? (
         <div className="text-center py-10">Loading bookings...</div>
       ) : (
-        <div className="table-wrapper">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-gray-700">
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleSort('user_email')}
-                  >
-                    User
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleSort('booking_date')}
-                  >
-                    Date
-                    <ArrowUpDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Purpose</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedData.length > 0 ? (
-                sortedData.map((booking) => (
-                  <TableRow
-                    key={booking.id}
-                    className="border-gray-700 def-hover"
-                  >
-                    <TableCell>
-                      <div className="font-medium">{booking.user_email}</div>
-                      {booking.user_role && (
-                        <div className="text-xs text-gray-400">
-                          {booking.user_role.charAt(0).toUpperCase() + booking.user_role.slice(1)}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {formatDate(booking.booking_date)}
-                    </TableCell>
-                    <TableCell className="text-center whitespace-nowrap">
-                      {formatTimeString(booking.start_time)} - {formatTimeString(booking.end_time)}
-                    </TableCell>
-                    <TruncatedTextCell
-                      text={booking.purpose}
-                      maxLength={30}
-                      cellClassName="text-center"
-                    />
-                    <TableCell className="text-center">
-                      {/* Use shared utility for status color */}
-                      <Badge className={getStatusColor(booking.status)}>
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {(() => {
-                        switch (booking.status) {
-                          case 'pending':
-                            return (
-                              <div className="flex justify-center space-x-2">
+        <div className="space-y-4">
+          <div className="table-wrapper">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-gray-700">
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('user_email')}
+                    >
+                      User
+                      <ArrowUpDown className="ml-1 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('booking_date')}
+                    >
+                      Date
+                      <ArrowUpDown className="ml-1 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Purpose</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {currentData.length > 0 ? (
+                  currentData.map((booking) => (
+                    <TableRow
+                      key={booking.id}
+                      className="border-gray-700 def-hover"
+                    >
+                      <TableCell>
+                        <div className="font-medium">{booking.user_email}</div>
+                        {booking.user_role && (
+                          <div className="text-xs text-gray-400">
+                            {booking.user_role.charAt(0).toUpperCase() + booking.user_role.slice(1)}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {formatDate(booking.booking_date)}
+                      </TableCell>
+                      <TableCell className="text-center whitespace-nowrap">
+                        {formatTimeString(booking.start_time)} - {formatTimeString(booking.end_time)}
+                      </TableCell>
+                      <TruncatedTextCell
+                        text={booking.purpose}
+                        maxLength={30}
+                        cellClassName="text-center"
+                      />
+                      <TableCell className="text-center">
+                        {/* Use shared utility for status color */}
+                        <Badge className={getStatusColor(booking.status)}>
+                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {(() => {
+                          switch (booking.status) {
+                            case 'pending':
+                              return (
+                                <div className="flex justify-center space-x-2">
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    className="bg-green-700"
+                                    onClick={() => handleApproveBooking(booking.id)}
+                                  >
+                                    <Check />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="bg-red-600"
+                                    onClick={() => handleRejectBooking(booking.id)}
+                                  >
+                                    <X />
+                                    Reject
+                                  </Button>
+                                </div>
+                              );
+                            case 'approved':
+                              return (
                                 <Button
                                   size="sm"
-                                  variant="default"
-                                  className="bg-green-700"
-                                  onClick={() => handleApproveBooking(booking.id)}
+                                  className="discard"
+                                  onClick={() => handleCancelBooking(booking.id)}
                                 >
-                                  <Check />
-                                  Approve
+                                  <CalendarX />
+                                  Cancel
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  className="bg-red-600"
-                                  onClick={() => handleRejectBooking(booking.id)}
-                                >
-                                  <X />
-                                  Reject
-                                </Button>
-                              </div>
-                            );
-                          case 'approved':
-                            return (
-                              <Button
-                                size="sm"
-                                className="discard"
-                                onClick={() => handleCancelBooking(booking.id)}
-                              >
-                                <CalendarX />
-                                Cancel
-                              </Button>
-                            );
-                          default:
-                            return null;
-                        }
-                      })()}
+                              );
+                            default:
+                              return null;
+                          }
+                        })()}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      <div className="text-gray-400">
+                        {bookings.length > 0
+                          ? 'No bookings match your current filters.'
+                          : 'No bookings exist for this infrastructure.'}
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    <div className="text-gray-400">
-                      {bookings.length > 0
-                        ? 'No bookings match your current filters.'
-                        : 'No bookings exist for this infrastructure.'}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination Controls */}
+          {filteredBookings.length > 0 && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="rows-per-page">Rows per page:</Label>
+                <Select
+                  value={rowsPerPage.toString()}
+                  onValueChange={handleRowsPerPageChange}
+                >
+                  <SelectTrigger id="rows-per-page" className="w-[80px]">
+                    <SelectValue placeholder={rowsPerPage.toString()} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[5, 10, 25, 50].map(num => (
+                      <SelectItem key={num} value={num.toString()}>
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-gray-400">
+                  {`${(currentPage - 1) * rowsPerPage + 1}-${Math.min(currentPage * rowsPerPage, filteredBookings.length)} of ${filteredBookings.length}`}
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={goToFirstPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={goToLastPage}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

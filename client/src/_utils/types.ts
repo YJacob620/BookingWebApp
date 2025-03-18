@@ -71,7 +71,7 @@ export interface Message {
 }
 
 export interface SortConfig<T> {
-  key: keyof T | null;
+  key: keyof T;
   direction: 'asc' | 'desc';
 }
 

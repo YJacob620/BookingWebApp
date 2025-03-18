@@ -21,7 +21,8 @@ import {
   getStatusColor,
   calculateDuration,
   formatStatus,
-  BookingEntry
+  BookingEntry,
+  SortConfig
 } from '@/_utils';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 
@@ -29,16 +30,11 @@ interface BookingsListViewProps {
   items: BookingEntry[];
 }
 
-interface SortConfig {
-  key: keyof BookingEntry | null;
-  direction: 'asc' | 'desc';
-}
-
 const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
   items
 }) => {
   // Set default sorting to date in descending order
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'booking_date', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
 
   // Handle sorting
   const handleSort = (key: keyof BookingEntry) => {
