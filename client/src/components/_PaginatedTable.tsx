@@ -20,6 +20,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ArrowUpDown,
 } from "lucide-react";
 import { SortConfig } from '@/_utils';
 
@@ -176,31 +177,45 @@ const PaginatedTable = <T extends object>({
   // Calculate range display text for pagination
   const startItem = dataCount === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
   const endItem = Math.min(currentPage * rowsPerPage, dataCount);
-
   return (
     <div className="space-y-4">
       <div className="table-wrapper">
         <Table className={tableClassName}>
           <TableHeader>
             <TableRow className="border-gray-700">
-              {columns.map((column, index) => (
-                <TableHead
-                  key={`${column.key}-${index}`}
-                  className={column.className}
-                >
-                  {column.sortable !== false ? (
+              {columns.map((column, index) => {
+                // Determine if this column is sortable
+                const isSortable = column.sortable === true;
+
+                // Create the header content
+                let headerContent = column.header;
+
+                // If the header is a simple string and the column is sortable,
+                // wrap it in a button with the sort indicator
+                if (isSortable && typeof column.header === 'string') {
+                  headerContent = (
                     <Button
                       variant="ghost"
                       onClick={() => handleSort(column.key)}
                       className="font-semibold h-8 px-2 py-1"
                     >
                       {column.header}
+                      <ArrowUpDown className="ml-1 h-4 w-4" />
                     </Button>
-                  ) : (
-                    column.header
-                  )}
-                </TableHead>
-              ))}
+                  );
+                }
+
+                return (
+                  <TableHead
+                    key={`${column.key}-${index}`}
+                    className={column.className}
+                    onClick={isSortable && typeof column.header !== 'string' ? () => handleSort(column.key) : undefined}
+                    style={isSortable ? { cursor: 'pointer' } : undefined}
+                  >
+                    {headerContent}
+                  </TableHead>
+                );
+              })}
             </TableRow>
           </TableHeader>
           <TableBody>
