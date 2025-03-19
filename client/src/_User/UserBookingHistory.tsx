@@ -1,17 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 // Import the integrated PaginatedTable component
 import PaginatedTable from '@/components/_PaginatedTable';
@@ -23,13 +16,13 @@ import {
   formatTimeString,
   isWithin24Hours,
   getStatusColor,
-  getBookingStatusOptions,
   fetchUserBookings,
   userCancelBooking,
-  getDateFilterOptions,
   BookingEntry,
   Message,
 } from '@/_utils';
+import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
+import MultiSelectFilter from '@/components/MultiSelectFilter';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 import BasePageLayout from '@/components/_BasePageLayout';
 
@@ -40,18 +33,26 @@ const BookingHistory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<Message | null>(null);
 
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  // Multi-select filters instead of single dropdown values
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [dateFilter, setDateFilter] = useState<string>('all');
+
+  // Generate status filter options dynamically from booking statuses
+  const statusFilterOptions = useMemo(() => {
+    // Get unique statuses from bookings
+    const statuses = [...new Set(bookings.map(booking => booking.status))];
+    return createStatusFilterOptions(statuses);
+  }, [bookings]);
 
   useEffect(() => {
     fetchBookings();
   }, [navigate]);
 
-  // Apply filters when bookings, status filter, or search query changes
+  // Apply filters when bookings or filters change
   useEffect(() => {
     applyFilters();
-  }, [bookings, statusFilter, searchQuery, dateFilter]);
+  }, [bookings, selectedStatuses, selectedDateFilters, searchQuery]);
 
   const fetchBookings = async () => {
     try {
@@ -74,34 +75,11 @@ const BookingHistory = () => {
   const applyFilters = () => {
     let filtered = [...bookings];
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(booking => booking.status === statusFilter);
-    }
+    // Apply status filters
+    filtered = applyStatusFilters(filtered, selectedStatuses);
 
-    // Apply date filter
-    const now = new Date();
-    const startOfToday = new Date(now);
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const filterBookings = (bookings: typeof filtered, dateFilter: string) => {
-      return bookings.filter(({ booking_date }) => {
-        const bookingDate = new Date(booking_date);
-
-        switch (dateFilter) {
-          case 'today':
-            return bookingDate.toISOString().split('T')[0] === now.toISOString().split('T')[0]; // Exact match
-          case 'upcoming':
-            return bookingDate >= startOfToday; // Include today and future dates
-          case 'past':
-            return bookingDate < startOfToday; // Only past dates
-          default:
-            return true; // No filtering applied
-        }
-      });
-    };
-
-    filtered = filterBookings(filtered, dateFilter);
+    // Apply date filters
+    filtered = applyDateFilters(filtered, selectedDateFilters);
 
     // Apply search query
     if (searchQuery) {
@@ -112,6 +90,7 @@ const BookingHistory = () => {
         booking.purpose?.toLowerCase().includes(query)
       );
     }
+
     setFilteredBookings(filtered);
   };
 
@@ -255,12 +234,14 @@ const BookingHistory = () => {
       pageTitle="Booking History & Management"
       showDashboardButton
       alertMessage={message}
+      className={"w-250"}
     >
       {/* Filters */}
-      <Card className="card1 min-w-200">
+      <Card className="card1">
         <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4 -mb-2">
-            <div className="relative md:flex-1">
+          <div className="flex flex-col gap-4 -mb-2">
+            {/* Search input */}
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search infrastructure, location, or purpose..."
@@ -270,37 +251,27 @@ const BookingHistory = () => {
               />
             </div>
 
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger id="status-filter" className="md:w-40">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                {getBookingStatusOptions().map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Filter controls in a responsive grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Status filter using MultiSelectFilter */}
+              <MultiSelectFilter
+                label="Status"
+                options={statusFilterOptions}
+                selectedValues={selectedStatuses}
+                onSelectionChange={setSelectedStatuses}
+                variant="badge"
+                placeholder="All Statuses"
+              />
 
-            <Select
-              value={dateFilter}
-              onValueChange={setDateFilter}
-            >
-              <SelectTrigger id="date-filter" className="md:w-40">
-                <SelectValue placeholder="All Dates" />
-              </SelectTrigger>
-              <SelectContent>
-                {getDateFilterOptions().map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {/* Date filter using MultiSelectFilter */}
+              <MultiSelectFilter
+                label="Date"
+                options={DATE_FILTER_OPTIONS}
+                selectedValues={selectedDateFilters}
+                onSelectionChange={setSelectedDateFilters}
+                placeholder="All Dates"
+              />
+            </div>
           </div>
         </CardContent>
 

@@ -11,27 +11,20 @@ import {
   CalendarX,
   ArrowUpDown,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 import {
   formatDate,
   formatTimeString,
   getStatusColor,
-  getBookingStatusOptions,
-  getDateFilterOptions,
   approveBooking,
   rejectOrCancelBooking,
   Infrastructure,
   BookingEntry,
   SortConfig
 } from '@/_utils';
+import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
+import MultiSelectFilter from '@/components/MultiSelectFilter';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 import PaginatedTable from '@/components/_PaginatedTable';
 
@@ -53,11 +46,18 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   // State for bookings and filters
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<BookingEntry[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
+
+  // Generate status filter options from booking statuses
+  const statusFilterOptions = useMemo(() => {
+    // Get unique statuses from bookings 
+    const statuses = [...new Set(items.map(item => item.status))];
+    return createStatusFilterOptions(statuses);
+  }, [items]);
 
   // Load bookings when infrastructure changes or after actions
   useEffect(() => {
@@ -72,7 +72,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   // Apply filters when bookings, status filter, date filter, or search query changes
   useEffect(() => {
     applyFilters();
-  }, [bookings, statusFilter, dateFilter, searchQuery]);
+  }, [bookings, selectedStatuses, selectedDateFilters, searchQuery]);
 
   // Handle sorting
   const handleSort = (key: keyof BookingEntry) => {
@@ -158,34 +158,11 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const applyFilters = () => {
     let filtered = [...bookings];
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(booking => booking.status === statusFilter);
-    }
+    // Apply status filters using utility function
+    filtered = applyStatusFilters(filtered, selectedStatuses);
 
-    // Apply date filter
-    const now = new Date();
-    const startOfToday = new Date(now);
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const filterBookings = (bookings: typeof filtered, dateFilter: string) => {
-      return bookings.filter(({ booking_date: date }) => {
-        const bookingDate = new Date(date);
-
-        switch (dateFilter) {
-          case 'today':
-            return bookingDate.toISOString().split('T')[0] === now.toISOString().split('T')[0]; // Exact match
-          case 'upcoming':
-            return bookingDate >= startOfToday; // Include today and future dates
-          case 'past':
-            return bookingDate < startOfToday; // Only past dates
-          default:
-            return true; // No filtering applied
-        }
-      });
-    };
-
-    filtered = filterBookings(filtered, dateFilter);
+    // Apply date filters using utility function
+    filtered = applyDateFilters(filtered, selectedDateFilters);
 
     // Apply search query
     if (searchQuery) {
@@ -381,8 +358,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       </div>
 
       {/* Filter controls */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex flex-col space-y-2 flex-grow">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-1">
           <Label>Search</Label>
           <Input
             id="search-bookings"
@@ -392,45 +369,22 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           />
         </div>
 
-        <div className="flex flex-col space-y-2">
-          <Label>Status</Label>
-          <Select
-            value={statusFilter}
-            onValueChange={setStatusFilter}
-          >
-            <SelectTrigger id="status-filter" className="w-[180px]">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent className="card1">
-              {/* Use shared utility to get status options */}
-              {getBookingStatusOptions().map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <MultiSelectFilter
+          label="Status"
+          options={statusFilterOptions}
+          selectedValues={selectedStatuses}
+          onSelectionChange={setSelectedStatuses}
+          variant="badge"
+          placeholder="All Statuses"
+        />
 
-        <div className="flex flex-col space-y-2">
-          <Label>Date</Label>
-          <Select
-            value={dateFilter}
-            onValueChange={setDateFilter}
-          >
-            <SelectTrigger id="date-filter" className="w-[180px]">
-              <SelectValue placeholder="Select Date Filter" />
-            </SelectTrigger>
-            <SelectContent className="card1">
-              {/* Use shared utility to get date filter options */}
-              {getDateFilterOptions().map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <MultiSelectFilter
+          label="Date"
+          options={DATE_FILTER_OPTIONS}
+          selectedValues={selectedDateFilters}
+          onSelectionChange={setSelectedDateFilters}
+          placeholder="All Dates"
+        />
       </div>
 
       {/* Bookings Table */}

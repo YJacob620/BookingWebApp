@@ -39,14 +39,14 @@ const TruncatedText: React.FC<TruncatedTextProps> = ({
   const content = text?.trim() || "";
   const hasContent = content.length > 0;
   const needsTruncation = hasContent && content.length > maxLength;
-  
+
   // Check for RTL text (Hebrew, Arabic, etc.)
   const isRTL = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(content);
-  
+
   // Format the text to preserve newlines if specified
   const formatText = (text: string) => {
     if (!preserveNewlines) return text;
-    
+
     return text.split('\n').map((line, i) => (
       <React.Fragment key={i}>
         {line}

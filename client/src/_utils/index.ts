@@ -5,3 +5,4 @@ export * from './apiFunctions';
 export * from './apiFunctionsAuth';
 export * from './types';
 export * from './localAuthUtils';
+export * from './filterUtils';

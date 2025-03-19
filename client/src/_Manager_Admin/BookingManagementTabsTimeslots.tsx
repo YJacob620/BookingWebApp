@@ -15,13 +15,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 import {
@@ -29,12 +22,13 @@ import {
   formatTimeString,
   getStatusColor,
   calculateDuration,
-  getTimeslotStatusOptions,
   cancelTimeslots,
   Infrastructure,
   BookingEntry,
   SortConfig
 } from '@/_utils';
+import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
+import MultiSelectFilter from '@/components/MultiSelectFilter';
 import PaginatedTable from '@/components/_PaginatedTable';
 
 interface TimeslotListProps {
@@ -55,11 +49,18 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   // Main state
   const [timeslots, setTimeslots] = useState<BookingEntry[]>([]);
   const [selectedSlots, setSelectedSlots] = useState<number[]>([]);
-  const [dateFilter, setDateFilter] = useState<string>('');
-  const [filterType, setFilterType] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [customDateFilter, setCustomDateFilter] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
+
+  // Generate status filter options from timeslot statuses
+  const statusFilterOptions = useMemo(() => {
+    // Get unique statuses from timeslots
+    const statuses = [...new Set(items.map(item => item.status))];
+    return createStatusFilterOptions(statuses);
+  }, [items]);
 
   // Load timeslots when infrastructure changes
   useEffect(() => {
@@ -75,17 +76,17 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   const filteredTimeslots = useMemo(() => {
     let filtered = [...timeslots];
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(slot => slot.status === statusFilter);
-    }
+    // Apply status filters using utility function
+    filtered = applyStatusFilters(filtered, selectedStatuses);
 
-    // Apply date filter
-    if (dateFilter) {
-      // Compare year, month, and day directly for specific date
+    // Apply date filters using utility function
+    filtered = applyDateFilters(filtered, selectedDateFilters);
+
+    // Apply custom date filter if set
+    if (customDateFilter) {
       filtered = filtered.filter(slot => {
         const slotDate = new Date(slot.booking_date);
-        const filterDate = new Date(dateFilter);
+        const filterDate = new Date(customDateFilter);
 
         return (
           slotDate.getFullYear() === filterDate.getFullYear() &&
@@ -93,29 +94,10 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           slotDate.getDate() === filterDate.getDate()
         );
       });
-    } else if (filterType !== 'all') {
-      // Apply period filter (today, upcoming, past)
-      const now = new Date();
-      now.setHours(0, 0, 0, 0); // Start of today
-
-      if (filterType === 'today') {
-        const today = now.toDateString(); // Convert to a comparable string format
-        filtered = filtered.filter(slot => new Date(slot.booking_date).toDateString() === today);
-      } else if (filterType === 'upcoming') {
-        filtered = filtered.filter(slot => {
-          const slotDate = new Date(slot.booking_date);
-          return slotDate >= now;
-        });
-      } else if (filterType === 'past') {
-        filtered = filtered.filter(slot => {
-          const slotDate = new Date(slot.booking_date);
-          return slotDate < now;
-        });
-      }
     }
 
     return filtered;
-  }, [timeslots, statusFilter, dateFilter, filterType]);
+  }, [timeslots, selectedStatuses, selectedDateFilters, customDateFilter]);
 
   // Sorted data based on sort config
   const sortedData = useMemo(() => {
@@ -169,6 +151,28 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       prev.filter(id => filteredTimeslots.some(slot => slot.id === id))
     );
   }, [filteredTimeslots]);
+
+  // Clear custom date filter and update date filters
+  const handleClearDateFilter = () => {
+    setCustomDateFilter('');
+  };
+
+  const handleDateFilterChange = (date: string) => {
+    // Clear predefined date filters if custom date is set
+    if (date) {
+      setSelectedDateFilters([]);
+    }
+    setCustomDateFilter(date);
+  };
+
+  // Handle predefined date filter changes
+  const handlePredefinedDateFiltersChange = (values: string[]) => {
+    // Clear custom date filter if predefined filters are selected
+    if (values.length > 0) {
+      setCustomDateFilter('');
+    }
+    setSelectedDateFilters(values);
+  };
 
   const handleDeleteTimeslots = async (ids: number[]) => {
     if (ids.length === 0) return;
@@ -313,8 +317,8 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Description section - without update button */}
-      <div className="mb-4 flex justify-center items-center">
+      {/* Description section */}
+      <div className="mb-4 flex flex-col md:flex-row justify-between items-center gap-2">
         <p className="explanation-text1">
           View and manage timeslots for this infrastructure.
         </p>
@@ -333,68 +337,49 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         )}
       </div>
 
-      {/* Filter controls - similar layout to BookingManagementTabsBookings */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex flex-col space-y-2 flex-grow">
-          <Label>Filter by Date</Label>
-          <Input
-            id="date-filter-input"
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-          />
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <Label>Status</Label>
-          <Select
-            value={statusFilter}
-            onValueChange={setStatusFilter}
-          >
-            <SelectTrigger id="status-filter" className="w-[180px]">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent className="card1">
-              {/* Use shared utility to get status options */}
-              {getTimeslotStatusOptions().map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <Label>Date</Label>
-          <Select
-            value={filterType}
-            onValueChange={setFilterType}
-          >
-            <SelectTrigger id="period-filter" className="w-[180px]">
-              <SelectValue placeholder="Select Period" />
-            </SelectTrigger>
-            <SelectContent className="card1">
-              <SelectItem value="all">All Dates</SelectItem>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="upcoming">Upcoming</SelectItem>
-              <SelectItem value="past">Past</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {dateFilter && (
-          <div className="flex flex-col justify-end space-y-2">
-            <Label className="opacity-0">Clear</Label>
-            <Button
-              variant="outline"
-              onClick={() => setDateFilter('')}
-              className="h-10"
-            >
-              Clear Date Filter
-            </Button>
+      {/* Filter controls - updated with MultiSelectFilter */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-1">
+          <Label>Filter by Specific Date</Label>
+          <div className="flex space-x-2">
+            <Input
+              id="date-filter-input"
+              type="date"
+              value={customDateFilter}
+              onChange={(e) => handleDateFilterChange(e.target.value)}
+              className={`${selectedDateFilters.length > 0 ? 'opacity-50' : ''}`}
+              disabled={selectedDateFilters.length > 0}
+            />
+            {customDateFilter && (
+              <Button
+                variant="outline"
+                onClick={handleClearDateFilter}
+                className="h-10"
+              >
+                Clear
+              </Button>
+            )}
           </div>
-        )}
+        </div>
+
+        <MultiSelectFilter
+          label="Status"
+          options={statusFilterOptions}
+          selectedValues={selectedStatuses}
+          onSelectionChange={setSelectedStatuses}
+          variant="badge"
+          placeholder="All Statuses"
+        />
+
+        <MultiSelectFilter
+          label="Date Range"
+          options={DATE_FILTER_OPTIONS}
+          selectedValues={selectedDateFilters}
+          onSelectionChange={handlePredefinedDateFiltersChange}
+          placeholder="All Dates"
+          disabled={!!customDateFilter}
+          triggerClassName={customDateFilter ? 'opacity-50' : ''}
+        />
       </div>
 
       {/* Timeslots Table */}

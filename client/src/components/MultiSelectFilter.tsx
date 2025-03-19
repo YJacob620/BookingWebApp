@@ -1,0 +1,207 @@
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { X } from "lucide-react";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+
+export interface FilterOption {
+    value: string;
+    label: string;
+    color?: string; // Optional color for badge display
+}
+
+interface MultiSelectFilterProps {
+    options: FilterOption[];
+    selectedValues: string[];
+    onSelectionChange: (values: string[]) => void;
+    label: string;
+    triggerClassName?: string;
+    popoverWidth?: string;
+    placeholder?: string;
+    variant?: 'checked' | 'badge';
+    disabled?: boolean;
+}
+
+/**
+ * A reusable multi-select filter component with checkboxes
+ * 
+ * @param options - List of available filter options
+ * @param selectedValues - Currently selected values
+ * @param onSelectionChange - Callback when selection changes
+ * @param label - Label for the filter
+ * @param triggerClassName - Optional class name for the trigger button
+ * @param popoverWidth - Optional width for the popover
+ * @param placeholder - Optional placeholder text when nothing is selected
+ * @param variant - Display variant ('checked' shows checkboxes only, 'badge' shows colored badges)
+ */
+const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
+    options,
+    selectedValues,
+    onSelectionChange,
+    label,
+    triggerClassName = "",
+    popoverWidth = "w-60",
+    placeholder = "All",
+    variant = 'checked',
+    disabled = false
+}) => {
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    // Toggle selection of an option
+    const toggleOption = (value: string) => {
+        if (selectedValues.includes(value)) {
+            // Remove value if already selected
+            onSelectionChange(selectedValues.filter(val => val !== value));
+        } else {
+            // Add value if not selected
+            onSelectionChange([...selectedValues, value]);
+        }
+    };
+
+    // Clear all selections
+    const clearAll = () => {
+        onSelectionChange([]);
+        setIsOpen(false);
+    };
+
+    // Select all options
+    const selectAll = () => {
+        onSelectionChange(options.map(option => option.value));
+    };
+
+    // Get display text for the trigger button
+    const getDisplayText = () => {
+        if (selectedValues.length === 0) {
+            return placeholder;
+        }
+
+        if (selectedValues.length === options.length) {
+            return "All";
+        }
+
+        if (selectedValues.length <= 2) {
+            // Show the labels of selected options
+            return selectedValues
+                .map(value => options.find(opt => opt.value === value)?.label || value)
+                .join(", ");
+        }
+
+        // Show count if more than 2 items selected
+        return `${selectedValues.length} selected`;
+    };
+
+    return (
+        <div className="flex flex-col space-y-1.5">
+            <p>{label}</p>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className={`justify-center h-10 ${triggerClassName}`}
+                        aria-label={`Filter by ${label.toLowerCase()}`}
+                        disabled={disabled}
+                    >
+                        <span className="truncate">{getDisplayText()}</span>
+                        {selectedValues.length > 0 && (
+                            <Badge
+                                variant="secondary"
+                                className="ml-2 font-normal"
+                            >
+                                {selectedValues.length}
+                            </Badge>
+                        )}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className={`${popoverWidth} p-0 bg-gray-900`} align="start">
+                    <div className="p-2 border-b border-gray-700 flex justify-between items-center">
+                        <span className="font-medium">{label}</span>
+                        <div className="flex space-x-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-xs"
+                                onClick={selectAll}
+                            >
+                                Select All
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-xs"
+                                onClick={clearAll}
+                                disabled={selectedValues.length === 0}
+                            >
+                                Clear
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="py-2 max-h-60 overflow-auto">
+                        {options.map((option) => (
+                            <div key={option.value} className="px-2 py-1.5 flex items-center hover:bg-gray-700 cursor-pointer" onClick={() => toggleOption(option.value)}>
+                                <Checkbox
+                                    id={`filter-${option.value}`}
+                                    checked={selectedValues.includes(option.value)}
+                                    className="mr-2 checkbox1 h-4 w-4"
+                                    onCheckedChange={() => toggleOption(option.value)}
+                                />
+                                {variant === 'badge' && option.color ? (
+                                    <div className="flex items-center">
+                                        <Badge className={option.color}>{option.label}</Badge>
+                                    </div>
+                                ) : (
+                                    <Label
+                                        htmlFor={`filter-${option.value}`}
+                                        className="w-full cursor-pointer text-sm font-normal"
+                                    >
+                                        {option.label}
+                                    </Label>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </PopoverContent>
+            </Popover>
+
+            {/* Show the selected filters as badges below */}
+            {selectedValues.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                    {selectedValues.map(value => {
+                        const option = options.find(opt => opt.value === value);
+                        if (!option) return null;
+
+                        return (
+                            <Badge
+                                key={value}
+                                variant="outline"
+                                className={option.color ? option.color : ""}
+                            >
+                                {option.label}
+                                <X
+                                    className="ml-1 h-3 w-3 cursor-pointer"
+                                    onClick={() => toggleOption(value)}
+                                />
+                            </Badge>
+                        );
+                    })}
+                    {selectedValues.length > 1 && (
+                        <Badge
+                            variant="outline"
+                            className="cursor-pointer"
+                            onClick={clearAll}
+                        >
+                            Clear All
+                        </Badge>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default MultiSelectFilter;
