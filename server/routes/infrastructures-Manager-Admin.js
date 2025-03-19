@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { authenticateAdminOrManager, checkInfrastructureAccess } = require('../middleware/authMiddleware');
+const { authenticateAdminOrManager, hasInfrastructureAccess } = require('../middleware/authMiddleware');
 
 // Get all questions for an infrastructure (admin or manager of this infrastructure)
 router.get('/:infrastructureId/questions',

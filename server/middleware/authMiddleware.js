@@ -50,21 +50,48 @@ const authenticateAdminOrManager = (req, res, next) => {
     });
 };
 
-// Helper function to check if a manager has access to an infrastructure
-const checkInfrastructureAccess = async (userId, infrastructureId, connection = pool) => {
-    if (req.userRole === 'admin') {
+/**
+ * Utility function to check access for managing an infrastructure and handle response in one step
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {number} infrastructureId - ID of the infrastructure to check
+ * @param {Object} connection - Optional DB connection for transactions
+ * @param {Object} rollbackOnFail - Whether to call connection.rollback() on failure
+ * @returns {Promise<boolean>} Returns true if access is allowed and continues, false if denied and response sent
+ */
+const hasInfrastructureAccess = async (req, res, infrastructureId, connection = pool, rollbackOnFail = false) => {
+    // Admins always have access to all infrastructures
+    if (req.user.role === 'admin') {
         return true;
     }
 
     try {
         const [rows] = await connection.execute(
             'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
-            [userId, infrastructureId]
+            [req.user.userId, infrastructureId]
         );
-        return rows.length > 0;
+
+        if (rows.length > 0) {
+            return true;
+        }
+
+        // Access denied, handle response
+        if (rollbackOnFail && connection !== pool) {
+            await connection.rollback();
+        }
+
+        const message = 'Forbidden access to infrastructure';
+        res.status(403).json({ message });
+        return false;
     } catch (error) {
         console.error('Error checking infrastructure access:', error);
-        throw new Error('Failed to verify infrastructure access');
+
+        if (rollbackOnFail && connection !== pool) {
+            await connection.rollback();
+        }
+
+        res.status(500).json({ message: 'Failed to check infrastructure access' });
+        return false;
     }
 };
 
@@ -73,5 +100,5 @@ module.exports = {
     authenticateAdmin,
     authenticateManager,
     authenticateAdminOrManager,
-    checkInfrastructureAccess
+    hasInfrastructureAccess
 };

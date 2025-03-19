@@ -5,7 +5,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const {
     authenticateAdminOrManager,
-    checkInfrastructureAccess
+    hasInfrastructureAccess
 } = require('../middleware/authMiddleware');
 
 // Create timeslots (admin or manager for their infrastructures)
@@ -30,11 +30,8 @@ router.post('/create-timeslots', authenticateAdminOrManager, async (req, res) =>
                     message: 'Infrastructure ID is required',
                 });
             }
-            const hasAccess = await checkInfrastructureAccess(req.user.userId, infrastructureID, connection);
-            if (!hasAccess) {
-                await connection.rollback();
-                return res.status(403).json({ message: 'You do not have access to this infrastructure' });
-            }
+            if (!await hasInfrastructureAccess(req, res, infrastructureID, connection, true)) return;
+
 
             if (!startDate) {
                 return res.status(400).json({
@@ -154,12 +151,7 @@ router.delete('/timeslots', authenticateAdminOrManager, async (req, res) => {
 
         // Check access for each infrastructure
         for (const timeslot of timeslots) {
-            const hasAccess = await checkInfrastructureAccess(req.user.userId, timeslot.infrastructure_id);
-            if (!hasAccess) {
-                return res.status(403).json({
-                    message: 'You do not have access to one or more of the specified timeslots'
-                });
-            }
+            if (!await hasInfrastructureAccess(req, res, timeslot.infrastructure_id)) return;
         }
 
         // Update status to 'canceled' 
@@ -200,18 +192,7 @@ router.put('/:id/approve', authenticateAdminOrManager, async (req, res) => {
         }
 
         const booking = bookings[0];
-        const hasAccess = await checkInfrastructureAccess(
-            req.user.userId,
-            booking.infrastructure_id,
-            connection
-        );
-
-        if (!hasAccess) {
-            await connection.rollback();
-            return res.status(403).json({
-                message: 'You do not have access to approve bookings for this infrastructure'
-            });
-        }
+        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, connection, true)) return;
 
         // Update the booking status to approved
         await connection.execute(
@@ -260,18 +241,7 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res)
         }
 
         const booking = bookings[0];
-        const hasAccess = await checkInfrastructureAccess(
-            req.user.userId,
-            booking.infrastructure_id,
-            connection
-        );
-
-        if (!hasAccess) {
-            await connection.rollback();
-            return res.status(403).json({
-                message: 'You do not have access to manage bookings for this infrastructure'
-            });
-        }
+        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, connection, true)) return;
 
         // Call the stored procedure for rejecting or canceling
         await connection.execute(
@@ -337,12 +307,8 @@ router.post('/force-bookings-status-update', authenticateAdminOrManager, async (
 router.get('/:infrastructureId/all-entries', authenticateAdminOrManager, async (req, res) => {
     try {
         const { infrastructureId } = req.params;
-        const hasAccess = await checkInfrastructureAccess(req.user.userId, infrastructureId);
-        if (!hasAccess) {
-            return res.status(403).json({
-                message: 'You do not have access to view bookings for this infrastructure'
-            });
-        }
+        if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
+
         const { startDate, endDate, limit } = req.query;
 
         // Join with users table to get user roles for bookings and infrastructure info
