@@ -309,7 +309,7 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
                   {/* Daily Start Time */}
                   <div className="space-y-2">
-                    <Label htmlFor="dailyStartTime">Daily Start Time (HH:MM)</Label>
+                    <Label>Daily Start Time (HH:MM)</Label>
                     <Input
                       id="dailyStartTime"
                       type="text"
@@ -323,7 +323,7 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Slot Duration (minutes) */}
                   <div className="space-y-2">
-                    <Label htmlFor="slotDuration">Slot Duration (minutes)</Label>
+                    <Label>Slot Duration (minutes)</Label>
                     <Input
                       id="slotDuration"
                       type="number"
@@ -337,7 +337,7 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
                   {/* Slots Per Day */}
                   <div className="space-y-2">
-                    <Label htmlFor="slotsPerDay">Slots Per Day</Label>
+                    <Label>Slots Per Day</Label>
                     <Input
                       id="slotsPerDay"
                       type="number"

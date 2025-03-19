@@ -173,7 +173,7 @@ const RegistrationPage: React.FC = () => {
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label>Name</Label>
                             <Input
                                 id="name"
                                 name="name"
@@ -190,7 +190,7 @@ const RegistrationPage: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label>Email</Label>
                             <Input
                                 id="email"
                                 name="email"
@@ -207,7 +207,7 @@ const RegistrationPage: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label>Password</Label>
                             <Input
                                 id="password"
                                 name="password"
@@ -228,7 +228,7 @@ const RegistrationPage: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirm Password</Label>
+                            <Label>Confirm Password</Label>
                             <Input
                                 id="confirmPassword"
                                 name="confirmPassword"
@@ -245,7 +245,7 @@ const RegistrationPage: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="role">Role</Label>
+                            <Label>Role</Label>
                             <Select
                                 value={formData.role}
                                 onValueChange={handleSelectChange}

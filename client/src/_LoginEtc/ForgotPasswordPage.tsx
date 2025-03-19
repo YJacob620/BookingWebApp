@@ -79,7 +79,7 @@ const ForgotPasswordPage: React.FC = () => {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label>Email</Label>
                 <Input
                   id="email"
                   name="email"

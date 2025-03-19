@@ -253,7 +253,7 @@ const PaginatedTable = <T extends object>({
       {data.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
           <div className="flex items-center space-x-2">
-            <Label htmlFor="rows-per-page">Rows per page:</Label>
+            <Label>Rows per page:</Label>
             <Select
               value={rowsPerPage.toString()}
               onValueChange={(value) => handleRowsPerPageChange(Number(value))}

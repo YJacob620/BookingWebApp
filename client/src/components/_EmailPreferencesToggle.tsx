@@ -24,7 +24,7 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({ classNa
             setIsLoading(true);
             const data = await fetchEmailPreferences();
 
-            if (data.success) {
+            if (data.success && data.email_notifications) {
                 setEnabled(data.email_notifications);
             } else {
                 throw new Error(data.message || 'Failed to load preferences');

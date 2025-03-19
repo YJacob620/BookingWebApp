@@ -118,7 +118,7 @@ const BookingManagementViews: React.FC<BookingManagementViewsProps> = ({
         {viewMode === 'list' && (
           <div className="flex items-center space-x-4">
             <div className="flex-grow flex items-center justify-center pt-2 -mb-3 gap-2">
-              <Label htmlFor="dateFilter">Filter by Date:</Label>
+              <Label>Filter by Date:</Label>
               <Input
                 id="dateFilter"
                 type="date"

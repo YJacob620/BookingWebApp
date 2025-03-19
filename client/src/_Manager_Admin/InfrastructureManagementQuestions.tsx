@@ -388,7 +388,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
 
                         <div className="space-y-4">
                             <div>
-                                <Label htmlFor="edit-question-text">Question Text</Label>
+                                <Label>Question Text</Label>
                                 <Input
                                     id="edit-question-text"
                                     value={editingQuestion.question_text}
@@ -398,7 +398,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                             </div>
 
                             <div>
-                                <Label htmlFor="edit-question-type">Question Type</Label>
+                                <Label>Question Type</Label>
                                 <Select
                                     value={editingQuestion.question_type}
                                     onValueChange={(value: 'text' | 'number' | 'dropdown' | 'document') =>
@@ -418,7 +418,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
 
                             {editingQuestion.question_type === 'dropdown' && (
                                 <div>
-                                    <Label htmlFor="edit-question-options">Options (one per line)</Label>
+                                    <Label>Options (one per line)</Label>
                                     <Textarea
                                         id="edit-question-options"
                                         value={editingQuestion.options || ''}
@@ -438,7 +438,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                                     }
                                     className="mr-2"
                                 />
-                                <Label htmlFor="edit-required">Required</Label>
+                                <Label>Required</Label>
                             </div>
 
                             <div className="flex justify-end gap-2">
@@ -465,7 +465,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
 
                     <div className="space-y-4">
                         <div>
-                            <Label htmlFor="question-text">Question Text</Label>
+                            <Label>Question Text</Label>
                             <Input
                                 id="question-text"
                                 value={newQuestion.question_text}
@@ -475,7 +475,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                         </div>
 
                         <div>
-                            <Label htmlFor="question-type">Question Type</Label>
+                            <Label>Question Type</Label>
                             <Select
                                 value={newQuestion.question_type}
                                 onValueChange={(value: 'text' | 'number' | 'dropdown' | 'document') =>
@@ -495,7 +495,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
 
                         {newQuestion.question_type === 'dropdown' && (
                             <div>
-                                <Label htmlFor="question-options">Options (one per line)</Label>
+                                <Label>Options (one per line)</Label>
                                 <Textarea
                                     id="question-options"
                                     value={newQuestion.options}

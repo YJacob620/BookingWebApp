@@ -383,7 +383,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       {/* Filter controls */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex flex-col space-y-2 flex-grow">
-          <Label htmlFor="search-bookings">Search</Label>
+          <Label>Search</Label>
           <Input
             id="search-bookings"
             placeholder="Search by email or purpose..."
@@ -393,7 +393,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         </div>
 
         <div className="flex flex-col space-y-2">
-          <Label htmlFor="status-filter">Status</Label>
+          <Label>Status</Label>
           <Select
             value={statusFilter}
             onValueChange={setStatusFilter}
@@ -413,7 +413,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         </div>
 
         <div className="flex flex-col space-y-2">
-          <Label htmlFor="date-filter">Date</Label>
+          <Label>Date</Label>
           <Select
             value={dateFilter}
             onValueChange={setDateFilter}

@@ -336,7 +336,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       {/* Filter controls - similar layout to BookingManagementTabsBookings */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex flex-col space-y-2 flex-grow">
-          <Label htmlFor="date-filter-input">Filter by Date</Label>
+          <Label>Filter by Date</Label>
           <Input
             id="date-filter-input"
             type="date"
@@ -346,7 +346,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         </div>
 
         <div className="flex flex-col space-y-2">
-          <Label htmlFor="status-filter">Status</Label>
+          <Label>Status</Label>
           <Select
             value={statusFilter}
             onValueChange={setStatusFilter}
@@ -366,7 +366,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         </div>
 
         <div className="flex flex-col space-y-2">
-          <Label htmlFor="period-filter">Period</Label>
+          <Label>Date</Label>
           <Select
             value={filterType}
             onValueChange={setFilterType}

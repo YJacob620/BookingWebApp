@@ -115,7 +115,7 @@ const ResetPasswordPage: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
+              <Label>New Password</Label>
               <Input
                 id="password"
                 name="password"
@@ -132,7 +132,7 @@ const ResetPasswordPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label>Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
