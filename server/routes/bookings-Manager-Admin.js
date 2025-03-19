@@ -7,6 +7,7 @@ const {
     authenticateAdminOrManager,
     hasInfrastructureAccess
 } = require('../middleware/authMiddleware');
+const emailService = require('../utils/emailService');
 
 // Create timeslots (admin or manager for their infrastructures)
 router.post('/create-timeslots', authenticateAdminOrManager, async (req, res) => {
@@ -191,6 +192,26 @@ router.put('/:id/approve', authenticateAdminOrManager, async (req, res) => {
         // Update the booking status to approved
         await pool.execute('UPDATE bookings SET status = ? WHERE id = ?', ['approved', id]);
 
+        // Get infrastructure details for email notification
+        const [infrastructures] = await pool.execute(
+            'SELECT * FROM infrastructures WHERE id = ?',
+            [booking.infrastructure_id]
+        );
+
+        // Send email notification to user
+        if (infrastructures.length > 0) {
+            try {
+                await emailService.sendBookingStatusUpdate(
+                    booking,
+                    infrastructures[0],
+                    'approved'
+                );
+            } catch (emailError) {
+                console.error('Error sending booking approval notification:', emailError);
+                // Continue even if email fails - don't block the API response
+            }
+        }
+
         res.json({ message: 'Booking approved successfully' });
     } catch (err) {
         console.error('Database error:', err);
@@ -226,6 +247,12 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res)
         const booking = bookings[0];
         if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, connection, true)) return;
 
+        // Get infrastructure details for email notification (before we execute the procedure)
+        const [infrastructures] = await connection.execute(
+            'SELECT * FROM infrastructures WHERE id = ?',
+            [booking.infrastructure_id]
+        );
+
         // Call the stored procedure for rejecting or canceling
         await connection.execute(
             'CALL AdminRejectOrCancelBooking(?, ?)',
@@ -233,6 +260,20 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res)
         );
 
         await connection.commit();
+
+        // Send email notification to user after the transaction is committed
+        if (infrastructures.length > 0) {
+            try {
+                await emailService.sendBookingStatusUpdate(
+                    booking,
+                    infrastructures[0],
+                    status
+                );
+            } catch (emailError) {
+                console.error(`Error sending booking ${status} notification:`, emailError);
+                // Continue even if email fails - don't block the API response
+            }
+        }
 
         res.json({
             message: `Booking ${status} successfully`
