@@ -184,7 +184,7 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
                     <p>Best regards,<br>Scientific Infrastructure Team</p>
                     
                     <p style="font-size: 12px; color: #666; margin-top: 30px;">
-                        If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/unsubscribe/${manager.email}">unsubscribe</a>.
+                        If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${manager.email}">unsubscribe</a>.
                     </p>
                 </div>
             `
@@ -207,7 +207,6 @@ const sendBookingRequestConfirmationToUser = async (booking, infrastructure) => 
 
     // Check if user exists and has email notifications enabled
     if (!user || !user.email_notifications) {
-        console.log('User not found or has opted out of email notifications');
         return;
     }
 
@@ -232,7 +231,7 @@ const sendBookingRequestConfirmationToUser = async (booking, infrastructure) => 
                 <p>Best regards,<br>Scientific Infrastructure Team</p>
                 
                 <p style="font-size: 12px; color: #666; margin-top: 30px;">
-                    If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/unsubscribe/${user.email}">unsubscribe</a>.
+                    If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${user.email}">unsubscribe</a>.
                 </p>
             </div>
         `
@@ -243,51 +242,55 @@ const sendBookingRequestConfirmationToUser = async (booking, infrastructure) => 
 
 // Send booking status update notification to user with calendar invite
 const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
-    // Get user details from database
-    const [users] = await pool.execute('SELECT name, email, email_notifications FROM users WHERE email = ?', [booking.user_email]);
-    const user = users[0];
+    // Immediately return a promise that resolves
+    return new Promise((resolve) => {
+        // Use process.nextTick to run notifications in the background
+        process.nextTick(async () => {
+            // Get user details from database
+            const [users] = await pool.execute('SELECT name, email, email_notifications FROM users WHERE email = ?', [booking.user_email]);
+            const user = users[0];
 
-    // Check if user has opted out of emails
-    if (!user || !user.email_notifications) {
-        console.log('User has opted out of email notifications');
-        return;
-    }
+            // Check if user has opted out of emails
+            if (!user || !user.email_notifications) {
+                console.log('User has opted out of email notifications');
+                return;
+            }
 
-    // Create subject and message based on status
-    let subject, message, color;
-    switch (status) {
-        case 'approved':
-            subject = `Your Booking Request for ${infrastructure.name} was Approved`;
-            message = 'Your booking request has been approved.';
-            color = '#4CAF50';
-            break;
-        case 'rejected':
-            subject = `Your Booking Request for ${infrastructure.name} was Rejected`;
-            message = 'Unfortunately, your booking request has been rejected.';
-            color = '#f44336';
-            break;
-        case 'canceled':
-            subject = `Your Booking for ${infrastructure.name} was Canceled`;
-            message = 'Your booking has been canceled by an administrator.';
-            color = '#ff9800';
-            break;
-        default:
-            subject = `Booking Status Update for ${infrastructure.name}`;
-            message = `The status of your booking has been updated to: ${status}.`;
-            color = '#2196F3';
-    }
+            // Create subject and message based on status
+            let subject, message, color;
+            switch (status) {
+                case 'approved':
+                    subject = `Your Booking Request for ${infrastructure.name} was Approved`;
+                    message = 'Your booking request has been approved.';
+                    color = '#4CAF50';
+                    break;
+                case 'rejected':
+                    subject = `Your Booking Request for ${infrastructure.name} was Rejected`;
+                    message = 'Unfortunately, your booking request has been rejected.';
+                    color = '#f44336';
+                    break;
+                case 'canceled':
+                    subject = `Your Booking for ${infrastructure.name} was Canceled`;
+                    message = 'Your booking has been canceled by an administrator.';
+                    color = '#ff9800';
+                    break;
+                default:
+                    subject = `Booking Status Update for ${infrastructure.name}`;
+                    message = `The status of your booking has been updated to: ${status}.`;
+                    color = '#2196F3';
+            }
 
-    // Generate calendar file for approved bookings
-    let icsAttachment = null;
-    if (status === 'approved') {
-        icsAttachment = generateICSFile(booking, infrastructure);
-    }
+            // Generate calendar file for approved bookings
+            let icsAttachment = null;
+            if (status === 'approved') {
+                icsAttachment = generateICSFile(booking, infrastructure);
+            }
 
-    const mailOptions = {
-        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
-        to: user.email,
-        subject,
-        html: `
+            const mailOptions = {
+                from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+                to: user.email,
+                subject,
+                html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: ${color};">Booking Status Update</h2>
                 <p>Hello ${user.name},</p>
@@ -308,20 +311,24 @@ const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
                 <p>Best regards,<br>Scientific Infrastructure Team</p>
                 
                 <p style="font-size: 12px; color: #666; margin-top: 30px;">
-                    If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/unsubscribe/${user.email}">unsubscribe</a>.
+                    If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${user.email}">unsubscribe</a>.
                 </p>
             </div>
         `,
-        attachments: icsAttachment ? [
-            {
-                filename: 'booking.ics',
-                content: icsAttachment,
-                contentType: 'text/calendar'
-            }
-        ] : []
-    };
+                attachments: icsAttachment ? [
+                    {
+                        filename: 'booking.ics',
+                        content: icsAttachment,
+                        contentType: 'text/calendar'
+                    }
+                ] : []
+            };
 
-    return transporter.sendMail(mailOptions);
+            return transporter.sendMail(mailOptions);
+        });
+        // Resolve the original promise immediately
+        resolve(true);
+    });
 };
 
 // Generate an ICS file for calendar invites

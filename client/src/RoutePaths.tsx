@@ -5,6 +5,7 @@ export const VERIFY_EMAIL = '/verify-email/:token';
 export const VERIFICATION_PENDING = '/verification-pending';
 export const FORGOT_PASSWORD = '/forgot-password';
 export const RESET_PASSWORD = '/reset-password/:token';
+export const UNSUBSCRIBE = '/preferences/user-manager/unsubscribe/:email';
 
 // Admin routes
 export const ADMIN_DASHBOARD = '/admin-dashboard';
@@ -33,3 +34,6 @@ export const getResetPasswordPath = (token: string) =>
 
 export const getManagerBookingsPath = (infrastructureId: number) =>
     MANAGER_BOOKINGS.replace(':infrastructureId', infrastructureId.toString());
+
+export const getUnsubscribePath = (email: string) =>
+    UNSUBSCRIBE.replace(':email', email);

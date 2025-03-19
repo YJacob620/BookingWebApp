@@ -61,7 +61,7 @@ app.use('/api/infrastructures/user', infrastructuresRoutes_User);
 app.use('/api/bookings/manager-admin', bookingRoutes_Manager_Admin);
 app.use('/api/bookings/user', bookingRoutes_User);
 app.use('/api/user_management', userManagementRoutes_Admin);
-app.use('/api/user', preferencesRoutes_User_Manager);
+app.use('/api/preferences/user-manager', preferencesRoutes_User_Manager);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/email-action', emailActionsRoutes);
 

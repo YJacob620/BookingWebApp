@@ -435,7 +435,7 @@ export const updateQuestionsOrder = (infrastructureId: number, questionsOrder: {
  * @returns Promise with email notification preferences
  */
 export const fetchEmailPreferences = async () => {
-  return apiRequest('/user/preferences/email');
+  return apiRequest('/preferences/user-manager/email');
 };
 
 /**
@@ -444,7 +444,7 @@ export const fetchEmailPreferences = async () => {
  * @returns Promise with updated preferences
  */
 export const updateEmailPreferences = async (enabled: boolean) => {
-  return apiRequest('/user/preferences/email', {
+  return apiRequest('/preferences/user-manager/email', {
     method: 'PUT',
     body: JSON.stringify({ email_notifications: enabled }),
   });
@@ -458,12 +458,45 @@ export const updateEmailPreferences = async (enabled: boolean) => {
  */
 export const processEmailAction = async (action: 'approve' | 'reject', token: string) => {
   try {
-    const result = await apiRequest(`/email-action/${action}/${token}`, {
-      method: 'GET'
-    });
-    return result;
+    // const result = await apiRequest(`/email-action/${action}/${token}`, {
+    //   method: 'GET'
+    // });
+
+    // This endpoint doesn't use the apiRequest helper because it doesn't require authentication
+    const response = await fetch(`${API_BASE_URL}/email-action/${action}/${token}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Email action failed with status ${response.status}`);
+    }
+    // This is an HTML response, so we just return success
+    return { success: true };
   } catch (error) {
-    // Rethrow the error to be handled by the component
+    throw error;
+  }
+  //   return result;
+  // } catch (error) {
+  //   // Rethrow the error to be handled by the component
+  //   throw error;
+  // }
+};
+
+/**
+ * Unsubscribe from emails using the public endpoint (no authentication required).
+ * For unsubscribtion-links sent in emails.
+ * @param email - User email to unsubscribe
+ * @returns Promise with unsubscribe result
+ */
+export const unsubscribeEmailAction = async (email: string) => {
+  try {
+    // This endpoint doesn't use the apiRequest helper because it doesn't require authentication
+    const response = await fetch(`${API_BASE_URL}/preferences/user-manager/unsubscribe/${encodeURIComponent(email)}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Unsubscribe request failed with status ${response.status}`);
+    }
+    // This is an HTML response, so we just return success
+    return { success: true };
+  } catch (error) {
     throw error;
   }
 };

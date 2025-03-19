@@ -17,6 +17,7 @@ import UserManagement from '@/_Admin/UserManagement.tsx';
 import ManagerDashboard from '@/_Manager/ManagerDashboard.tsx';
 import AuthenticationGuard from '@/components/_AuthenticationGuard.tsx';
 import EmailActionHandler from '@/_Manager/EmailActionHandler.tsx';
+import EmailUnsubscribePage from '@/_User_Manager/EmailUnsubscribePage.tsx';
 
 function App() {
   return (
@@ -54,6 +55,12 @@ function App() {
               <ForgotPasswordPage />
             </AuthenticationGuard>
           }
+        />
+
+        {/* Unsubscribe route - no authentication required */}
+        <Route
+          path={RoutePaths.UNSUBSCRIBE}
+          element={<EmailUnsubscribePage />}
         />
 
         {/* Token-based Routes */}

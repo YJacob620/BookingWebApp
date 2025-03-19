@@ -25,7 +25,7 @@ const EmailActionHandler: React.FC = () => {
     const hasProcessed = useRef(false);
 
     // Check if user is logged in
-    const isLoggedIn = getLocalUser() != null;
+    const user = getLocalUser();
 
     useEffect(() => {
         const handleAction = async () => {
@@ -70,9 +70,8 @@ const EmailActionHandler: React.FC = () => {
     }, [action, token, navigate]);
 
     const handleNavigation = () => {
-        if (isLoggedIn) {
+        if (user) {
             try {
-                const user = getLocalUser();
                 // Navigate to appropriate dashboard based on role
                 navigate(getDashboardPath(user.role));
             } catch (error) {
@@ -102,7 +101,9 @@ const EmailActionHandler: React.FC = () => {
     const getMessage = () => {
         if (status === 'success') {
             return action === 'approve'
-                ? 'The booking has been successfully approved. The user has been notified.'
+                ? 'The booking has been successfully approved. The user has been notified.\n' +
+                'In Outlook, you can add it as a calendar event by '
+                + 'clicking on the attached ICS file in the email for this booking.'
                 : 'The booking has been rejected. The user has been notified.';
         } else if (status === 'already-processed') {
             return `This booking has already been processed. Its current status is: ${currentStatus}.`;
@@ -173,7 +174,7 @@ const EmailActionHandler: React.FC = () => {
                         onClick={handleNavigation}
                         size="lg"
                     >
-                        {isLoggedIn ? 'Go to Dashboard' : 'Go to Login'}
+                        {user ? 'Go to Dashboard' : 'Go to Login'}
                     </Button>
                 </div>
             </div>

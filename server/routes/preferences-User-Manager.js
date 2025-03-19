@@ -6,82 +6,82 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 /**
  * Get current user's email notification preferences
  */
-router.get('/preferences/email', authenticateToken, async (req, res) => {
-    try {
-        // Get user ID from JWT token
-        const userId = req.user.userId;
+router.get('/email', authenticateToken, async (req, res) => {
+  try {
+    // Get user ID from JWT token
+    const userId = req.user.userId;
 
-        // Query the database for the user's preferences
-        const [rows] = await pool.execute(
-            'SELECT email_notifications FROM users WHERE id = ?',
-            [userId]
-        );
+    // Query the database for the user's preferences
+    const [rows] = await pool.execute(
+      'SELECT email_notifications FROM users WHERE id = ?',
+      [userId]
+    );
 
-        if (rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-
-        // Return the email notification preference
-        res.json({
-            success: true,
-            email_notifications: !!rows[0].email_notifications
-        });
-    } catch (error) {
-        console.error('Error fetching email preferences:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching email preferences'
-        });
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
     }
+
+    // Return the email notification preference
+    res.json({
+      success: true,
+      email_notifications: !!rows[0].email_notifications
+    });
+  } catch (error) {
+    console.error('Error fetching email preferences:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching email preferences'
+    });
+  }
 });
 
 /**
  * Update user's email notification preferences
  */
-router.put('/preferences/email', authenticateToken, async (req, res) => {
-    const { email_notifications } = req.body;
+router.put('/email', authenticateToken, async (req, res) => {
+  const { email_notifications } = req.body;
 
-    // Validate input
-    if (typeof email_notifications !== 'boolean') {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid email_notifications value. Expected boolean.'
-        });
+  // Validate input
+  if (typeof email_notifications !== 'boolean') {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid email_notifications value. Expected boolean.'
+    });
+  }
+
+  try {
+    // Get user ID from JWT token
+    const userId = req.user.userId;
+
+    // Update the database
+    const [result] = await pool.execute(
+      'UPDATE users SET email_notifications = ? WHERE id = ?',
+      [email_notifications ? 1 : 0, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
     }
 
-    try {
-        // Get user ID from JWT token
-        const userId = req.user.userId;
-
-        // Update the database
-        const [result] = await pool.execute(
-            'UPDATE users SET email_notifications = ? WHERE id = ?',
-            [email_notifications ? 1 : 0, userId]
-        );
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-
-        // Return success response
-        res.json({
-            success: true,
-            message: 'Email preferences updated successfully',
-            email_notifications
-        });
-    } catch (error) {
-        console.error('Error updating email preferences:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error updating email preferences'
-        });
-    }
+    // Return success response
+    res.json({
+      success: true,
+      message: 'Email preferences updated successfully',
+      email_notifications
+    });
+  } catch (error) {
+    console.error('Error updating email preferences:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating email preferences'
+    });
+  }
 });
 
 /**
@@ -89,18 +89,18 @@ router.put('/preferences/email', authenticateToken, async (req, res) => {
  * This allows users to unsubscribe via a link in an email
  */
 router.get('/unsubscribe/:email', async (req, res) => {
-    const { email } = req.params;
+  const { email } = req.params;
 
-    try {
-        // Update the user's preferences to disable emails
-        const [result] = await pool.execute(
-            'UPDATE users SET email_notifications = 0 WHERE email = ?',
-            [email]
-        );
+  try {
+    // Update the user's preferences to disable emails
+    const [result] = await pool.execute(
+      'UPDATE users SET email_notifications = 0 WHERE email = ?',
+      [email]
+    );
 
-        if (result.affectedRows === 0) {
-            // Don't indicate if email was found for security
-            return res.status(200).send(`
+    if (result.affectedRows === 0) {
+      // Don't indicate if email was found for security
+      return res.status(200).send(`
         <html>
           <head>
             <title>Unsubscribe Request Processed</title>
@@ -121,10 +121,10 @@ router.get('/unsubscribe/:email', async (req, res) => {
           </body>
         </html>
       `);
-        }
+    }
 
-        // Send success response with HTML page
-        res.status(200).send(`
+    // Send success response with HTML page
+    res.status(200).send(`
       <html>
         <head>
           <title>Successfully Unsubscribed</title>
@@ -146,9 +146,9 @@ router.get('/unsubscribe/:email', async (req, res) => {
         </body>
       </html>
     `);
-    } catch (error) {
-        console.error('Error processing unsubscribe request:', error);
-        res.status(500).send(`
+  } catch (error) {
+    console.error('Error processing unsubscribe request:', error);
+    res.status(500).send(`
       <html>
         <head>
           <title>Error Processing Request</title>
@@ -169,7 +169,7 @@ router.get('/unsubscribe/:email', async (req, res) => {
         </body>
       </html>
     `);
-    }
+  }
 });
 
 module.exports = router;
