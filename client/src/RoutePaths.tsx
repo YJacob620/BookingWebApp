@@ -21,6 +21,8 @@ export const BOOKING_HISTORY = '/booking-history';
 export const MANAGER_DASHBOARD = '/manager-dashboard';
 export const MANAGER_INFRASTRUCTURE_MANAGEMENT = '/manager-infrastructure-management';
 export const MANAGER_BOOKINGS = '/manager-bookings/:infrastructureId';
+export const EMAIL_ACTION_CONFIRMATION = '/email-action-confirmation';
+export const EMAIL_ACTION_HANDLER = '/email-action/:action/:token';
 
 // Helper functions for parameterized routes
 export const getVerifyEmailPath = (token: string) =>
@@ -31,6 +33,3 @@ export const getResetPasswordPath = (token: string) =>
 
 export const getManagerBookingsPath = (infrastructureId: number) =>
     MANAGER_BOOKINGS.replace(':infrastructureId', infrastructureId.toString());
-
-export const EMAIL_ACTION_CONFIRMATION = '/email-action-confirmation';
-export const EMAIL_ACTION_HANDLER = '/email-action/:action/:token';

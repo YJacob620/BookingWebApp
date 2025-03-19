@@ -17,8 +17,8 @@ router.get('/:action/:token', async (req, res) => {
 
         // Find and validate the token
         const [tokens] = await connection.execute(
-            'SELECT * FROM email_action_tokens WHERE token = ? AND action = ? AND used = 0 AND expires > NOW()',
-            [token, action]
+            'SELECT * FROM email_action_tokens WHERE token = ? AND used = 0 AND expires > NOW()',
+            [token]
         );
 
         if (tokens.length === 0) {
@@ -92,13 +92,22 @@ router.get('/:action/:token', async (req, res) => {
         await connection.commit();
 
         // Redirect to confirmation page
-        res.redirect(`${process.env.FRONTEND_URL}/email-action-confirmation?action=${action}&status=success`);
+        // res.redirect(`${process.env.FRONTEND_URL}/email-action-confirmation?action=${action}&status=success`);
     } catch (error) {
         await connection.rollback();
         console.error('Error processing email action:', error);
-        res.redirect(`${process.env.FRONTEND_URL}/email-action-confirmation?action=${action}&status=error`);
+        // res.redirect(`${process.env.FRONTEND_URL}/email-action-confirmation?action=${action}&status=error`);
     } finally {
         connection.release();
+        res.send(`
+            <html>
+              <body>
+                <script>
+                  window.close();
+                </script>
+              </body>
+            </html>
+          `);
     }
 });
 
