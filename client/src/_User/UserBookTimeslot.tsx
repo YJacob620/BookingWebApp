@@ -22,7 +22,7 @@ import { format, isBefore, startOfDay } from "date-fns";
 import {
   Infrastructure,
   BookingEntry,
-  fetchActiveInfrastructures,
+  fetchInfrastructures,
   bookTimeslot,
   fetchInfrastAvailTimeslots,
   bookTimeslotWithAnswers,
@@ -59,16 +59,16 @@ const BookTimeslot = () => {
       return;
     }
 
-    fetchInfrastructures();
+    fetchActiveInfrastructures();
   }, [navigate]);
 
   // Fetch infrastructures when component mounts
-  const fetchInfrastructures = async () => {
+  const fetchActiveInfrastructures = async () => {
     try {
       setIsLoading(true);
 
       // Use the imported fetchActiveInfrastructures utility
-      const data = await fetchActiveInfrastructures();
+      const data = await fetchInfrastructures();
       setInfrastructures(data);
     } catch (error) {
       console.error('Error fetching infrastructures:', error);
@@ -164,10 +164,41 @@ const BookTimeslot = () => {
 
     // Validate required answers if there are questions
     if (questions.length > 0) {
-      const missingRequired = questions
-        .filter(q => q.is_required)
-        .filter(q => !answers[q.id])
-        .map(q => q.question_text);
+      const missingRequired = [];
+
+      // Check each required question for a valid answer
+      for (const q of questions.filter(q => q.is_required)) {
+        const answer = answers[q.id];
+        let isAnswerValid = false;
+
+        switch (q.question_type) {
+          case 'text':
+          case 'dropdown':
+            // For text/dropdown, must be non-empty string
+            isAnswerValid = typeof answer === 'string' && answer.trim() !== '';
+            break;
+
+          case 'number':
+            // For numbers, must be a number or a non-empty string
+            isAnswerValid =
+              (typeof answer === 'number' && !isNaN(answer)) ||
+              (typeof answer === 'string' && answer.trim() !== '');
+            break;
+
+          case 'document':
+            // For documents, must be a File object
+            isAnswerValid = answer instanceof File;
+            break;
+
+          default:
+            // Unknown type, consider it missing
+            isAnswerValid = false;
+        }
+
+        if (!isAnswerValid) {
+          missingRequired.push(q.question_text);
+        }
+      }
 
       if (missingRequired.length > 0) {
         setMessage({
@@ -287,7 +318,7 @@ const BookTimeslot = () => {
       <div key={q.id} className="space-y-2">
         <p className="small-title">
           {q.question_text}
-          {q.is_required === true && <span className="text-red-500 ml-1">*</span>}
+          {q.is_required == true && <span className="text-red-500 ml-1">*</span>}
         </p>
 
         {q.question_type === 'text' && (
@@ -470,10 +501,17 @@ const BookTimeslot = () => {
             {/* Submit button */}
             <Button
               type="submit"
-              disabled={!selectedTimeslotId}
+              disabled={!selectedTimeslotId || isLoading}
               className="w-full"
             >
-              Submit Booking Request
+              {isLoading ? (
+                <>
+                  <span className="mr-2">Submitting...</span>
+                  <span className="animate-spin">⏳</span>
+                </>
+              ) : (
+                'Submit Booking Request'
+              )}
             </Button>
           </form>
         </CardContent>

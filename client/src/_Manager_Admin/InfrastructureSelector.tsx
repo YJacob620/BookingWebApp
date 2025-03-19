@@ -47,11 +47,8 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   const getInfrastructures = async () => {
     try {
       setIsLoading(true);
-
-      // Replace direct fetch with the imported utility function
       const data = await fetchInfrastructures();
       setInfrastructures(data);
-
       if (data.length > 0) {
         setSelectedInfraId(data[0].id);
       }

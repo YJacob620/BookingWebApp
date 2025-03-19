@@ -46,14 +46,8 @@ const QuestionTypes = [
 ];
 
 // Component for a sortable question item
-const SortableQuestionItem = ({
-    question,
-    onEdit,
-    onDelete
-}: {
-    question: FilterQuestionData;
-    onEdit: (id: number) => void;
-    onDelete: (id: number) => void;
+const SortableQuestionItem = ({ question, onEdit, onDelete }: {
+    question: FilterQuestionData; onEdit: (id: number) => void; onDelete: (id: number) => void;
 }) => {
     const {
         attributes,
@@ -89,7 +83,7 @@ const SortableQuestionItem = ({
                             <h3 className="text-lg font-medium">{question.question_text}</h3>
                             <div className="flex items-center mt-1 text-sm text-gray-400">
                                 <span className="mr-4">Type: {question.question_type}</span>
-                                {question.is_required === true && (
+                                {question.is_required == true && (
                                     <span className="text-red-400">Required</span>
                                 )}
                             </div>

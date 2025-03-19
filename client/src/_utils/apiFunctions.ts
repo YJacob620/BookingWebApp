@@ -87,47 +87,30 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
 };
 
 /**
- * Fetch all relevant infrastructures (admin or infrastructure-manager only)
+ * Fetch all relevant infrastructures (handles any user role)
  */
-export const fetchInfrastructures = (): Promise<Infrastructure[]> => {
-  const user: User = getLocalUser();
-  if (user?.role === "admin") {
+export const fetchInfrastructures = (user: User | null = null): Promise<Infrastructure[]> => {
+  if (!user) user = getLocalUser();
+  if (!user) throw new Error("getLocalUser failed");
+  if (user.role === "admin") {
     return apiRequest('/infrastructures/admin');
   }
-  if (user?.role === "manager") {
+  if (user.role === "manager") {
     return apiRequest('/infrastructures/manager');
   }
-  console.error("Couldn't fetch infrastructures");
-  return Promise.resolve([]);
-};
-
-/**
- * For managers to fetch their own assigned infrastructures
- */
-export const fetchMyInfrastructures = (): Promise<Infrastructure[]> => {
-  return apiRequest('/manager/my-infrastructures');
-};
-
-/**
- * Fetch active infrastructures (all users)
- */
-export const fetchActiveInfrastructures = (): Promise<Infrastructure[]> => {
   return apiRequest('/infrastructures/user/active');
 };
 
 /**
- * Fetch user's recent bookings
+ * Fetch user's recent or all bookings.
+ *
+ * @param {boolean} [recent=false] - If `true`, fetches only the user's recent bookings; otherwise, fetches all bookings.
+ * @returns A promise that resolves to an array of booking entries.
  */
-export const fetchRecentUserBookings = (): Promise<BookingEntry[]> => {
-  return apiRequest('/bookings/user/recent');
+export const fetchUserBookings = (recent: boolean = false): Promise<BookingEntry[]> => {
+  return apiRequest(`/bookings/user/${recent === true ? 'recent' : 'all'}`);
 };
 
-/**
- * Fetch all user's bookings
- */
-export const fetchAllUserBookings = (): Promise<BookingEntry[]> => {
-  return apiRequest('/bookings/user/all');
-};
 
 /**
  * Request a booking (user)

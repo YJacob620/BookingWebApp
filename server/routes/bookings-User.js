@@ -149,6 +149,84 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
 
         const timeslot = timeslots[0];
 
+        // Get the infrastructure_id to fetch required questions
+        const infrastructure_id = timeslot.infrastructure_id;
+
+        // Fetch all required questions for this infrastructure
+        const [requiredQuestions] = await connection.execute(
+            `SELECT id FROM infrastructure_questions WHERE infrastructure_id = ? AND is_required = 1`,
+            [infrastructure_id]
+        );
+
+        // Only validate if there are required questions
+        if (requiredQuestions.length > 0) {
+            // Extract question IDs for easier checking
+            const requiredQuestionIds = requiredQuestions.map(q => q.id);
+
+            // Initialize collection of answers from request
+            let answersObj = {};
+
+            // Try to parse answers from different possible formats
+            if (req.body.answersJSON) {
+                try {
+                    answersObj = JSON.parse(req.body.answersJSON);
+                } catch (e) {
+                    console.error('Error parsing answersJSON:', e);
+                }
+            }
+
+            // Handle individual answer fields (text/number/dropdown)
+            for (const key in req.body) {
+                if (key.startsWith('answer_')) {
+                    const questionId = parseInt(key.replace('answer_', ''));
+                    if (!answersObj[questionId]) {
+                        answersObj[questionId] = {
+                            type: 'text',
+                            value: req.body[key]
+                        };
+                    }
+                }
+            }
+
+            // Handle file uploads
+            if (req.files && req.files.length > 0) {
+                for (const file of req.files) {
+                    const fieldName = file.fieldname;
+
+                    if (fieldName.startsWith('file_')) {
+                        const questionId = parseInt(fieldName.replace('file_', ''));
+                        answersObj[questionId] = {
+                            type: 'file',
+                            filePath: file.path,
+                            originalName: file.originalname
+                        };
+                    }
+                }
+            }
+
+            // Check if all required questions have valid answers
+            const missingAnswers = [];
+            for (const qId of requiredQuestionIds) {
+                const answer = answersObj[qId];
+                const isEmpty = !answer ||
+                    (answer.type === 'text' && (!answer.value || answer.value.trim() === '')) ||
+                    (answer.type === 'file' && !answer.filePath);
+
+                if (isEmpty) {
+                    missingAnswers.push(qId);
+                }
+            }
+
+            if (missingAnswers.length > 0) {
+                // If we have missing answers, rollback the transaction
+                await connection.rollback();
+                return res.status(400).json({
+                    success: false,
+                    message: 'All required questions must be answered'
+                });
+            }
+        }
+
         // Book the timeslot by updating its record
         await connection.execute(
             `UPDATE bookings

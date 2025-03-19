@@ -28,7 +28,7 @@ import {
   isWithin24Hours,
   getStatusColor,
   getBookingStatusOptions,
-  fetchAllUserBookings,
+  fetchUserBookings,
   userCancelBooking,
   getDateFilterOptions,
   BookingEntry,
@@ -63,7 +63,7 @@ const BookingHistory = () => {
     try {
       setIsLoading(true);
 
-      const data = await fetchAllUserBookings();
+      const data = await fetchUserBookings();
       setBookings(data);
 
     } catch (err) {
