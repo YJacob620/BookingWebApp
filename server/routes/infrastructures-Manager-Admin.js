@@ -10,47 +10,10 @@ router.get('/:infrastructureId/questions',
     authenticateAdminOrManager,
     async (req, res) => {
         const { infrastructureId } = req.params;
-        const userId = req.user.userId;
-        const userRole = req.user.role;
 
         try {
-            // First, check if the infrastructure exists and get its status
-            const [infrastructures] = await pool.execute(
-                'SELECT * FROM infrastructures WHERE id = ?',
-                [infrastructureId]
-            );
-
-            if (infrastructures.length === 0) {
-                return res.status(404).json({ message: 'Infrastructure not found' });
-            }
-
-            const infrastructure = infrastructures[0];
-
-            // Different access rules based on user role
-            if (userRole === 'admin') {
-                // Admins can access any infrastructure's questions
-                // No additional checks needed
-            } else if (userRole === 'manager') {
-                // Managers can only access infrastructures assigned to them
-                const [managerAccess] = await pool.execute(
-                    'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
-                    [userId, infrastructureId]
-                );
-
-                if (managerAccess.length === 0) {
-                    return res.status(403).json({
-                        message: 'You do not have permission to access questions for this infrastructure'
-                    });
-                }
-            } else {
-                // Regular users (student, faculty, guest) can only see questions for active infrastructures
-                // and only when they need to book
-                if (!infrastructure.is_active) {
-                    return res.status(403).json({
-                        message: 'This infrastructure is currently inactive'
-                    });
-                }
-            }
+            // Check if the user has access to this infrastructure
+            if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
             // If we get here, the user has permission to view the questions
             const [rows] = await pool.execute(
@@ -73,22 +36,8 @@ router.post('/:infrastructureId/questions',
         const { infrastructureId } = req.params;
         const { question_text, question_type, is_required, options, display_order } = req.body;
 
-        // Check access permissions
-        if (req.user.role !== 'admin') {
-            try {
-                const [access] = await pool.execute(
-                    'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
-                    [req.user.userId, infrastructureId]
-                );
-
-                if (access.length === 0) {
-                    return res.status(403).json({ message: 'You do not have permission to manage this infrastructure' });
-                }
-            } catch (error) {
-                console.error('Error checking permissions:', error);
-                return res.status(500).json({ message: 'Error checking permissions' });
-            }
-        }
+        // Check if the user has access to this infrastructure
+        if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
         // Validate input
         if (!question_text || !question_type) {
@@ -103,8 +52,8 @@ router.post('/:infrastructureId/questions',
         try {
             const [result] = await pool.execute(
                 `INSERT INTO infrastructure_questions 
-          (infrastructure_id, question_text, question_type, is_required, options, display_order)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+                (infrastructure_id, question_text, question_type, is_required, options, display_order)
+                VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     infrastructureId,
                     question_text,
@@ -133,24 +82,10 @@ router.put('/:infrastructureId/questions/:questionId',
         const { infrastructureId, questionId } = req.params;
         const { question_text, question_type, is_required, options } = req.body;
 
-        // Check access permissions (same as above)
-        if (req.user.role !== 'admin') {
-            try {
-                const [access] = await pool.execute(
-                    'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
-                    [req.user.userId, infrastructureId]
-                );
+        // Check if the user has access to this infrastructure
+        if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
-                if (access.length === 0) {
-                    return res.status(403).json({ message: 'You do not have permission to manage this infrastructure' });
-                }
-            } catch (error) {
-                console.error('Error checking permissions:', error);
-                return res.status(500).json({ message: 'Error checking permissions' });
-            }
-        }
-
-        // Validation (similar to POST)
+        // Validation
         if (!question_text || !question_type) {
             return res.status(400).json({ message: 'Question text and type are required' });
         }
@@ -163,8 +98,8 @@ router.put('/:infrastructureId/questions/:questionId',
         try {
             const [result] = await pool.execute(
                 `UPDATE infrastructure_questions
-         SET question_text = ?, question_type = ?, is_required = ?, options = ?
-         WHERE id = ? AND infrastructure_id = ?`,
+                SET question_text = ?, question_type = ?, is_required = ?, options = ?
+                WHERE id = ? AND infrastructure_id = ?`,
                 [
                     question_text,
                     question_type,
@@ -193,22 +128,8 @@ router.delete('/:infrastructureId/questions/:questionId',
     async (req, res) => {
         const { infrastructureId, questionId } = req.params;
 
-        // Check access permissions (same as above)
-        if (req.user.role !== 'admin') {
-            try {
-                const [access] = await pool.execute(
-                    'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
-                    [req.user.userId, infrastructureId]
-                );
-
-                if (access.length === 0) {
-                    return res.status(403).json({ message: 'You do not have permission to manage this infrastructure' });
-                }
-            } catch (error) {
-                console.error('Error checking permissions:', error);
-                return res.status(500).json({ message: 'Error checking permissions' });
-            }
-        }
+        // Check if the user has access to this infrastructure
+        if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
         try {
             const [result] = await pool.execute(
@@ -239,22 +160,8 @@ router.put('/:infrastructureId/questions/reorder',
             return res.status(400).json({ message: 'Invalid questions data' });
         }
 
-        // Check access permissions (same as above)
-        if (req.user.role !== 'admin') {
-            try {
-                const [access] = await pool.execute(
-                    'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
-                    [req.user.userId, infrastructureId]
-                );
-
-                if (access.length === 0) {
-                    return res.status(403).json({ message: 'You do not have permission to manage this infrastructure' });
-                }
-            } catch (error) {
-                console.error('Error checking permissions:', error);
-                return res.status(500).json({ message: 'Error checking permissions' });
-            }
-        }
+        // Check if the user has access to this infrastructure
+        if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
         const connection = await pool.getConnection();
         try {

@@ -24,44 +24,42 @@ router.post('/create-timeslots', authenticateAdminOrManager, async (req, res) =>
         } = req.body;
 
         // Validate input
-        {
-            if (!infrastructureID) {
-                return res.status(400).json({
-                    message: 'Infrastructure ID is required',
-                });
-            }
-            if (!await hasInfrastructureAccess(req, res, infrastructureID, connection, true)) return;
+        if (!infrastructureID) {
+            return res.status(400).json({
+                message: 'Infrastructure ID is required',
+            });
+        }
+        if (!await hasInfrastructureAccess(req, res, infrastructureID, connection, true)) return;
 
 
-            if (!startDate) {
-                return res.status(400).json({
-                    message: 'Start date is required',
-                });
-            }
+        if (!startDate) {
+            return res.status(400).json({
+                message: 'Start date is required',
+            });
+        }
 
-            if (!endDate) {
-                return res.status(400).json({
-                    message: 'End date is required',
-                });
-            }
+        if (!endDate) {
+            return res.status(400).json({
+                message: 'End date is required',
+            });
+        }
 
-            if (!dailyStartTime) {
-                return res.status(400).json({
-                    message: 'Daily start time is required',
-                });
-            }
+        if (!dailyStartTime) {
+            return res.status(400).json({
+                message: 'Daily start time is required',
+            });
+        }
 
-            if (!slotDuration) {
-                return res.status(400).json({
-                    message: 'Slot duration is required',
-                });
-            }
+        if (!slotDuration) {
+            return res.status(400).json({
+                message: 'Slot duration is required',
+            });
+        }
 
-            if (!slotsPerDay) {
-                return res.status(400).json({
-                    message: 'Number of slots per day is required',
-                });
-            }
+        if (!slotsPerDay) {
+            return res.status(400).json({
+                message: 'Number of slots per day is required',
+            });
         }
 
         // Validate dates
@@ -175,43 +173,28 @@ router.delete('/timeslots', authenticateAdminOrManager, async (req, res) => {
 
 // Approve a booking request (admin or responsible manager)
 router.put('/:id/approve', authenticateAdminOrManager, async (req, res) => {
-    const connection = await pool.getConnection();
     try {
-        await connection.beginTransaction();
-
         const { id } = req.params;
 
         // Get booking details
-        const [bookings] = await connection.execute(
-            'SELECT * FROM bookings WHERE id = ?',
-            [id]
-        );
+        const [bookings] = await pool.execute('SELECT * FROM bookings WHERE id = ?', [id]);
 
         if (bookings.length === 0) {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
         const booking = bookings[0];
-        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, connection, true)) return;
+
+        // Check infrastructure access
+        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id)) return;
 
         // Update the booking status to approved
-        await connection.execute(
-            'UPDATE bookings SET status = ? WHERE id = ?',
-            ['approved', id]
-        );
+        await pool.execute('UPDATE bookings SET status = ? WHERE id = ?', ['approved', id]);
 
-        await connection.commit();
-
-        res.json({
-            message: 'Booking approved successfully'
-        });
-
+        res.json({ message: 'Booking approved successfully' });
     } catch (err) {
-        await connection.rollback();
         console.error('Database error:', err);
         res.status(500).json({ message: 'Error approving booking' });
-    } finally {
-        connection.release();
     }
 });
 
@@ -267,11 +250,6 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res)
 // Force update of all booking and timeslot statuses (admin only)
 router.post('/force-bookings-status-update', authenticateAdminOrManager, async (req, res) => {
     try {
-        // Only admins can force update all statuses
-        if (req.userRole !== 'admin') {
-            return res.status(403).json({ message: 'Only administrators can force update all statuses' });
-        }
-
         // Call the stored procedure directly
         const [result] = await pool.execute('CALL update_past_statuses()');
 

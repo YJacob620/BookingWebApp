@@ -23,7 +23,7 @@ const authenticateToken = (req, res, next) => {
 const authenticateAdmin = (req, res, next) => {
     authenticateToken(req, res, () => {
         if (req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Admin access required' });
+            return res.status(403).json({ message: 'Access denied' });
         }
         next();
     });
@@ -32,7 +32,7 @@ const authenticateAdmin = (req, res, next) => {
 const authenticateManager = (req, res, next) => {
     authenticateToken(req, res, () => {
         if (req.user.role !== 'manager') {
-            return res.status(403).json({ message: 'Manager access required' });
+            return res.status(403).json({ message: 'Access denied' });
         }
         next();
     });
@@ -41,7 +41,7 @@ const authenticateManager = (req, res, next) => {
 const authenticateAdminOrManager = (req, res, next) => {
     authenticateToken(req, res, () => {
         if (req.user.role !== 'admin' && req.user.role !== 'manager') {
-            return res.status(403).json({ message: 'Access denied: Admin or Manager role required' });
+            return res.status(403).json({ message: 'Access denied' });
         }
 
         // Store the role for later use
@@ -51,7 +51,7 @@ const authenticateAdminOrManager = (req, res, next) => {
 };
 
 /**
- * Utility function to check access for managing an infrastructure and handle response in one step
+ * Utility function to check access for managing an infrastructure and handle response in one step.
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {number} infrastructureId - ID of the infrastructure to check

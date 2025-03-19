@@ -384,7 +384,13 @@ export const removeInfrastructureFromManager = (userId: number, infrastructureId
  * Fetch all questions for an infrastructure
  */
 export const fetchInfrastructureQuestions = (infrastructureId: number): Promise<FilterQuestionData[]> => {
-  return apiRequest(`/infrastructures/manager-admin/${infrastructureId}/questions`);
+  const role = getLocalUser().role;
+  if (role === "admin" || role === "manager") {
+    return apiRequest(`/infrastructures/manager-admin/${infrastructureId}/questions`);
+  }
+  else {
+    return apiRequest(`/infrastructures/user/${infrastructureId}/questions`);
+  }
 };
 
 /**
