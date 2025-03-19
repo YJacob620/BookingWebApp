@@ -103,26 +103,31 @@ const verifyEmailConfig = async () => {
 };
 
 /**
- * Main wrapper function that handles all booking notifications
+ * Main wrapper function that handles all booking related email-notifications asynchronously
  * @param {Object} booking - Booking details
  * @param {Object} infrastructure - Infrastructure details
  * @param {Array} managers - List of infrastructure managers
  * @param {string} secureToken - Token for action links
- * @returns {Promise} - Result of sending notifications
+ * @returns {Promise<void>} - Resolves immediately, processes notifications in background
  */
 const sendBookingNotifications = async (booking, infrastructure, managers, secureToken) => {
-    try {
-        // 1. Send notifications to managers
-        await sendBookingRequestNotificationToManagers(booking, infrastructure, managers, secureToken);
-
-        // 2. Send confirmation to the user
-        await sendBookingRequestConfirmationToUser(booking, infrastructure);
-
-        return true;
-    } catch (error) {
-        console.error('Error sending booking notifications:', error);
-        return false;
-    }
+    // Immediately return a promise that resolves
+    return new Promise((resolve) => {
+        // Use process.nextTick to run notifications in the background
+        process.nextTick(async () => {
+            try {
+                await sendBookingRequestNotificationToManagers(booking, infrastructure, managers, secureToken);
+                await sendBookingRequestConfirmationToUser(booking, infrastructure);
+                console.log('Booking notifications sent successfully');
+                resolve(true);
+            } catch (error) {
+                console.error('Error sending booking notifications in background:', error);
+                resolve(false);
+            }
+        });
+        // Resolve the original promise immediately
+        resolve(true);
+    });
 };
 
 /**

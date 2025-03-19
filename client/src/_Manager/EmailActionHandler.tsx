@@ -15,7 +15,6 @@ const EmailActionHandler: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        console.warn("TEST");
         const handleAction = async () => {
             if (!action || !token) {
                 setError('Missing required parameters');

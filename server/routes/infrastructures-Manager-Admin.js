@@ -6,120 +6,114 @@ const pool = require('../config/db');
 const { authenticateAdminOrManager, hasInfrastructureAccess } = require('../middleware/authMiddleware');
 
 // Get all questions for an infrastructure (admin or manager of this infrastructure)
-router.get('/:infrastructureId/questions',
-    authenticateAdminOrManager,
-    async (req, res) => {
-        const { infrastructureId } = req.params;
+router.get('/:infrastructureId/questions', authenticateAdminOrManager, async (req, res) => {
+    const { infrastructureId } = req.params;
 
-        try {
-            // Check if the user has access to this infrastructure
-            if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
+    try {
+        // Check if the user has access to this infrastructure
+        if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
-            // If we get here, the user has permission to view the questions
-            const [rows] = await pool.execute(
-                'SELECT * FROM infrastructure_questions WHERE infrastructure_id = ? ORDER BY display_order',
-                [infrastructureId]
-            );
+        // If we get here, the user has permission to view the questions
+        const [rows] = await pool.execute(
+            'SELECT * FROM infrastructure_questions WHERE infrastructure_id = ? ORDER BY display_order',
+            [infrastructureId]
+        );
 
-            res.json(rows);
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-            res.status(500).json({ message: 'Error fetching questions' });
-        }
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching questions:', error);
+        res.status(500).json({ message: 'Error fetching questions' });
     }
+}
 );
 
 // Add a new question (admin or manager of this infrastructure)
-router.post('/:infrastructureId/questions',
-    authenticateAdminOrManager,
-    async (req, res) => {
-        const { infrastructureId } = req.params;
-        const { question_text, question_type, is_required, options, display_order } = req.body;
+router.post('/:infrastructureId/questions', authenticateAdminOrManager, async (req, res) => {
+    const { infrastructureId } = req.params;
+    const { question_text, question_type, is_required, options, display_order } = req.body;
 
-        // Check if the user has access to this infrastructure
-        if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
+    // Check if the user has access to this infrastructure
+    if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
-        // Validate input
-        if (!question_text || !question_type) {
-            return res.status(400).json({ message: 'Question text and type are required' });
-        }
+    // Validate input
+    if (!question_text || !question_type) {
+        return res.status(400).json({ message: 'Question text and type are required' });
+    }
 
-        const validTypes = ['text', 'number', 'dropdown', 'document'];
-        if (!validTypes.includes(question_type)) {
-            return res.status(400).json({ message: 'Invalid question type' });
-        }
+    const validTypes = ['text', 'number', 'dropdown', 'document'];
+    if (!validTypes.includes(question_type)) {
+        return res.status(400).json({ message: 'Invalid question type' });
+    }
 
-        try {
-            const [result] = await pool.execute(
-                `INSERT INTO infrastructure_questions 
+    try {
+        const [result] = await pool.execute(
+            `INSERT INTO infrastructure_questions 
                 (infrastructure_id, question_text, question_type, is_required, options, display_order)
                 VALUES (?, ?, ?, ?, ?, ?)`,
-                [
-                    infrastructureId,
-                    question_text,
-                    question_type,
-                    is_required ? 1 : 0,
-                    question_type === 'dropdown' ? options : null,
-                    display_order || 0
-                ]
-            );
+            [
+                infrastructureId,
+                question_text,
+                question_type,
+                is_required ? 1 : 0,
+                question_type === 'dropdown' ? options : null,
+                display_order || 0
+            ]
+        );
 
-            res.status(201).json({
-                id: result.insertId,
-                message: 'Question added successfully'
-            });
-        } catch (error) {
-            console.error('Error adding question:', error);
-            res.status(500).json({ message: 'Error adding question' });
-        }
+        res.status(201).json({
+            id: result.insertId,
+            message: 'Question added successfully'
+        });
+    } catch (error) {
+        console.error('Error adding question:', error);
+        res.status(500).json({ message: 'Error adding question' });
     }
+}
 );
 
 // Update a question (admin or manager of this infrastructure)
-router.put('/:infrastructureId/questions/:questionId',
-    authenticateAdminOrManager,
-    async (req, res) => {
-        const { infrastructureId, questionId } = req.params;
-        const { question_text, question_type, is_required, options } = req.body;
+router.put('/:infrastructureId/questions/:questionId', authenticateAdminOrManager, async (req, res) => {
+    const { infrastructureId, questionId } = req.params;
+    const { question_text, question_type, is_required, options } = req.body;
 
-        // Check if the user has access to this infrastructure
-        if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
+    // Check if the user has access to this infrastructure
+    if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
-        // Validation
-        if (!question_text || !question_type) {
-            return res.status(400).json({ message: 'Question text and type are required' });
-        }
+    // Validation
+    if (!question_text || !question_type) {
+        return res.status(400).json({ message: 'Question text and type are required' });
+    }
 
-        const validTypes = ['text', 'number', 'dropdown', 'document'];
-        if (!validTypes.includes(question_type)) {
-            return res.status(400).json({ message: 'Invalid question type' });
-        }
+    const validTypes = ['text', 'number', 'dropdown', 'document'];
+    if (!validTypes.includes(question_type)) {
+        return res.status(400).json({ message: 'Invalid question type' });
+    }
 
-        try {
-            const [result] = await pool.execute(
-                `UPDATE infrastructure_questions
+    try {
+        const [result] = await pool.execute(
+            `UPDATE infrastructure_questions
                 SET question_text = ?, question_type = ?, is_required = ?, options = ?
                 WHERE id = ? AND infrastructure_id = ?`,
-                [
-                    question_text,
-                    question_type,
-                    is_required ? 1 : 0,
-                    question_type === 'dropdown' ? options : null,
-                    questionId,
-                    infrastructureId
-                ]
-            );
+            [
+                question_text,
+                question_type,
+                is_required ? 1 : 0,
+                question_type === 'dropdown' ? options : null,
+                questionId,
+                infrastructureId
+            ]
+        );
 
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ message: 'Question not found' });
-            }
-
-            res.json({ message: 'Question updated successfully' });
-        } catch (error) {
-            console.error('Error updating question:', error);
-            res.status(500).json({ message: 'Error updating question' });
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Question not found' });
         }
+
+        res.json({ message: 'Question updated successfully' });
+    } catch (error) {
+        console.error('Error updating question:', error);
+        res.status(500).json({ message: 'Error updating question' });
     }
+}
 );
 
 // Delete a question (admin or manager of this infrastructure)

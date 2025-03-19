@@ -82,7 +82,7 @@ export interface FilterQuestionData {
   question_type: 'dropdown' | 'text' | 'number' | 'document';
   is_required: boolean;
   options?: string;
-  display_order?: number;
+  display_order: number;
 }
 
 /**

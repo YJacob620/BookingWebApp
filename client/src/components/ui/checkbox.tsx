@@ -1,10 +1,7 @@
-"use client"
-
-import * as React from "react"
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-import { CheckIcon } from "lucide-react"
-
-import { cn } from "@/components/ui/utils"
+import * as React from "react";
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { cn } from "./utils";
+import { Check } from "lucide-react";
 
 function Checkbox({
   className,
@@ -14,7 +11,14 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        "peer border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-4 shrink-0 rounded-[4px] border shadow-xs transition-[color,box-shadow] focus-visible:ring-4 focus-visible:outline-1 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:focus-visible:ring-0",
+        "cursor-pointer bg-gray-600 hover:bg-white peer size-4 shrink-0 rounded-[4px] " +
+        "data-[state=checked]:bg-gray-200 data-[state=checked]:text-primary-foreground " +
+        "data-[state=checked]:border-primary ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 " +
+        "outline-ring/50 shadow-xs transition-[color,box-shadow] " +
+        "focus-visible:ring-4 focus-visible:outline-1 " +
+        "disabled:cursor-not-allowed disabled:opacity-50 " +
+        "aria-invalid:focus-visible:ring-0 " +
+        "data-[disabled]:hover:bg-gray-600", // Prevents hover:bg-white when disabled
         className
       )}
       {...props}
@@ -23,10 +27,10 @@ function Checkbox({
         data-slot="checkbox-indicator"
         className="flex items-center justify-center text-current"
       >
-        <CheckIcon className="size-3.5" />
+        <Check className="size-4" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
-  )
+  );
 }
 
-export { Checkbox }
+export { Checkbox };

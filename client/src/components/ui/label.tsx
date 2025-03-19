@@ -1,22 +1,26 @@
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
+import * as React from "react";
+import * as LabelPrimitive from "@radix-ui/react-label";
 
-import { cn } from "@/components/ui/utils"
+import { cn } from "@/components/ui/utils";
 
 function Label({
   className,
+  htmlFor,
   ...props
 }: React.ComponentProps<typeof LabelPrimitive.Root>) {
   return (
     <LabelPrimitive.Root
       data-slot="label"
       className={cn(
-        "text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        "text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none " +
+        "group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        htmlFor ? "cursor-pointer" : "", // Apply cursor-pointer only if htmlFor is present
         className
       )}
+      htmlFor={htmlFor}
       {...props}
     />
-  )
+  );
 }
 
-export { Label }
+export { Label };

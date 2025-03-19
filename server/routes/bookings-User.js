@@ -259,7 +259,7 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
             // Continue with the process even if token generation fails
         }
 
-        await connection.commit(); // Commit the transaction BEFORE sending emails to reduce the transaction time
+        await connection.commit();
 
         // Send notifications to both managers and user
         // Continue with the API response even on errors.

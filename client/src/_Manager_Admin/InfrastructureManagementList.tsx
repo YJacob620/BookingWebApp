@@ -40,7 +40,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     onManageQuestions,
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortConfig, setSortConfig] = useState<SortConfig<Infrastructure>>({ key: null, direction: 'asc' });
+    const [sortConfig, setSortConfig] = useState<SortConfig<Infrastructure>>({ key: 'name', direction: 'asc' });
     const isAdmin: boolean = (getLocalUser()?.role === "admin");
 
     const handleSort = (key: keyof Infrastructure) => {
@@ -187,7 +187,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                                                         size="sm"
                                                         onClick={() => onManageQuestions(infra)}
                                                         className="text-purple-400"
-                                                        title="Manage Questions"
+                                                        title="Manage Filter Questions"
                                                     >
                                                         <HelpCircle className="h-4 w-4" />
                                                     </Button>

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from '@/components/ui/label';
 
 import { Infrastructure, InfrastFormData } from '@/_utils';
 
@@ -132,9 +133,9 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
                             id="is_active"
                             checked={formData.is_active}
                             onCheckedChange={handleCheckboxChange}
-                            className="checkbox1 h-5 w-5"
+                            className="h-5 w-5"
                         />
-                        <p>Infrastructure is active</p>
+                        <Label htmlFor="is_active" className='text-md font-normal'>Infrastructure is active</Label>
                     </div>
 
                     <Button type="submit" className="apply">

@@ -398,15 +398,17 @@ export const fetchInfrastructureQuestions = (infrastructureId: number): Promise<
  * Create or update a question
  */
 export const saveInfrastructureQuestion = (questionData: FilterQuestionData) => {
-  const method = questionData.id ? 'PUT' : 'POST';
-  const endpoint = questionData.id
-    ? `/infrastructures/manager-admin/${questionData.infrastructure_id}/questions/${questionData.id}`
-    : `/infrastructures/manager-admin/${questionData.infrastructure_id}/questions`;
-
-  return apiRequest(endpoint, {
-    method,
-    body: JSON.stringify(questionData),
-  });
+  const createNew = questionData.id < 0;
+  let method: string;
+  let endpoint: string;
+  if (createNew) {
+    method = 'POST';
+    endpoint = `/infrastructures/manager-admin/${questionData.infrastructure_id}/questions`;
+  } else {
+    method = 'PUT';
+    endpoint = `/infrastructures/manager-admin/${questionData.infrastructure_id}/questions/${questionData.id}`
+  }
+  return apiRequest(endpoint, { method, body: JSON.stringify(questionData) });
 };
 
 /**

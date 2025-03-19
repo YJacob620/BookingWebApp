@@ -45,24 +45,13 @@ const QuestionTypes = [
     { id: 'document', label: 'Document Upload' }
 ];
 
-// TypeScript interface for question
-interface Question {
-    id: number;
-    infrastructure_id: number;
-    question_text: string;
-    question_type: 'dropdown' | 'text' | 'number' | 'document';
-    is_required: boolean;
-    options: string | null;
-    display_order: number;
-}
-
 // Component for a sortable question item
 const SortableQuestionItem = ({
     question,
     onEdit,
     onDelete
 }: {
-    question: Question;
+    question: FilterQuestionData;
     onEdit: (id: number) => void;
     onDelete: (id: number) => void;
 }) => {
@@ -100,7 +89,7 @@ const SortableQuestionItem = ({
                             <h3 className="text-lg font-medium">{question.question_text}</h3>
                             <div className="flex items-center mt-1 text-sm text-gray-400">
                                 <span className="mr-4">Type: {question.question_type}</span>
-                                {question.is_required && (
+                                {question.is_required === true && (
                                     <span className="text-red-400">Required</span>
                                 )}
                             </div>
@@ -150,14 +139,14 @@ interface InfrastructureQuestionsManagerProps {
 const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerProps> = ({
     infrastructureId
 }) => {
-    const [questions, setQuestions] = useState<Question[]>([]);
+    const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
     const [newQuestion, setNewQuestion] = useState({
         question_text: '',
         question_type: 'text' as 'text' | 'number' | 'dropdown' | 'document',
         is_required: true,
         options: ''
     });
-    const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+    const [editingQuestion, setEditingQuestion] = useState<FilterQuestionData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -187,7 +176,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
 
             const data = await fetchInfrastructureQuestions(infrastructureId);
             // Sort by display_order
-            setQuestions(data.sort((a: Question, b: Question) => a.display_order - b.display_order));
+            setQuestions(data.sort((a: FilterQuestionData, b: FilterQuestionData) => a.display_order - b.display_order));
         } catch (error) {
             console.error('Error loading questions:', error);
             setErrorMessage('Failed to load questions. Please try again.');
@@ -256,6 +245,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                 : 0;
 
             const questionData: FilterQuestionData = {
+                id: -1, // set id to -1 to indicate it's a new question
                 infrastructure_id: infrastructureId,
                 question_text: newQuestion.question_text,
                 question_type: newQuestion.question_type,
@@ -459,7 +449,6 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
 
                             <div className="flex justify-end gap-2">
                                 <Button
-                                    variant="outline"
                                     onClick={() => setEditingQuestion(null)}
                                 >
                                     Cancel
