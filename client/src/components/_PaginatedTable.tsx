@@ -1,5 +1,3 @@
-/* Table with pagination functionality (multiple pages) */
-
 import React, { useState, useEffect, useMemo, ReactNode } from 'react';
 import {
   Table,
@@ -23,6 +21,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { SortConfig } from '@/_utils';
 
 export interface PaginatedTableProps<T> {
   data: T[];
@@ -31,6 +30,7 @@ export interface PaginatedTableProps<T> {
     header: ReactNode;
     cell: (item: T) => ReactNode;
     className?: string;
+    sortable?: boolean;
   }[];
   initialRowsPerPage?: number;
   rowsPerPageOptions?: number[];
@@ -39,12 +39,15 @@ export interface PaginatedTableProps<T> {
   noResults?: ReactNode;
   onPageChange?: (page: number) => void;
   onRowsPerPageChange?: (rowsPerPage: number) => void;
+  onSortChange?: (sortConfig: SortConfig<T>) => void;
+  sortConfig?: SortConfig<any>; // Allow passing in external sort configuration
   totalItems?: number; // For server-side pagination (optional)
   totalPages?: number; // For server-side pagination (optional)
 }
 
 /**
  * A reusable paginated table component that handles pagination internally
+ * and optionally supports sorting
  */
 const PaginatedTable = <T extends object>({
   data,
@@ -56,6 +59,8 @@ const PaginatedTable = <T extends object>({
   noResults,
   onPageChange,
   onRowsPerPageChange,
+  onSortChange,
+  sortConfig: externalSortConfig,
   totalItems,
   totalPages: serverTotalPages
 }: PaginatedTableProps<T>) => {
@@ -63,6 +68,12 @@ const PaginatedTable = <T extends object>({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [rowsPerPage, setRowsPerPage] = useState<number>(initialRowsPerPage);
   const [clientTotalPages, setClientTotalPages] = useState(1);
+
+  // Internal sort state (used if no external sort config is provided)
+  const [internalSortConfig, setInternalSortConfig] = useState<SortConfig<T> | undefined>(undefined);
+
+  // Use external sort config if provided, otherwise use internal
+  const sortConfig = externalSortConfig || internalSortConfig;
 
   // Use server-provided total pages if available, otherwise calculate from data
   const totalPages = serverTotalPages || clientTotalPages;
@@ -81,11 +92,62 @@ const PaginatedTable = <T extends object>({
     }
   }, [data, rowsPerPage, serverTotalPages]);
 
+  // Apply sorting to the data if sort config is provided
+  const sortedData = useMemo(() => {
+    if (!sortConfig || !sortConfig.key) return data;
+
+    return [...data].sort((a: any, b: any) => {
+      const key = sortConfig.key as keyof T;
+      const aValue = a[key];
+      const bValue = b[key];
+
+      // Handle dates specially
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return sortConfig.direction === 'asc'
+          ? aValue.getTime() - bValue.getTime()
+          : bValue.getTime() - aValue.getTime();
+      }
+
+      // Handle strings
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      // Handle numbers
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc'
+          ? aValue - bValue
+          : bValue - aValue;
+      }
+
+      // Fallback
+      return 0;
+    });
+  }, [data, sortConfig]);
+
   // Get current page data
   const currentData = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
-    return data.slice(startIndex, startIndex + rowsPerPage);
-  }, [data, currentPage, rowsPerPage]);
+    return sortedData.slice(startIndex, startIndex + rowsPerPage);
+  }, [sortedData, currentPage, rowsPerPage]);
+
+  // Handle sorting
+  const handleSort = (key: string) => {
+    const newSortConfig: SortConfig<T> = {
+      key: key as keyof T,
+      direction: sortConfig?.key === key && sortConfig?.direction === 'asc' ? 'desc' : 'asc'
+    };
+
+    // If external sort handler is provided, call it
+    if (onSortChange) {
+      onSortChange(newSortConfig);
+    } else {
+      // Otherwise use internal state
+      setInternalSortConfig(newSortConfig);
+    }
+  };
 
   // Handle page change with optional callback
   const handlePageChange = (page: number) => {
@@ -126,7 +188,17 @@ const PaginatedTable = <T extends object>({
                   key={`${column.key}-${index}`}
                   className={column.className}
                 >
-                  {column.header}
+                  {column.sortable !== false ? (
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort(column.key)}
+                      className="font-semibold h-8 px-2 py-1"
+                    >
+                      {column.header}
+                    </Button>
+                  ) : (
+                    column.header
+                  )}
                 </TableHead>
               ))}
             </TableRow>

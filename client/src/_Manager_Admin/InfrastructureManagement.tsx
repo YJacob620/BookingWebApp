@@ -153,11 +153,12 @@ const InfrastructureManagement: React.FC = () => {
             pageTitle="Infrastructure Management"
             showDashboardButton
             alertMessage={message}
+            className={"w-230"}
         >
             <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
-                className="mb-6 w-180"
+                className="mb-6"
             >
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="list" onClick={() => {

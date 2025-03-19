@@ -3,14 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, UserCheck, UserX, Shield } from 'lucide-react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { TableCell } from '@/components/ui/table';
 import {
     Select,
     SelectContent,
@@ -39,9 +32,11 @@ import {
     User,
     Infrastructure,
     UserRole,
-    Message
+    Message,
+    SortConfig
 } from '@/_utils';
 import BasePageLayout from '@/components/_BasePageLayout';
+import PaginatedTable from '@/components/_PaginatedTable';
 
 const UserManagement: React.FC = () => {
 
@@ -52,6 +47,7 @@ const UserManagement: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState<Message | null>(null);
     const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
+    const [sortConfig, setSortConfig] = useState<SortConfig<User>>({ key: 'name', direction: 'asc' });
 
     // Dialog state
     const [isManagerDialogOpen, setIsManagerDialogOpen] = useState(false);
@@ -211,6 +207,102 @@ const UserManagement: React.FC = () => {
         }
     };
 
+    // Define columns for PaginatedTable
+    const columns = [
+        {
+            key: 'name',
+            header: 'Name',
+            cell: (user: User) => (
+                <TableCell className="font-medium">{user.name}</TableCell>
+            ),
+            sortable: true
+        },
+        {
+            key: 'email',
+            header: 'Email',
+            cell: (user: User) => (
+                <TableCell>{user.email}</TableCell>
+            ),
+            sortable: true
+        },
+        {
+            key: 'role',
+            header: 'Role',
+            cell: (user: User) => (
+                <TableCell>
+                    <Select
+                        value={user.role}
+                        onValueChange={(value: UserRole) => handleRoleChange(user.id, value)}
+                        disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent changing the first admin
+                    >
+                        <SelectTrigger className="w-40 h-12 text-left text-sm">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="manager">Infrastructure Manager</SelectItem>
+                            <SelectItem value="faculty">Faculty</SelectItem>
+                            <SelectItem value="student">Student</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </TableCell>
+            ),
+            sortable: true
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            cell: (user: User) => (
+                <TableCell>
+                    <Badge className={user.is_blacklisted ? 'bg-red-700' : 'bg-green-700'}>
+                        {user.is_blacklisted ? 'Blacklisted' : 'Active'}
+                    </Badge>
+                </TableCell>
+            ),
+            sortable: false
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            cell: (user: User) => (
+                <TableCell>
+                    <div className="flex space-x-2">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleBlacklistToggle(user.id, user.is_blacklisted)}
+                            className={user.is_blacklisted ? 'text-green-500' : 'text-red-500'}
+                            disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent blacklisting the first admin
+                        >
+                            {user.is_blacklisted ? (
+                                <><UserCheck className="h-4 w-4 mr-1" /> Un-blacklist</>
+                            ) : (
+                                <><UserX className="h-4 w-4 mr-1" /> Blacklist</>
+                            )}
+                        </Button>
+
+                        {user.role === 'manager' && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => openManagerDialog(user)}
+                                className="text-blue-500"
+                            >
+                                <Shield className="h-4 w-4 mr-1" /> Manage Access
+                            </Button>
+                        )}
+                    </div>
+                </TableCell>
+            ),
+            sortable: false
+        }
+    ];
+
+    // Handle sort change from PaginatedTable
+    const handleSortChange = (newSortConfig: SortConfig<User>) => {
+        setSortConfig(newSortConfig);
+    };
+
     return (
         <BasePageLayout
             pageTitle="User Management"
@@ -236,89 +328,22 @@ const UserManagement: React.FC = () => {
                     {isLoading ? (
                         <div className="text-center py-10">Loading users...</div>
                     ) : (
-                        <div className="table-wrapper">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Role</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredUsers.length > 0 ? (
-                                        filteredUsers.map((user) => (
-                                            <TableRow key={user.id} className="border-gray-700">
-                                                <TableCell className="font-medium">{user.name}</TableCell>
-                                                <TableCell>{user.email}</TableCell>
-                                                <TableCell>
-                                                    <Select
-                                                        value={user.role}
-                                                        onValueChange={(value: UserRole) => handleRoleChange(user.id, value)}
-                                                        disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent changing the first admin
-                                                    >
-                                                        <SelectTrigger className="w-40 h-12 text-left text-sm">
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="admin">Admin</SelectItem>
-                                                            <SelectItem value="manager">Infrastructure Manager</SelectItem>
-                                                            <SelectItem value="faculty">Faculty</SelectItem>
-                                                            <SelectItem value="student">Student</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge className={user.is_blacklisted ? 'bg-red-700' : 'bg-green-700'}>
-                                                        {user.is_blacklisted ? 'Blacklisted' : 'Active'}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex space-x-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleBlacklistToggle(user.id, user.is_blacklisted)}
-                                                            className={user.is_blacklisted ? 'text-green-500' : 'text-red-500'}
-                                                            disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent blacklisting the first admin
-                                                        >
-                                                            {user.is_blacklisted ? (
-                                                                <><UserCheck className="h-4 w-4 mr-1" /> Un-blacklist</>
-                                                            ) : (
-                                                                <><UserX className="h-4 w-4 mr-1" /> Blacklist</>
-                                                            )}
-                                                        </Button>
-
-                                                        {user.role === 'manager' && (
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                onClick={() => openManagerDialog(user)}
-                                                                className="text-blue-500"
-                                                            >
-                                                                <Shield className="h-4 w-4 mr-1" /> Manage Access
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="h-24 text-center">
-                                                <div className="text-gray-400">
-                                                    {users.length > 0
-                                                        ? 'No users match your search criteria.'
-                                                        : 'No users found.'}
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
+                        <PaginatedTable
+                            data={filteredUsers}
+                            columns={columns}
+                            initialRowsPerPage={10}
+                            rowsPerPageOptions={[5, 10, 25, 50]}
+                            emptyMessage="No users found."
+                            onSortChange={handleSortChange}
+                            sortConfig={sortConfig}
+                            noResults={
+                                users.length > 0 ? (
+                                    <div className="text-gray-400">
+                                        No users match your search criteria.
+                                    </div>
+                                ) : null
+                            }
+                        />
                     )}
                 </CardContent>
             </Card>

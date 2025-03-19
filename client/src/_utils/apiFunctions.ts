@@ -314,7 +314,7 @@ export const cancelTimeslots = (ids: number[]) => {
 /** 
  * Fetch all users (admin only)
 */
-export const fetchUsers = () => {
+export const fetchUsers = (): Promise<User[]> => {
   return apiRequest('/user_management/users');
 };
 
@@ -341,7 +341,7 @@ export const toggleUserBlacklist = (userId: number, blacklist: boolean) => {
 /**
  * For admins to fetch infrastructures assigned to a specific manager
  */
-export const fetchUserInfrastructures = (userId: number) => {
+export const fetchUserInfrastructures = (userId: number): Promise<Infrastructure[]> => {
   return apiRequest(`/user_management/users/${userId}/infrastructures`);
 };
 
