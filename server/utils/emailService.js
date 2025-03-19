@@ -150,9 +150,9 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
         return;
     }
 
-    // Create backend API routes for the email actions
-    const approveUrl = `${process.env.BACKEND_URL}/api/email-action/approve/${actionToken}`;
-    const rejectUrl = `${process.env.BACKEND_URL}/api/email-action/reject/${actionToken}`;
+    // Create links for approval/rejection via email buttons
+    const approveUrl = `${process.env.FRONTEND_URL}/email-action/approve/${actionToken}`;
+    const rejectUrl = `${process.env.FRONTEND_URL}/email-action/reject/${actionToken}`;
 
     // Send email to each manager individually
     return Promise.all(activeManagers.map(manager => {

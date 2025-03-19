@@ -89,7 +89,7 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
                     : ''
               }`}
           >
-            <AlertDescription>{alertMessage.text}</AlertDescription>
+            <AlertDescription className='justify-center'>{alertMessage.text}</AlertDescription>
           </Alert>
         )}
         {children}

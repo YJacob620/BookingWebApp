@@ -287,7 +287,7 @@ const BookTimeslot = () => {
       <div key={q.id} className="space-y-2">
         <p className="small-title">
           {q.question_text}
-          {q.is_required && <span className="text-red-500 ml-1">*</span>}
+          {q.is_required === true && <span className="text-red-500 ml-1">*</span>}
         </p>
 
         {q.question_type === 'text' && (

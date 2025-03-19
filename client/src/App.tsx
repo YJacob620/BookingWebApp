@@ -16,8 +16,7 @@ import ResetPasswordPage from '@/_LoginEtc/ResetPasswordPage.tsx';
 import UserManagement from '@/_Admin/UserManagement.tsx';
 import ManagerDashboard from '@/_Manager/ManagerDashboard.tsx';
 import AuthenticationGuard from '@/components/_AuthenticationGuard.tsx';
-// import EmailActionHandler from '@/_Manager/EmailActionHandler.tsx';
-// import EmailActionConfirmation from '@/_Manager/EmailActionConfirmation.tsx';
+import EmailActionHandler from '@/_Manager/EmailActionHandler.tsx';
 
 function App() {
   return (
@@ -153,18 +152,12 @@ function App() {
           }
         />
 
-        {/* <Route
-          path={RoutePaths.EMAIL_ACTION_CONFIRMATION}
-          element={
-            <EmailActionConfirmation />
-          }
-        />
         <Route
           path={RoutePaths.EMAIL_ACTION_HANDLER}
           element={
             <EmailActionHandler />
           }
-        /> */}
+        />
 
         {/* Shared routes for both Admin and Manager */}
         <Route

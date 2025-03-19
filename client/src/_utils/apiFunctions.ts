@@ -456,8 +456,14 @@ export const updateEmailPreferences = async (enabled: boolean) => {
  * @param token - The secure token from the email link
  * @returns Promise with action result
  */
-export const processEmailAction = async (action: string, token: string) => {
-  return apiRequest(`/email-actions/${action}/${token}`, {
-    method: 'GET'
-  });
+export const processEmailAction = async (action: 'approve' | 'reject', token: string) => {
+  try {
+    const result = await apiRequest(`/email-action/${action}/${token}`, {
+      method: 'GET'
+    });
+    return result;
+  } catch (error) {
+    // Rethrow the error to be handled by the component
+    throw error;
+  }
 };

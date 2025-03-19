@@ -6,9 +6,11 @@ const emailService = require('../utils/emailService');
 // Process email approval/rejection links
 router.get('/:action/:token', async (req, res) => {
     const { action, token } = req.params;
-
     if (action !== 'approve' && action !== 'reject') {
-        return res.status(400).json({ message: 'Invalid action' });
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid action'
+        });
     }
 
     const connection = await pool.getConnection();
@@ -17,13 +19,17 @@ router.get('/:action/:token', async (req, res) => {
 
         // Find and validate the token
         const [tokens] = await connection.execute(
-            'SELECT * FROM email_action_tokens WHERE token = ? AND used = 0 AND expires > NOW()',
+            "SELECT * FROM email_action_tokens WHERE token = ? AND used = 0 AND expires > NOW()",
             [token]
         );
-
+        console.error("AYO ", token);
         if (tokens.length === 0) {
-            return res.status(400).json({ message: 'Invalid or expired token' });
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired email-action token'
+            });
         }
+        console.error("CMON ", token == '32e2a5e1a5650ea24e2e083760b09d1766d1376bf63904bd76df63e802d5438a');
 
         const tokenRecord = tokens[0];
 
@@ -34,7 +40,10 @@ router.get('/:action/:token', async (req, res) => {
         );
 
         if (bookings.length === 0) {
-            return res.status(404).json({ message: 'Booking not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
         }
 
         const booking = bookings[0];
@@ -49,8 +58,12 @@ router.get('/:action/:token', async (req, res) => {
 
             await connection.commit();
 
-            // Redirect to a page indicating status already changed
-            return res.redirect(`${process.env.FRONTEND_URL}/email-action-confirmation?action=${action}&status=already-processed&current=${booking.status}`);
+            // Return status already changed
+            return res.status(400).json({
+                success: false,
+                message: `This booking has already been processed. Its current status is: ${booking.status}`,
+                currentStatus: booking.status
+            });
         }
 
         // Process the action
@@ -60,7 +73,7 @@ router.get('/:action/:token', async (req, res) => {
                 'UPDATE bookings SET status = "approved" WHERE id = ?',
                 [booking.id]
             );
-        } else {
+        } else if (action === 'reject') {
             // Reject booking
             await connection.execute(
                 'CALL AdminRejectOrCancelBooking(?, ?)',
@@ -91,23 +104,21 @@ router.get('/:action/:token', async (req, res) => {
 
         await connection.commit();
 
-        // Redirect to confirmation page
-        // res.redirect(`${process.env.FRONTEND_URL}/email-action-confirmation?action=${action}&status=success`);
+        // Return success response
+        return res.json({
+            success: true,
+            message: `Booking ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
+            action
+        });
     } catch (error) {
         await connection.rollback();
         console.error('Error processing email action:', error);
-        // res.redirect(`${process.env.FRONTEND_URL}/email-action-confirmation?action=${action}&status=error`);
+        return res.status(500).json({
+            success: false,
+            message: 'Error processing the action'
+        });
     } finally {
         connection.release();
-        res.send(`
-            <html>
-              <body>
-                <script>
-                  window.close();
-                </script>
-              </body>
-            </html>
-          `);
     }
 });
 
