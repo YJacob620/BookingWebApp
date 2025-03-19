@@ -33,6 +33,7 @@ import {
 import { LOGIN } from '@/RoutePaths';
 import { Input } from '@/components/ui/input';
 import BasePageLayout from '@/components/_BasePageLayout';
+import InfrastructureSelector from '@/components/_InfrastructureSelector';
 
 type UserAnswersMap = Record<number, FilterQuestionAnswer>;
 
@@ -50,6 +51,7 @@ const BookTimeslot = () => {
   const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
   const [answers, setAnswers] = useState<UserAnswersMap>({});
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -78,10 +80,23 @@ const BookTimeslot = () => {
     }
   };
 
-  // Fetch all available timeslots for the selected infrastructure
+  // Fetch all available timeslots and filter-questions for the selected infrastructure
   useEffect(() => {
     if (selectedInfrastructureId) {
       fetchAllAvailableTimeslots();
+      fetchInfrastructureQuestions(selectedInfrastructureId)
+        .then(data => {
+          setQuestions(data);
+          // Initialize answers state with empty values
+          const initialAnswers: UserAnswersMap = {};
+          data.forEach(q => {
+            initialAnswers[q.id] = q.question_type === 'document' ? null : '';
+          });
+          setAnswers(initialAnswers);
+        })
+        .catch(err => {
+          console.error('Error fetching questions:', err);
+        });
     } else {
       setAllTimeslots([]);
       setAvailableTimeslots([]);
@@ -104,24 +119,63 @@ const BookTimeslot = () => {
     }
   }, [selectedDate, allTimeslots]);
 
-  // Load questions when infrastructure is selected
+  // Validate form whenever dependencies change
   useEffect(() => {
-    if (selectedInfrastructureId) {
-      fetchInfrastructureQuestions(selectedInfrastructureId)
-        .then(data => {
-          setQuestions(data);
-          // Initialize answers state with empty values
-          const initialAnswers: UserAnswersMap = {};
-          data.forEach(q => {
-            initialAnswers[q.id] = q.question_type === 'document' ? null : '';
-          });
-          setAnswers(initialAnswers);
-        })
-        .catch(err => {
-          console.error('Error fetching questions:', err);
-        });
+    validateForm();
+  }, [selectedTimeslotId, answers, questions]);
+
+  // Form validation function to check all required fields
+  const validateForm = () => {
+    // Basic form validation - must have a timeslot selected
+    if (!selectedTimeslotId) {
+      setIsFormValid(false);
+      return;
     }
-  }, [selectedInfrastructureId]);
+
+    // If no questions or no required questions, form is valid
+    if (questions.length === 0) {
+      setIsFormValid(true);
+      return;
+    }
+
+    // Check each required question for a valid answer
+    for (const q of questions.filter(q => q.is_required)) {
+      const answer = answers[q.id];
+      let isAnswerValid = false;
+
+      switch (q.question_type) {
+        case 'text':
+        case 'dropdown':
+          // For text/dropdown, must be non-empty string
+          isAnswerValid = typeof answer === 'string' && answer.trim() !== '';
+          break;
+
+        case 'number':
+          // For numbers, must be a number or a non-empty string
+          isAnswerValid =
+            (typeof answer === 'number' && !isNaN(answer)) ||
+            (typeof answer === 'string' && answer.trim() !== '');
+          break;
+
+        case 'document':
+          // For documents, must be a File object
+          isAnswerValid = answer instanceof File;
+          break;
+
+        default:
+          // Unknown type, consider it missing
+          isAnswerValid = false;
+      }
+
+      if (!isAnswerValid) {
+        setIsFormValid(false);
+        return;
+      }
+    }
+
+    // If we get here, all required fields are valid
+    setIsFormValid(true);
+  };
 
   const fetchAllAvailableTimeslots = async () => {
     if (!selectedInfrastructureId) return;
@@ -311,6 +365,10 @@ const BookTimeslot = () => {
     return !isAvailable;
   };
 
+  // Handle infrastructure selection from the InfrastructureSelector
+  const handleInfrastructureSelected = (infrastructure: Infrastructure) => {
+    setSelectedInfrastructureId(infrastructure.id);
+  };
 
   // Render dynamic question fields
   const renderQuestionFields = () => {
@@ -386,7 +444,7 @@ const BookTimeslot = () => {
         <CardTitle className="text-2xl py-4">Book Infrastructures</CardTitle>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Infrastructure Selection */}
+            {/* Infrastructure Selection - replaced with InfrastructureSelector component */}
             <div className="space-y-2">
               {isLoading ? (
                 <p>Loading available infrastructures...</p>
@@ -395,26 +453,10 @@ const BookTimeslot = () => {
               ) : (
                 <>
                   <p className="small-title">Select Infrastructure</p>
-                  <Select
-                    onValueChange={(value) => {
-                      setSelectedInfrastructureId(Number(value));
-                      setSelectedDate(undefined);
-                      setSelectedTimeslotId(null);
-                    }}
-                    value={selectedInfrastructureId?.toString() || ""}
-                    disabled={isLoading} // Disable when loading infrastructures
-                  >
-                    <SelectTrigger id="infrastructure">
-                      <SelectValue placeholder="Select an infrastructure" />
-                    </SelectTrigger>
-                    <SelectContent className="card1">
-                      {infrastructures.map((infra) => (
-                        <SelectItem key={infra.id} value={infra.id.toString()}>
-                          {infra.name} {infra.location ? `(${infra.location})` : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <InfrastructureSelector
+                    onSelectInfrastructure={handleInfrastructureSelected}
+                    onError={(errorMsg) => setMessage({ type: 'error', text: errorMsg })}
+                  />
                 </>
               )}
             </div>
@@ -498,10 +540,10 @@ const BookTimeslot = () => {
               </div>
             )}
 
-            {/* Submit button */}
+            {/* Submit button - updated to use isFormValid state */}
             <Button
               type="submit"
-              disabled={!selectedTimeslotId || isLoading}
+              disabled={!isFormValid || isLoading}
               className="w-full"
             >
               {isLoading ? (

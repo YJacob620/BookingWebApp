@@ -84,7 +84,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[calc(100%-5rem)] h-10 cursor-pointer card2"
+            className="w-[calc(100%-5rem)] h-10 cursor-pointer text-gray-200 text-lg bg-slate-950 border-1 border-gray-500"
           >
             {selectedInfrastructure ? selectedInfrastructure.name : "Select an infrastructure..."}
           </Button>
