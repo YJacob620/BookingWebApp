@@ -22,14 +22,12 @@ router.get('/:action/:token', async (req, res) => {
             "SELECT * FROM email_action_tokens WHERE token = ? AND used = 0 AND expires > NOW()",
             [token]
         );
-        console.error("AYO ", token);
         if (tokens.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid or expired email-action token'
             });
         }
-        console.error("CMON ", token == '32e2a5e1a5650ea24e2e083760b09d1766d1376bf63904bd76df63e802d5438a');
 
         const tokenRecord = tokens[0];
 
@@ -55,10 +53,7 @@ router.get('/:action/:token', async (req, res) => {
                 'UPDATE email_action_tokens SET used = 1, used_at = NOW() WHERE id = ?',
                 [tokenRecord.id]
             );
-
             await connection.commit();
-
-            // Return status already changed
             return res.status(400).json({
                 success: false,
                 message: `This booking has already been processed. Its current status is: ${booking.status}`,

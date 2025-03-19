@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, AlertTriangle, Loader } from 'lucide-react';
@@ -21,20 +21,27 @@ const EmailActionHandler: React.FC = () => {
     const [status, setStatus] = useState<'success' | 'error' | 'already-processed' | null>(null);
     const [currentStatus, setCurrentStatus] = useState<string>('');
 
+    // Use a ref to track if the action has been processed
+    const hasProcessed = useRef(false);
+
     // Check if user is logged in
     const isLoggedIn = getLocalUser() != null;
 
     useEffect(() => {
         const handleAction = async () => {
+            // Prevent duplicate processing in StrictMode
+            if (hasProcessed.current) return;
+
             if (!action || !token) {
                 setStatus('error');
                 setIsProcessing(false);
                 return;
             }
+
             try {
+                hasProcessed.current = true;
                 // Call the API to process the action
-                const result = await processEmailAction(action, token);
-                console.warn("result: ", result);
+                await processEmailAction(action, token);
 
                 // Set session storage flag to trigger data refresh in BookingManagement
                 sessionStorage.setItem('refreshBookingData', 'true');
@@ -164,9 +171,6 @@ const EmailActionHandler: React.FC = () => {
                 <div className="flex justify-center mt-8">
                     <Button
                         onClick={handleNavigation}
-                        className={status === 'success' && action === 'approve'
-                            ? 'bg-green-600 hover:bg-green-700'
-                            : 'bg-blue-600 hover:bg-blue-700'}
                         size="lg"
                     >
                         {isLoggedIn ? 'Go to Dashboard' : 'Go to Login'}
