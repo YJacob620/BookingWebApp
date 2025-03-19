@@ -310,12 +310,13 @@ export const fetchInfrastAvailTimeslots =
 /**
  * Create timeslots (admin only)
  */
-export const createTimeslots = (data: BatchCreationPayload) => {
-  return apiRequest('/bookings/manager-admin/create-timeslots', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-};
+export const createTimeslots =
+  (data: BatchCreationPayload): Promise<{ message: string, created: number, skipped: number }> => {
+    return apiRequest('/bookings/manager-admin/create-timeslots', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  };
 
 /**
  * Delete/cancel timeslots (admin only)
