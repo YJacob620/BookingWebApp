@@ -8,7 +8,6 @@ import {
   Check,
   X,
   CalendarX,
-  ArrowUpDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -232,7 +231,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           onClick={() => handleSort('user_email')}
         >
           User
-          <ArrowUpDown className="ml-1 h-4 w-4" />
         </Button>
       ),
       cell: (booking: BookingEntry) => (
@@ -254,7 +252,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           onClick={() => handleSort('booking_date')}
         >
           Date
-          <ArrowUpDown className="ml-1 h-4 w-4" />
         </Button>
       ),
       cell: (booking: BookingEntry) => (

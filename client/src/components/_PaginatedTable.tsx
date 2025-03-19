@@ -21,6 +21,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ArrowUpDown,
+  ArrowDown,
+  ArrowUp,
 } from "lucide-react";
 import { SortConfig } from '@/_utils';
 
@@ -150,6 +152,17 @@ const PaginatedTable = <T extends object>({
     }
   };
 
+  // Get the appropriate sort icon based on current sort state
+  const getSortIcon = (columnKey: string) => {
+    if (!sortConfig || sortConfig.key !== columnKey) {
+      return <ArrowUpDown className="ml-1 h-4 w-4" />;
+    }
+
+    return sortConfig.direction === 'asc'
+      ? <ArrowUp className="ml-1 h-4 w-4" />
+      : <ArrowDown className="ml-1 h-4 w-4" />;
+  };
+
   // Handle page change with optional callback
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -200,7 +213,7 @@ const PaginatedTable = <T extends object>({
                       className="font-semibold h-8 px-2 py-1"
                     >
                       {column.header}
-                      <ArrowUpDown className="ml-1 h-4 w-4" />
+                      {getSortIcon(column.key)}
                     </Button>
                   );
                 }

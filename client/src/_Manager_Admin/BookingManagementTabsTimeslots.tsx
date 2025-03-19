@@ -7,7 +7,6 @@ import { TableCell } from "@/components/ui/table";
 import {
   MoreHorizontal,
   Trash2,
-  ArrowUpDown,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -227,7 +226,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           onClick={() => handleSort('booking_date')}
         >
           Date
-          <ArrowUpDown className="ml-1 h-4 w-4" />
         </Button>
       ),
       cell: (slot: BookingEntry) => (
