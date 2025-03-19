@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   TableCell,
 } from "@/components/ui/table";
@@ -359,13 +358,14 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
       {/* Filter controls */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-1">
-          <Label>Search</Label>
+        <div className="justify-center">
+          <p>Search</p>
           <Input
             id="search-bookings"
             placeholder="Search by email or purpose..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className='h-10'
           />
         </div>
 

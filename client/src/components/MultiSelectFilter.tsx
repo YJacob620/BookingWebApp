@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X } from "lucide-react";
 import {
     Popover,
     PopoverContent,
@@ -67,7 +66,6 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
     // Clear all selections
     const clearAll = () => {
         onSelectionChange([]);
-        setIsOpen(false);
     };
 
     // Select all options
@@ -97,13 +95,14 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
     };
 
     return (
-        <div className="flex flex-col space-y-1.5">
+        <div className="flex flex-col">
             <p>{label}</p>
             <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
-                        className={`justify-center h-10 ${triggerClassName}`}
+                        className={`pl-2 justify-start h-10 ${triggerClassName} 
+                        bg-gray-700 border-gray-600 text-gray-200 text-md font-normal`}
                         aria-label={`Filter by ${label.toLowerCase()}`}
                         disabled={disabled}
                     >
@@ -123,7 +122,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                         <span className="font-medium">{label}</span>
                         <div className="flex space-x-1">
                             <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 className="h-8 px-2 text-xs"
                                 onClick={selectAll}
@@ -131,7 +130,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                                 Select All
                             </Button>
                             <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 className="h-8 px-2 text-xs"
                                 onClick={clearAll}
@@ -167,39 +166,6 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                     </div>
                 </PopoverContent>
             </Popover>
-
-            {/* Show the selected filters as badges below */}
-            {selectedValues.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1.5">
-                    {selectedValues.map(value => {
-                        const option = options.find(opt => opt.value === value);
-                        if (!option) return null;
-
-                        return (
-                            <Badge
-                                key={value}
-                                variant="outline"
-                                className={option.color ? option.color : ""}
-                            >
-                                {option.label}
-                                <X
-                                    className="ml-1 h-3 w-3 cursor-pointer"
-                                    onClick={() => toggleOption(value)}
-                                />
-                            </Badge>
-                        );
-                    })}
-                    {selectedValues.length > 1 && (
-                        <Badge
-                            variant="outline"
-                            className="cursor-pointer"
-                            onClick={clearAll}
-                        >
-                            Clear All
-                        </Badge>
-                    )}
-                </div>
-            )}
         </div>
     );
 };
