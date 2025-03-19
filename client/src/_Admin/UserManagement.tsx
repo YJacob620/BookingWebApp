@@ -20,7 +20,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     fetchUsers,
     updateUserRole,
@@ -53,6 +53,9 @@ const UserManagement: React.FC = () => {
     const [isManagerDialogOpen, setIsManagerDialogOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [assignedInfrastructures, setAssignedInfrastructures] = useState<number[]>([]);
+    const [infraSearchQuery, setInfraSearchQuery] = useState('');
+    const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
+    const [pendingChanges, setPendingChanges] = useState<{ [key: number]: boolean }>({});
 
     useEffect(() => {
         loadUsers();
@@ -168,8 +171,10 @@ const UserManagement: React.FC = () => {
         }
     };
 
-    const openManagerDialog = async (user: any) => {
+    const openManagerDialog = async (user: User) => {
         setSelectedUser(user);
+        setInfraSearchQuery('');
+        setPendingChanges({});
 
         // Load assigned infrastructures for this manager
         try {
@@ -187,27 +192,130 @@ const UserManagement: React.FC = () => {
     const handleInfrastructureToggle = async (infrastructureId: number, isAssigned: boolean) => {
         if (!selectedUser) return;
 
-        try {
-            if (isAssigned) {
-                await assignInfrastructureToManager(selectedUser.id, infrastructureId);
-                setAssignedInfrastructures(prev => [...prev, infrastructureId]);
-            } else {
-                await removeInfrastructureFromManager(selectedUser.id, infrastructureId);
-                setAssignedInfrastructures(prev => prev.filter(id => id !== infrastructureId));
-            }
-        } catch (error) {
-            console.error('Error updating infrastructure assignment:', error);
-            setMessage({
-                type: 'error',
-                text: 'Failed to update infrastructure assignment'
-            });
+        // Track this change in the pending changes
+        setPendingChanges(prev => ({
+            ...prev,
+            [infrastructureId]: isAssigned
+        }));
 
-            // Clear error message after 3 seconds
-            setTimeout(() => setMessage(null), 3000);
+        // Update the UI immediately
+        if (isAssigned) {
+            setAssignedInfrastructures(prev => [...prev, infrastructureId]);
+        } else {
+            setAssignedInfrastructures(prev => prev.filter(id => id !== infrastructureId));
         }
     };
 
-    // Define columns for PaginatedTable
+    // Save all pending changes when dialog is closed
+    const handleSaveChanges = async () => {
+        if (!selectedUser || Object.keys(pendingChanges).length === 0) {
+            setIsManagerDialogOpen(false);
+            return;
+        }
+
+        setIsUpdatingAccess(true);
+
+        try {
+            // Process all pending changes
+            const promises = Object.entries(pendingChanges).map(([infraId, isAssigned]) => {
+                const infrastructureId = parseInt(infraId);
+                if (isAssigned) {
+                    return assignInfrastructureToManager(selectedUser.id, infrastructureId);
+                } else {
+                    return removeInfrastructureFromManager(selectedUser.id, infrastructureId);
+                }
+            });
+
+            await Promise.all(promises);
+
+            setMessage({
+                type: 'success',
+                text: 'Infrastructure access updated successfully'
+            });
+
+            setTimeout(() => setMessage(null), 3000);
+        } catch (error) {
+            console.error('Error updating infrastructure assignments:', error);
+            setMessage({
+                type: 'error',
+                text: 'Failed to update some infrastructure assignments'
+            });
+
+            setTimeout(() => setMessage(null), 3000);
+        } finally {
+            setIsUpdatingAccess(false);
+            setIsManagerDialogOpen(false);
+            setPendingChanges({});
+        }
+    };
+
+    // Filter infrastructures based on search query
+    const filteredInfrastructures = infrastructures.filter(infra => {
+        if (!infraSearchQuery) return true;
+
+        const query = infraSearchQuery.toLowerCase();
+        return (
+            infra.name.toLowerCase().includes(query) ||
+            (infra.location && infra.location.toLowerCase().includes(query)) ||
+            (infra.description && infra.description.toLowerCase().includes(query))
+        );
+    });
+
+    // Define columns for infrastructure table in dialog
+    const infrastructureColumns: PaginatedTableColumn<Infrastructure>[] = [
+        {
+            key: 'access',
+            header: 'Access',
+            cell: (infra: Infrastructure) => {
+                const isAssigned = assignedInfrastructures.includes(infra.id);
+
+                return (
+                    <TableCell className="w-[80px] text-center">
+                        <Checkbox
+                            checked={isAssigned}
+                            onCheckedChange={(checked) =>
+                                handleInfrastructureToggle(infra.id, !!checked)
+                            }
+                            className="h-5 w-5"
+                        />
+                    </TableCell>
+                );
+            },
+            className: 'text-center w-20',
+            sortable: false
+        },
+        {
+            key: 'name',
+            header: 'Name',
+            cell: (infra: Infrastructure) => (
+                <TableCell className="font-medium text-center">{infra.name}</TableCell>
+            ),
+            sortable: true
+        },
+        {
+            key: 'location',
+            header: 'Location',
+            cell: (infra: Infrastructure) => (
+                <TableCell className="text-center">{infra.location || 'N/A'}</TableCell>
+            ),
+            sortable: true,
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            cell: (infra: Infrastructure) => (
+                <TableCell className="text-center">
+                    <Badge className={infra.is_active ? 'bg-green-800' : 'bg-red-800'}>
+                        {infra.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                </TableCell>
+            ),
+            className: 'text-center',
+            sortable: false
+        }
+    ];
+
+    // Define columns for PaginatedTable of users
     const columns: PaginatedTableColumn<User>[] = [
         {
             key: 'name',
@@ -348,10 +456,21 @@ const UserManagement: React.FC = () => {
                 </CardContent>
             </Card>
 
-            {/* Infrastructure assignment dialog */}
+            {/* Improved infrastructure assignment dialog */}
             {selectedUser && (
-                <Dialog open={isManagerDialogOpen} onOpenChange={setIsManagerDialogOpen}>
-                    <DialogContent>
+                <Dialog open={isManagerDialogOpen} onOpenChange={(open) => {
+                    if (!open) {
+                        // When closing the dialog, check if there are pending changes
+                        if (Object.keys(pendingChanges).length > 0) {
+                            handleSaveChanges();
+                        } else {
+                            setIsManagerDialogOpen(false);
+                        }
+                    } else {
+                        setIsManagerDialogOpen(open);
+                    }
+                }}>
+                    <DialogContent className="!max-w-3xl">
                         <DialogHeader>
                             <DialogTitle>Manage Infrastructure Access</DialogTitle>
                             <DialogDescription>
@@ -359,41 +478,66 @@ const UserManagement: React.FC = () => {
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="py-4">
-                            <p className="text-sm text-gray-400 mb-4">
-                                Toggle access to each infrastructure below:
-                            </p>
+                        <div className="py-2">
+                            {/* Search bar for infrastructures */}
+                            <div className="relative mb-4">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input
+                                    placeholder="Search infrastructures..."
+                                    value={infraSearchQuery}
+                                    onChange={(e) => setInfraSearchQuery(e.target.value)}
+                                    className="pl-10"
+                                />
+                            </div>
 
-                            <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                                {infrastructures.map((infra) => {
-                                    const isAssigned = assignedInfrastructures.includes(infra.id);
-
-                                    return (
-                                        <div key={infra.id} className="flex items-center justify-between py-2 border-b border-gray-700">
-                                            <div>
-                                                <p className="font-medium">{infra.name}</p>
-                                                {infra.location && (
-                                                    <p className="text-xs text-gray-400">{infra.location}</p>
-                                                )}
+                            {/* Infrastructure table with pagination */}
+                            <div className="max-h-[400px]">
+                                <PaginatedTable
+                                    data={filteredInfrastructures}
+                                    columns={infrastructureColumns}
+                                    initialRowsPerPage={5}
+                                    rowsPerPageOptions={[3, 5, 10, 25]}
+                                    emptyMessage="No infrastructures available"
+                                    noResults={
+                                        infrastructures.length > 0 ? (
+                                            <div className="text-gray-400">
+                                                No infrastructures match your search criteria.
                                             </div>
-                                            <Switch
-                                                checked={isAssigned}
-                                                onCheckedChange={(checked) => handleInfrastructureToggle(infra.id, checked)}
-                                            />
-                                        </div>
-                                    );
-                                })}
-
-                                {infrastructures.length === 0 && (
-                                    <p className="text-center text-gray-400">No infrastructures available</p>
-                                )}
+                                        ) : null
+                                    }
+                                    tableClassName="min-w-full"
+                                />
                             </div>
                         </div>
 
                         <DialogFooter>
-                            <Button onClick={() => setIsManagerDialogOpen(false)}>
-                                Done
-                            </Button>
+                            <div className="flex justify-between w-full">
+                                <div>
+                                    {Object.keys(pendingChanges).length > 0 && (
+                                        <span className="text-sm text-amber-400">
+                                            {Object.keys(pendingChanges).length} pending changes
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => {
+                                            setPendingChanges({});
+                                            setIsManagerDialogOpen(false);
+                                        }}
+                                        className='max-w-15 discard'
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={handleSaveChanges}
+                                        disabled={isUpdatingAccess || Object.keys(pendingChanges).length === 0}
+                                        className='apply'
+                                    >
+                                        {isUpdatingAccess ? 'Saving...' : 'Save Changes'}
+                                    </Button>
+                                </div>
+                            </div>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
