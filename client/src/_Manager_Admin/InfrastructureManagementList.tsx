@@ -4,10 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TableCell } from "@/components/ui/table";
 import {
-    ArrowUpDown,
     Edit,
     Power,
-    HelpCircle
+    Filter
 } from "lucide-react";
 
 import {
@@ -16,7 +15,7 @@ import {
     SortConfig
 } from '@/_utils';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
-import PaginatedTable from '@/components/_PaginatedTable';
+import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
 interface InfrastructureListProps {
     infrastructures: Infrastructure[];
@@ -50,13 +49,12 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     });
 
     // Define columns for PaginatedTable
-    const columns = [
+    const columns: PaginatedTableColumn<Infrastructure>[] = [
         {
             key: 'name',
             header: (
                 <>
                     Name
-                    <ArrowUpDown className="ml-1 h-4 w-4 inline" />
                 </>
             ),
             cell: (infra: Infrastructure) => (
@@ -83,7 +81,6 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
             header: (
                 <>
                     Location
-                    <ArrowUpDown className="ml-1 h-4 w-4 inline" />
                 </>
             ),
             cell: (infra: Infrastructure) => (
@@ -135,7 +132,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                             className="text-purple-400"
                             title="Manage Filter Questions"
                         >
-                            <HelpCircle className="h-4 w-4" />
+                            <Filter className="h-4 w-4" />
                         </Button>
 
                         {/* Toggle status button (admin only) */}

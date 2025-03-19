@@ -26,26 +26,49 @@ import {
 } from "lucide-react";
 import { SortConfig } from '@/_utils';
 
+/**
+ * Defines the structure of a column in the paginated table
+ */
+export interface PaginatedTableColumn<T> {
+  /** Unique identifier for the column, also used for sorting */
+  key: string;
+  /** The text or component to display in the header */
+  header: ReactNode;
+  /** Function to render a cell for this column */
+  cell: (item: T) => ReactNode;
+  /** Optional CSS class name for the column */
+  className?: string;
+  /** Whether this column can be sorted (default: false) */
+  sortable?: boolean;
+}
+
 export interface PaginatedTableProps<T> {
+  /** Data array to display in the table */
   data: T[];
-  columns: {
-    key: string;
-    header: ReactNode;
-    cell: (item: T) => ReactNode;
-    className?: string;
-    sortable?: boolean;
-  }[];
+  /** Column definitions */
+  columns: PaginatedTableColumn<T>[];
+  /** Initial number of rows to show per page */
   initialRowsPerPage?: number;
+  /** Available options for rows per page selector */
   rowsPerPageOptions?: number[];
+  /** Message to display when no data is available */
   emptyMessage?: string;
+  /** Additional CSS class for the table */
   tableClassName?: string;
+  /** Custom component to show when no results match filters */
   noResults?: ReactNode;
+  /** Callback when page changes (for external pagination) */
   onPageChange?: (page: number) => void;
+  /** Callback when rows per page changes */
   onRowsPerPageChange?: (rowsPerPage: number) => void;
+  /** Callback when sort configuration changes */
   onSortChange?: (sortConfig: SortConfig<T>) => void;
-  sortConfig?: SortConfig<any>; // Allow passing in external sort configuration
-  totalItems?: number; // For server-side pagination (optional)
-  totalPages?: number; // For server-side pagination (optional)
+  /** External sort configuration (for controlled sorting) */
+  sortConfig?: SortConfig<any>;
+  /** Total number of items (for server-side pagination) */
+  totalItems?: number;
+  /** Total number of pages (for server-side pagination) */
+  totalPages?: number;
 }
 
 /**
@@ -190,6 +213,7 @@ const PaginatedTable = <T extends object>({
   // Calculate range display text for pagination
   const startItem = dataCount === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
   const endItem = Math.min(currentPage * rowsPerPage, dataCount);
+
   return (
     <div className="space-y-4">
       <div className="table-wrapper">
@@ -197,35 +221,23 @@ const PaginatedTable = <T extends object>({
           <TableHeader>
             <TableRow className="border-gray-700">
               {columns.map((column, index) => {
-                // Determine if this column is sortable
                 const isSortable = column.sortable === true;
-
-                // Create the header content
-                let headerContent = column.header;
-
-                // If the header is a simple string and the column is sortable,
-                // wrap it in a button with the sort indicator
-                if (isSortable && typeof column.header === 'string') {
-                  headerContent = (
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort(column.key)}
-                      className="font-semibold h-8 px-2 py-1"
-                    >
-                      {column.header}
-                      {getSortIcon(column.key)}
-                    </Button>
-                  );
-                }
 
                 return (
                   <TableHead
                     key={`${column.key}-${index}`}
                     className={column.className}
-                    onClick={isSortable && typeof column.header !== 'string' ? () => handleSort(column.key) : undefined}
+                    onClick={isSortable ? () => handleSort(column.key) : undefined}
                     style={isSortable ? { cursor: 'pointer' } : undefined}
                   >
-                    {headerContent}
+                    <div className="flex items-center justify-center">
+                      {column.header}
+                      {isSortable && (
+                        <span className="inline-flex ml-1">
+                          {getSortIcon(column.key)}
+                        </span>
+                      )}
+                    </div>
                   </TableHead>
                 );
               })}

@@ -28,7 +28,7 @@ import {
 } from '@/_utils';
 import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
-import PaginatedTable from '@/components/_PaginatedTable';
+import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
 interface TimeslotListProps {
   selectedInfrastructure: Infrastructure | undefined;
@@ -98,49 +98,9 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     return filtered;
   }, [timeslots, selectedStatuses, selectedDateFilters, customDateFilter]);
 
-  // Sorted data based on sort config
-  const sortedData = useMemo(() => {
-    if (!sortConfig.key) return filteredTimeslots;
-
-    return [...filteredTimeslots].sort((a, b) => {
-      if (sortConfig.key === 'booking_date') {
-        const dateA = new Date(a.booking_date);
-        const dateB = new Date(b.booking_date);
-
-        // First compare dates
-        const dateCompare = sortConfig.direction === 'desc'
-          ? dateB.getTime() - dateA.getTime()
-          : dateA.getTime() - dateB.getTime();
-
-        // If dates are equal, sort by start_time
-        if (dateCompare === 0) {
-          return sortConfig.direction === 'asc'
-            ? a.start_time.localeCompare(b.start_time)
-            : b.start_time.localeCompare(a.start_time);
-        }
-
-        return dateCompare;
-      }
-
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortConfig.direction === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      return 0;
-    });
-  }, [filteredTimeslots, sortConfig]);
-
-  // Handle sorting
-  const handleSort = (key: keyof BookingEntry) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
+  // Handle sort change from PaginatedTable
+  const handleSortChange = (newSortConfig: SortConfig<BookingEntry>) => {
+    setSortConfig(newSortConfig);
   };
 
   // Clear selected slots when filtered timeslots change
@@ -194,7 +154,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   };
 
   // Define columns for PaginatedTable
-  const columns = [
+  const columns: PaginatedTableColumn<BookingEntry>[] = [
     {
       key: 'select',
       header: 'Select',
@@ -219,21 +179,15 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       className: 'text-center w-14'
     },
     {
-      key: 'date',
-      header: (
-        <Button
-          variant="ghost"
-          onClick={() => handleSort('booking_date')}
-        >
-          Date
-        </Button>
-      ),
+      key: 'booking_date',
+      header: 'Date',
       cell: (slot: BookingEntry) => (
         <TableCell className="text-center">
           {formatDate(slot.booking_date)}
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
       key: 'start_time',
@@ -243,7 +197,8 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           {formatTimeString(slot.start_time)}
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
       key: 'end_time',
@@ -253,7 +208,8 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           {formatTimeString(slot.end_time)}
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
       key: 'duration',
@@ -277,7 +233,8 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           </Badge>
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
       key: 'actions',
@@ -385,11 +342,13 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         <div className="text-center py-10">Loading timeslots...</div>
       ) : (
         <PaginatedTable
-          data={sortedData}
+          data={filteredTimeslots}
           columns={columns}
           initialRowsPerPage={10}
           rowsPerPageOptions={[5, 10, 25, 50]}
           emptyMessage="No timeslots for this infrastructure."
+          sortConfig={sortConfig}
+          onSortChange={handleSortChange}
           noResults={
             timeslots.length > 0 ? (
               <div className="text-gray-400">

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import {
   Clock,
   Calendar,
-  ArrowUpDown
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -18,7 +16,7 @@ import {
   SortConfig
 } from '@/_utils';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
-import PaginatedTable from '@/components/_PaginatedTable';
+import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
 interface BookingsListViewProps {
   items: BookingEntry[];
@@ -30,27 +28,16 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
   // Set default sorting to date in descending order
   const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
 
-  // Handle sorting
-  const handleSort = (key: keyof BookingEntry) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
+  // Handle sort change from PaginatedTable
+  const handleSortChange = (newSortConfig: SortConfig<BookingEntry>) => {
+    setSortConfig(newSortConfig);
   };
 
   // Define columns for PaginatedTable
-  const columns = [
+  const columns: PaginatedTableColumn<BookingEntry>[] = [
     {
-      key: 'type',
-      header: (
-        <Button
-          variant="ghost"
-          onClick={() => handleSort('booking_type')}
-        >
-          Type
-          <ArrowUpDown className="ml-1 h-4 w-4" />
-        </Button>
-      ),
+      key: 'booking_type',
+      header: 'Type',
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           {item.booking_type === 'timeslot' ? (
@@ -66,35 +53,30 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
           )}
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
-      key: 'date',
-      header: (
-        <Button
-          variant="ghost"
-          onClick={() => handleSort('booking_date')}
-        >
-          Date
-          <ArrowUpDown className="ml-1 h-4 w-4" />
-        </Button>
-      ),
+      key: 'booking_date',
+      header: 'Date',
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           {formatDate(item.booking_date)}
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
-      key: 'time',
+      key: 'start_time',
       header: 'Time',
       cell: (item: BookingEntry) => (
         <TableCell className="text-center whitespace-nowrap">
           {formatTimeString(item.start_time)} - {formatTimeString(item.end_time)}
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
       key: 'duration',
@@ -108,15 +90,7 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
     },
     {
       key: 'status',
-      header: (
-        <Button
-          variant="ghost"
-          onClick={() => handleSort('status')}
-        >
-          Status
-          <ArrowUpDown className="ml-1 h-4 w-4" />
-        </Button>
-      ),
+      header: 'Status',
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           <Badge className={getStatusColor(item.status)}>
@@ -124,25 +98,19 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
           </Badge>
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
-      key: 'user',
-      header: (
-        <Button
-          variant="ghost"
-          onClick={() => handleSort('user_email')}
-        >
-          User
-          <ArrowUpDown className="ml-1 h-4 w-4" />
-        </Button>
-      ),
+      key: 'user_email',
+      header: 'User',
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           {item.user_email || 'N/A'}
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
       key: 'purpose',
@@ -167,6 +135,7 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
         rowsPerPageOptions={[5, 10, 25, 50]}
         emptyMessage="No bookings or timeslots available."
         sortConfig={sortConfig}
+        onSortChange={handleSortChange}
         noResults={
           <div className="text-gray-400">
             No bookings or timeslots match your current filter.

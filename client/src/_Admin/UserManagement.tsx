@@ -36,7 +36,7 @@ import {
     SortConfig
 } from '@/_utils';
 import BasePageLayout from '@/components/_BasePageLayout';
-import PaginatedTable from '@/components/_PaginatedTable';
+import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
 const UserManagement: React.FC = () => {
 
@@ -208,7 +208,7 @@ const UserManagement: React.FC = () => {
     };
 
     // Define columns for PaginatedTable
-    const columns = [
+    const columns: PaginatedTableColumn<User>[] = [
         {
             key: 'name',
             header: 'Name',

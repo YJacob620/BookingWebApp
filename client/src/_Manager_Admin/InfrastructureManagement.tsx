@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
-import { Plus, Database, HelpCircle } from "lucide-react";
+import { Plus, Database, Filter } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import InfrastructureManagementForm from '../_Admin/InfrastructureManagementForm';
@@ -177,7 +177,7 @@ const InfrastructureManagement: React.FC = () => {
                         value="questions"
                         disabled={!selectedInfrastructure}
                     >
-                        <HelpCircle className="mr-2 h-4 w-4" />
+                        <Filter className="mr-2 h-4 w-4" />
                         Manage Filter Questions
                     </TabsTrigger>
                 </TabsList>

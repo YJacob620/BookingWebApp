@@ -24,7 +24,7 @@ import {
 import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
-import PaginatedTable from '@/components/_PaginatedTable';
+import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
 interface BookingListProps {
   items: BookingEntry[];
@@ -72,86 +72,10 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     applyFilters();
   }, [bookings, selectedStatuses, selectedDateFilters, searchQuery]);
 
-  // Handle sorting
-  const handleSort = (key: keyof BookingEntry) => {
-    setSortConfig(prev => {
-      // If clicking on the same column that's already sorted
-      if (prev.key === key) {
-        return {
-          key,
-          direction: prev.direction === 'asc' ? 'desc' : 'asc'
-        };
-      }
-      // If clicking on a different column
-      else {
-        // For booking_date, default to 'desc' (newest first)
-        if (key === 'booking_date') {
-          return {
-            key,
-            direction: 'desc'
-          };
-        }
-        // For other columns, default to 'asc'
-        return {
-          key,
-          direction: 'asc'
-        };
-      }
-    });
+  // Handle sort change from PaginatedTable
+  const handleSortChange = (newSortConfig: SortConfig<BookingEntry>) => {
+    setSortConfig(newSortConfig);
   };
-
-  const sortedData = useMemo(() => {
-    let sorted = [...filteredBookings];
-
-    if (sortConfig.key) {
-      sorted.sort((a, b) => {
-        // Sort by date
-        if (sortConfig.key === 'booking_date') {
-          const dateA = new Date(a.booking_date);
-          const dateB = new Date(b.booking_date);
-
-          // First compare dates
-          const dateCompare = sortConfig.direction === 'desc'
-            ? dateB.getTime() - dateA.getTime()
-            : dateA.getTime() - dateB.getTime();
-
-          // If dates are equal, sort by start_time
-          if (dateCompare === 0) {
-            const timeA = a.start_time;
-            const timeB = b.start_time;
-            return sortConfig.direction === 'asc'
-              ? timeA.localeCompare(timeB)
-              : timeB.localeCompare(timeA);
-          }
-
-          return dateCompare;
-        }
-
-        // Sort by user
-        else if (sortConfig.key === 'user_email') {
-          const valA = a[sortConfig.key] || '';
-          const valB = b[sortConfig.key] || '';
-
-          return sortConfig.direction === 'asc'
-            ? valA.localeCompare(valB)
-            : valB.localeCompare(valA);
-        }
-
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
-
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortConfig.direction === 'asc'
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        }
-
-        return 0;
-      });
-    }
-
-    return sorted;
-  }, [filteredBookings, sortConfig]);
 
   const applyFilters = () => {
     let filtered = [...bookings];
@@ -222,17 +146,10 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   };
 
   // Define table columns for the PaginatedTable component
-  const columns = [
+  const columns: PaginatedTableColumn<BookingEntry>[] = [
     {
-      key: 'user',
-      header: (
-        <Button
-          variant="ghost"
-          onClick={() => handleSort('user_email')}
-        >
-          User
-        </Button>
-      ),
+      key: 'user_email',
+      header: 'User',
       cell: (booking: BookingEntry) => (
         <TableCell>
           <div className="font-medium">{booking.user_email}</div>
@@ -242,27 +159,22 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
             </div>
           )}
         </TableCell>
-      )
+      ),
+      sortable: true
     },
     {
-      key: 'date',
-      header: (
-        <Button
-          variant="ghost"
-          onClick={() => handleSort('booking_date')}
-        >
-          Date
-        </Button>
-      ),
+      key: 'booking_date',
+      header: 'Date',
       cell: (booking: BookingEntry) => (
         <TableCell className="text-center">
           {formatDate(booking.booking_date)}
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
-      key: 'time',
+      key: 'start_time',
       header: 'Time',
       cell: (booking: BookingEntry) => (
         <TableCell className="text-center whitespace-nowrap">
@@ -293,7 +205,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           </Badge>
         </TableCell>
       ),
-      className: 'text-center'
+      className: 'text-center',
+      sortable: true
     },
     {
       key: 'actions',
@@ -311,7 +224,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                       className="bg-green-700"
                       onClick={() => handleApproveBooking(booking.id)}
                     >
-                      <Check />
+                      <Check className="mr-1 h-4 w-4" />
                       Approve
                     </Button>
                     <Button
@@ -319,7 +232,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                       className="bg-red-600"
                       onClick={() => handleRejectBooking(booking.id)}
                     >
-                      <X />
+                      <X className="mr-1 h-4 w-4" />
                       Reject
                     </Button>
                   </div>
@@ -331,7 +244,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                     className="discard"
                     onClick={() => handleCancelBooking(booking.id)}
                   >
-                    <CalendarX />
+                    <CalendarX className="mr-1 h-4 w-4" />
                     Cancel
                   </Button>
                 );
@@ -390,11 +303,13 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       ) : (
         <div className="space-y-4">
           <PaginatedTable
-            data={sortedData}
+            data={filteredBookings}
             columns={columns}
             initialRowsPerPage={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No bookings exist for this infrastructure."
+            sortConfig={sortConfig}
+            onSortChange={handleSortChange}
             noResults={
               bookings.length > 0 ? (
                 <div className="text-gray-400">
