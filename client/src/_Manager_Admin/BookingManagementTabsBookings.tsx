@@ -23,7 +23,7 @@ import {
   SortConfig
 } from '@/_utils';
 import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
-import MultiSelectFilter from '@/components/MultiSelectFilter';
+import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 import PaginatedTable from '@/components/_PaginatedTable';
 

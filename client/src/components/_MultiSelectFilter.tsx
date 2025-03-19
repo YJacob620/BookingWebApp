@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Popover,
@@ -101,7 +100,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
-                        className={`pl-2 justify-start h-10 ${triggerClassName} 
+                        className={`!text-sm pl-2 justify-start h-10 ${triggerClassName} 
                         bg-gray-700 border-gray-600 text-gray-200 text-md font-normal`}
                         aria-label={`Filter by ${label.toLowerCase()}`}
                         disabled={disabled}
@@ -141,28 +140,42 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                         </div>
                     </div>
                     <div className="py-2 max-h-60 overflow-auto">
-                        {options.map((option) => (
-                            <div key={option.value} className="px-2 py-1.5 flex items-center hover:bg-gray-700 cursor-pointer" onClick={() => toggleOption(option.value)}>
-                                <Checkbox
-                                    id={`filter-${option.value}`}
-                                    checked={selectedValues.includes(option.value)}
-                                    className="mr-2 checkbox1 h-4 w-4"
-                                    onCheckedChange={() => toggleOption(option.value)}
-                                />
-                                {variant === 'badge' && option.color ? (
+                        {options.map((option) => {
+                            const isSelected = selectedValues.includes(option.value);
+                            return (
+                                <div
+                                    key={option.value}
+                                    className="px-2 py-1.5 hover:bg-gray-700 cursor-pointer"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        toggleOption(option.value);
+                                    }}
+                                >
                                     <div className="flex items-center">
-                                        <Badge className={option.color}>{option.label}</Badge>
+                                        <Checkbox
+                                            id={`filter-${label}-${option.value}`}
+                                            checked={isSelected}
+                                            className="mr-2 checkbox1 h-4 w-4"
+                                            // Don't add an onCheckedChange handler here to avoid duplicate events
+                                            onClick={(e) => {
+                                                // Stop event propagation to prevent double-triggering
+                                                e.stopPropagation();
+                                            }}
+                                        />
+                                        {variant === 'badge' && option.color ? (
+                                            <div className="flex-1">
+                                                <Badge className={option.color}>{option.label}</Badge>
+                                            </div>
+                                        ) : (
+                                            <span className="flex-1 text-sm font-normal">
+                                                {option.label}
+                                            </span>
+                                        )}
                                     </div>
-                                ) : (
-                                    <Label
-                                        htmlFor={`filter-${option.value}`}
-                                        className="w-full cursor-pointer text-sm font-normal"
-                                    >
-                                        {option.label}
-                                    </Label>
-                                )}
-                            </div>
-                        ))}
+                                </div>
+                            );
+                        })}
                     </div>
                 </PopoverContent>
             </Popover>

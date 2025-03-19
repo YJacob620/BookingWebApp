@@ -1,5 +1,5 @@
 import { getStatusColor } from '@/_utils';
-import { FilterOption } from '@/components/MultiSelectFilter';
+import { FilterOption } from '@/components/_MultiSelectFilter';
 
 /**
  * Creates status filter options with appropriate styling from basic status array
