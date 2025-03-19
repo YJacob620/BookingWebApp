@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
@@ -18,9 +18,16 @@ const EmailActionConfirmation: React.FC = () => {
   const user = getLocalUser();
   const isLoggedIn = !!user;
 
+  // Force a data refresh in the BookingManagement component when navigating back
+  useEffect(() => {
+    // Set a flag in session storage to indicate that we need to refresh the data
+    if (status === 'success') {
+      sessionStorage.setItem('refreshBookingData', 'true');
+    }
+  }, [status]);
+
   const handleNavigation = () => {
     if (isLoggedIn && user) {
-      // Navigate to the appropriate dashboard using the utility function
       navigate(getDashboardPath(user.role));
     } else {
       // Not logged in, go to login page

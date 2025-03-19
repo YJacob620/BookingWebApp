@@ -1,23 +1,23 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import * as RoutePaths from './RoutePaths';
 
-import LoginPage from './_LoginEtc/LoginPage.tsx';
-import AdminDashboard from './_Admin/AdminDashboard.tsx';
-import InfrastructureManagement from './_Manager_Admin/InfrastructureManagement.tsx';
-import BookingManagement from './_Manager_Admin/BookingManagement.tsx';
-import BookTimeslot from './_User/UserBookTimeslot.tsx';
-import UserDashboard from './_User/UserDashboard.tsx';
-import BookingHistory from './_User/UserBookingHistory.tsx';
-import RegistrationPage from './_LoginEtc/RegistrationPage.tsx';
-import EmailVerificationPage from './_LoginEtc/EmailVerificationPage.tsx';
-import VerificationPendingPage from './_LoginEtc/VerificationPendingPage.tsx';
-import ForgotPasswordPage from './_LoginEtc/ForgotPasswordPage.tsx';
-import ResetPasswordPage from './_LoginEtc/ResetPasswordPage.tsx';
-import UserManagement from './_Admin/UserManagement.tsx';
-import ManagerDashboard from './_Manager/ManagerDashboard.tsx';
-import AuthenticationGuard from './components/_AuthenticationGuard.tsx';
-import EmailActionConfirmation from './_Manager/EmailActionConfirmation';
-
+import * as RoutePaths from '@/RoutePaths';
+import LoginPage from '@/_LoginEtc/LoginPage.tsx';
+import AdminDashboard from '@/_Admin/AdminDashboard.tsx';
+import InfrastructureManagement from '@/_Manager_Admin/InfrastructureManagement.tsx';
+import BookingManagement from '@/_Manager_Admin/BookingManagement.tsx';
+import BookTimeslot from '@/_User/UserBookTimeslot.tsx';
+import UserDashboard from '@/_User/UserDashboard.tsx';
+import BookingHistory from '@/_User/UserBookingHistory.tsx';
+import RegistrationPage from '@/_LoginEtc/RegistrationPage.tsx';
+import EmailVerificationPage from '@/_LoginEtc/EmailVerificationPage.tsx';
+import VerificationPendingPage from '@/_LoginEtc/VerificationPendingPage.tsx';
+import ForgotPasswordPage from '@/_LoginEtc/ForgotPasswordPage.tsx';
+import ResetPasswordPage from '@/_LoginEtc/ResetPasswordPage.tsx';
+import UserManagement from '@/_Admin/UserManagement.tsx';
+import ManagerDashboard from '@/_Manager/ManagerDashboard.tsx';
+import AuthenticationGuard from '@/components/_AuthenticationGuard.tsx';
+// import EmailActionHandler from '@/_Manager/EmailActionHandler.tsx';
+// import EmailActionConfirmation from '@/_Manager/EmailActionConfirmation.tsx';
 
 function App() {
   return (
@@ -152,12 +152,19 @@ function App() {
             </AuthenticationGuard>
           }
         />
-        <Route
+
+        {/* <Route
           path={RoutePaths.EMAIL_ACTION_CONFIRMATION}
           element={
             <EmailActionConfirmation />
           }
         />
+        <Route
+          path={RoutePaths.EMAIL_ACTION_HANDLER}
+          element={
+            <EmailActionHandler />
+          }
+        /> */}
 
         {/* Shared routes for both Admin and Manager */}
         <Route

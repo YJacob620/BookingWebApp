@@ -22,6 +22,25 @@ const BookingManagement: React.FC = () => {
     const [message, setMessage] = useState<Message | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+    // Check for refresh flag from email action completion
+    useEffect(() => {
+        const shouldRefresh = sessionStorage.getItem('refreshBookingData');
+        if (shouldRefresh === 'true') {
+            // Clear the flag
+            sessionStorage.removeItem('refreshBookingData');
+            // Trigger a refresh once an infrastructure is selected
+            if (selectedInfrastructure) {
+                setRefreshTrigger(prev => prev + 1);
+                // Show a success message
+                setMessage({
+                    type: 'success',
+                    text: 'Booking status updated successfully via email action'
+                });
+                setTimeout(() => setMessage(null), 5000);
+            }
+        }
+    }, [selectedInfrastructure]);
+
     // Fetch all booking entries when infrastructure is selected or refresh is triggered
     useEffect(() => {
         if (selectedInfrastructure) {

@@ -33,3 +33,4 @@ export const getManagerBookingsPath = (infrastructureId: number) =>
     MANAGER_BOOKINGS.replace(':infrastructureId', infrastructureId.toString());
 
 export const EMAIL_ACTION_CONFIRMATION = '/email-action-confirmation';
+export const EMAIL_ACTION_HANDLER = '/email-action/:action/:token';

@@ -447,3 +447,15 @@ export const updateEmailPreferences = async (enabled: boolean) => {
     body: JSON.stringify({ email_notifications: enabled }),
   });
 };
+
+/**
+ * Process an email action (approve/reject) from an email link
+ * @param action - The action to perform ('approve' or 'reject')
+ * @param token - The secure token from the email link
+ * @returns Promise with action result
+ */
+export const processEmailAction = async (action: string, token: string) => {
+  return apiRequest(`/email-actions/${action}/${token}`, {
+    method: 'GET'
+  });
+};
