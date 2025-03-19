@@ -130,10 +130,10 @@ const sendBookingNotifications = async (booking, infrastructure, managers, secur
  * @param {Object} booking - Booking details
  * @param {Object} infrastructure - Infrastructure details
  * @param {Array} managers - List of infrastructure managers
- * @param {string} secureToken - Token for action links
+ * @param {string} actionToken - Token for action links
  * @returns {Promise} - Nodemailer response
  */
-const sendBookingRequestNotificationToManagers = async (booking, infrastructure, managers, secureToken) => {
+const sendBookingRequestNotificationToManagers = async (booking, infrastructure, managers, actionToken) => {
     // Get user details
     const [users] = await pool.execute('SELECT name, email FROM users WHERE email = ?', [booking.user_email]);
     const user = users[0] || { name: 'User', email: booking.user_email };
@@ -146,8 +146,8 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
     }
 
     // Create backend API routes for the email actions
-    const approveUrl = `${process.env.SERVER_URL}/api/email-action/approve/${secureToken}`;
-    const rejectUrl = `${process.env.SERVER_URL}/api/email-action/reject/${secureToken}`;
+    const approveUrl = `${process.env.BACKEND_URL}/api/email-action/approve/${actionToken}`;
+    const rejectUrl = `${process.env.BACKEND_URL}/api/email-action/reject/${actionToken}`;
 
     // Send email to each manager individually
     return Promise.all(activeManagers.map(manager => {
@@ -168,7 +168,7 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
                         <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
                     </div>
                     
-                    ${secureToken ? `
+                    ${actionToken ? `
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="${approveUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; font-weight: bold;">Approve Request</a>
                         <a href="${rejectUrl}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reject Request</a>
@@ -348,33 +348,26 @@ const generateICSFile = (booking, infrastructure) => {
 };
 
 /**
- * Generate a secure token for email actions
+ * Generate a secure token for email actions. Returns null on errors.
  * @param {Object} booking - The booking object
- * @param {string} action - The action type ('approve' or 'reject')
- * @param {Object} connection - Optional database connection for transaction
+ * @param {Object} connection - Database connection (for transaction)
  * @returns {Promise<string>} - The generated token
  */
-const generateSecureActionToken = async (booking, action, connection = null) => {
+const generateSecureActionToken = async (booking, connection) => {
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date();
-    expires.setHours(expires.getHours() + 24); // 24-hour expiry
+    expires.setHours(expires.getHours() + 168); // 1 week (168-hours) expiry
 
     try {
-        // Use the provided connection (for transactions) or the pool directly
-        const db = connection || pool;
-
         // Store token in database
-        await db.execute(
-            'INSERT INTO email_action_tokens (token, booking_id, action, expires) VALUES (?, ?, ?, ?)',
-            [token, booking.id, action, expires]
+        await connection.execute(
+            'INSERT INTO email_action_tokens (token, booking_id, expires) VALUES (?, ?, ?)',
+            [token, booking.id, expires]
         );
-
         return token;
     } catch (error) {
         console.error('Error generating secure action token:', error);
-        // Return a fallback token if there's an error
-        // This allows the process to continue even if token storage fails
-        return `${action}_${booking.id}_${Date.now()}`;
+        return null;
     }
 };
 
@@ -383,8 +376,7 @@ module.exports = {
     sendVerificationEmail,
     sendPasswordResetEmail,
     verifyEmailConfig,
-    sendBookingRequestNotification: sendBookingRequestNotificationToManagers, // For backward compatibility
-    sendBookingNotifications, // New wrapper function
+    sendBookingNotifications,
     sendBookingRequestNotificationToManagers,
     sendBookingRequestConfirmationToUser,
     sendBookingStatusUpdate,

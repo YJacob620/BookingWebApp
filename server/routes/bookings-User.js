@@ -251,34 +251,33 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
         );
 
         // Generate token for email actions
-        let approveToken = null;
-        if (typeof emailService.generateSecureActionToken === 'function') {
-            try {
-                // Pass the connection for transaction consistency
-                approveToken = await emailService.generateSecureActionToken(booking, 'approve', connection);
-            } catch (tokenError) {
-                console.warn('Failed to generate action token:', tokenError);
-                // Continue with the process even if token generation fails
-            }
+        let actionToken = null;
+        try {
+            actionToken = await emailService.generateSecureActionToken(booking, connection);
+        } catch (tokenError) {
+            console.warn('Failed to generate action token:', tokenError);
+            // Continue with the process even if token generation fails
         }
 
-        // Commit the transaction BEFORE sending emails
-        // This reduces the transaction time significantly
-        await connection.commit();
+        await connection.commit(); // Commit the transaction BEFORE sending emails to reduce the transaction time
 
         // Send notifications to both managers and user
-        if (infrastructures.length > 0 && managers.length > 0 &&
-            typeof emailService.sendBookingNotifications === 'function') {
-            try {
-                await emailService.sendBookingNotifications(
-                    booking,
-                    infrastructures[0],
-                    managers,
-                    approveToken
-                );
-            } catch (emailError) {
-                console.error('Failed to send notification emails:', emailError);
-                // Don't let email failures affect the API response
+        // Continue with the API response even on errors.
+        if (infrastructures.length > 0 && managers.length > 0) {
+            if (!actionToken) {
+                console.error("Notification-emails won't be sent because there is no action token");
+            }
+            else {
+                try {
+                    await emailService.sendBookingNotifications(
+                        booking,
+                        infrastructures[0],
+                        managers,
+                        actionToken
+                    );
+                } catch (emailError) {
+                    console.error('Failed to send notification emails:', emailError);
+                }
             }
         }
 
