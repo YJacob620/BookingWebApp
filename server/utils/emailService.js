@@ -154,6 +154,9 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
     const approveUrl = `${process.env.FRONTEND_URL}/email-action/approve/${actionToken}`;
     const rejectUrl = `${process.env.FRONTEND_URL}/email-action/reject/${actionToken}`;
 
+    // Generate calendar file for the pending booking request
+    const icsAttachment = generateICSFile(booking, infrastructure, user);
+
     // Send email to each manager individually
     return Promise.all(activeManagers.map(manager => {
         const mailOptions = {
@@ -180,6 +183,8 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
                     </div>
                     ` : ''}
                     
+                    <p>A calendar invitation for this pending request has been attached to this email. You can add it to your calendar application to keep track of it while you consider approval.</p>
+                    
                     <p>You can also log in to the system to manage this request and view all the details.</p>
                     <p>Best regards,<br>Scientific Infrastructure Team</p>
                     
@@ -187,7 +192,14 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
                         If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${manager.email}">unsubscribe</a>.
                     </p>
                 </div>
-            `
+            `,
+            attachments: [
+                {
+                    filename: 'pending_booking_request.ics',
+                    content: icsAttachment,
+                    contentType: 'text/calendar'
+                }
+            ]
         };
 
         return transporter.sendMail(mailOptions);
@@ -240,7 +252,7 @@ const sendBookingRequestConfirmationToUser = async (booking, infrastructure) => 
     return transporter.sendMail(mailOptions);
 };
 
-// Send booking status update notification to user with calendar invite
+// Send booking status update notification to user with calendar invite (asynchronously)
 const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
     // Immediately return a promise that resolves
     return new Promise((resolve) => {
@@ -332,7 +344,7 @@ const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
 };
 
 // Generate an ICS file for calendar invites
-const generateICSFile = (booking, infrastructure) => {
+const generateICSFile = (booking, infrastructure, user = null) => {
     const cal = ical({ name: 'Scientific Infrastructure Booking' });
 
     // Parse date and times
@@ -346,14 +358,20 @@ const generateICSFile = (booking, infrastructure) => {
     const endDate = new Date(bookingDate);
     endDate.setHours(endHour, endMinute, 0);
 
+    // Create a more descriptive summary if we have user info
+    const summary = user
+        ? `Pending Request: ${infrastructure.name} - ${user.name}`
+        : `Booking: ${infrastructure.name}`;
+
     // Add event to calendar
     cal.createEvent({
         start: startDate,
         end: endDate,
-        summary: `Booking: ${infrastructure.name}`,
-        description: booking.purpose || '',
+        summary: summary,
+        description: (booking.purpose || '') +
+            (booking.status === 'pending' ? '\n\nStatus: Pending Approval' : ''),
         location: infrastructure.location || '',
-        status: 'confirmed',
+        status: booking.status === 'approved' ? 'confirmed' : 'tentative',
     });
 
     return cal.toString();
