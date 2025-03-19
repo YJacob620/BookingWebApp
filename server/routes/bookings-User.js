@@ -20,7 +20,7 @@ router.get('/recent', authenticateToken, async (req, res) => {
              WHERE b.user_email = ?
              AND b.booking_type = 'booking'
              ORDER BY b.booking_date DESC, b.start_time DESC
-             LIMIT 10`,
+             LIMIT 5`,
             [userEmail]
         );
 
