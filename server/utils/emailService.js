@@ -145,9 +145,10 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
         return;
     }
 
-    // The correct URLs for the action routes
-    const approveUrl = `${process.env.FRONTEND_URL}/api/email-actions/approve/${secureToken}`;
-    const rejectUrl = `${process.env.FRONTEND_URL}/api/email-actions/reject/${secureToken}`;
+    // Create frontend routes for the email actions
+    // These routes will be handled by the React application
+    const approveUrl = `${process.env.FRONTEND_URL}/email-action/approve/${secureToken}`;
+    const rejectUrl = `${process.env.FRONTEND_URL}/email-action/reject/${secureToken}`;
 
     // Send email to each manager individually
     return Promise.all(activeManagers.map(manager => {
