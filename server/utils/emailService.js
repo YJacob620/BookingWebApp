@@ -1,6 +1,10 @@
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const pool = require('../config/db');
+const ical = require('ical-generator').default;
+// OR alternatively:
+// const icalGenerator = require('ical-generator');
+// const ical = icalGenerator.default;
 
 // Create a reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
@@ -317,7 +321,6 @@ const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
 
 // Generate an ICS file for calendar invites
 const generateICSFile = (booking, infrastructure) => {
-    const ical = require('ical-generator');
     const cal = ical({ name: 'Scientific Infrastructure Booking' });
 
     // Parse date and times
