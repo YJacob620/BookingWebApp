@@ -6,6 +6,8 @@ const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const { upload } = require('../middleware/fileUploadMiddleware');
 const emailService = require('../utils/emailService');
+const path = require('path');
+
 
 // Get recent bookings for the current user
 router.get('/recent', authenticateToken, async (req, res) => {
@@ -410,6 +412,66 @@ router.get('/:infrastructureId/available-timeslots', authenticateToken, async (r
     } catch (err) {
         console.error('Database error:', err);
         res.status(500).json({ message: 'Error fetching available timeslots' });
+    }
+});
+
+// Get booking details including filter question answers (for the user's own booking)
+router.get('/:id/details', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userEmail = req.user.email;
+
+        // Get booking details and verify it belongs to the user
+        const [bookings] = await pool.execute(
+            `SELECT b.*, 
+              i.name as infrastructure_name, 
+              i.location as infrastructure_location
+       FROM bookings b
+       JOIN infrastructures i ON b.infrastructure_id = i.id
+       WHERE b.id = ? AND b.user_email = ?`,
+            [id, userEmail]
+        );
+
+        if (bookings.length === 0) {
+            return res.status(404).json({ message: 'Booking not found or unauthorized' });
+        }
+
+        const booking = bookings[0];
+
+        // Get filter questions and answers
+        const [answers] = await pool.execute(
+            `SELECT 
+          q.id as question_id,
+          q.question_text,
+          q.question_type,
+          a.answer_text,
+          a.document_path
+       FROM infrastructure_questions q
+       LEFT JOIN booking_answers a ON q.id = a.question_id AND a.booking_id = ?
+       WHERE q.infrastructure_id = ?
+       ORDER BY q.display_order`,
+            [id, booking.infrastructure_id]
+        );
+
+        // Format document paths into URLs if present
+        const formattedAnswers = answers.map(answer => {
+            if (answer.document_path) {
+                // Convert file system path to URL path
+                const relativePath = path.relative(path.join(__dirname, '..', 'uploads'), answer.document_path);
+                answer.document_url = `/uploads/${relativePath.replace(/\\/g, '/')}`;
+            }
+            return answer;
+        });
+
+        // Return booking with answers
+        res.json({
+            booking,
+            answers: formattedAnswers
+        });
+
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ message: 'Error fetching booking details' });
     }
 });
 

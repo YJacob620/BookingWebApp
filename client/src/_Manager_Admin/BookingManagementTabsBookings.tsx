@@ -8,8 +8,11 @@ import {
   Check,
   X,
   CalendarX,
+  FileText
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+import BookingDetailsDialog from '@/components/_BookingDetailsDialog'; // Add this import
 
 import {
   formatDate,
@@ -23,7 +26,6 @@ import {
 } from '@/_utils';
 import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
-import TruncatedTextCell from '@/components/_TruncatedTextCell';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
 interface BookingListProps {
@@ -41,7 +43,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   onError,
   onDataChange
 }) => {
-  // State for bookings and filters
+  // Main state
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<BookingEntry[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -49,6 +51,11 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
+
+  // New state for booking details dialog
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+
 
   // Generate status filter options from booking statuses
   const statusFilterOptions = useMemo(() => {
@@ -117,7 +124,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
   const handleRejectBooking = async (bookingId: number) => {
     try {
-      if (!confirm('Are you sure you want to reject this booking? This will automatically create a new timeslot at the same time.')) {
+      if (!confirm('Are you sure you want to reject this booking?'
+        + 'This will automatically create a new available timeslot at the same time.')) {
         return;
       }
 
@@ -166,7 +174,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       key: 'booking_date',
       header: 'Date',
       cell: (booking: BookingEntry) => (
-        <TableCell className="text-center">
+        <TableCell>
           {formatDate(booking.booking_date)}
         </TableCell>
       ),
@@ -181,25 +189,32 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           {formatTimeString(booking.start_time)} - {formatTimeString(booking.end_time)}
         </TableCell>
       ),
-      className: 'text-center'
     },
     {
-      key: 'purpose',
-      header: 'Purpose',
+      key: 'details',
+      header: 'Details',
       cell: (booking: BookingEntry) => (
-        <TruncatedTextCell
-          text={booking.purpose}
-          maxLength={30}
-          cellClassName="text-center"
-        />
+        <TableCell>
+          <Button
+            size="sm"
+            variant="custom1"
+            onClick={() => {
+              setSelectedBookingId(booking.id);
+              setIsDetailsDialogOpen(true);
+            }}
+          >
+            <FileText className="h-4 w-4 mr-1" />
+            View
+          </Button>
+        </TableCell>
       ),
-      className: 'text-center'
+      className: 'justify-center'
     },
     {
       key: 'status',
       header: 'Status',
       cell: (booking: BookingEntry) => (
-        <TableCell className="text-center">
+        <TableCell>
           <Badge className={getStatusColor(booking.status)}>
             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
           </Badge>
@@ -212,27 +227,26 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       key: 'actions',
       header: 'Actions',
       cell: (booking: BookingEntry) => (
-        <TableCell className="text-center">
+        <TableCell>
           {(() => {
             switch (booking.status) {
               case 'pending':
                 return (
                   <div className="flex justify-center space-x-2">
                     <Button
+                      variant={"custom3_approve"}
                       size="sm"
-                      variant="default"
-                      className="bg-green-700"
                       onClick={() => handleApproveBooking(booking.id)}
                     >
-                      <Check className="mr-1 h-4 w-4" />
+                      <Check className="h-4 w-4" />
                       Approve
                     </Button>
                     <Button
+                      variant={"custom4_reject"}
                       size="sm"
-                      className="bg-red-600"
                       onClick={() => handleRejectBooking(booking.id)}
                     >
-                      <X className="mr-1 h-4 w-4" />
+                      <X className="h-4 w-4" />
                       Reject
                     </Button>
                   </div>
@@ -241,6 +255,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                 return (
                   <Button
                     size="sm"
+                    variant={"custom2"}
                     className="discard"
                     onClick={() => handleCancelBooking(booking.id)}
                   >
@@ -317,6 +332,11 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                 </div>
               ) : null
             }
+          />
+          <BookingDetailsDialog
+            bookingId={selectedBookingId}
+            isOpen={isDetailsDialogOpen}
+            onClose={() => setIsDetailsDialogOpen(false)}
           />
         </div>
       )}

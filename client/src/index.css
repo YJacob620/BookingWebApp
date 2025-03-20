@@ -200,6 +200,10 @@ textarea:hover {
   @apply text-blue-400 hover:underline;
 }
 
+.underlined-title {
+  @apply text-lg font-medium underline underline-offset-5 flex justify-center;
+}
+
 @layer base {
   * {
     @apply border-gray-400;

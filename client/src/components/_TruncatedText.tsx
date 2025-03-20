@@ -78,7 +78,7 @@ const TruncatedText: React.FC<TruncatedTextProps> = ({
       <Popover>
         <PopoverTrigger asChild>
           <div
-            className={`overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer hover:text-blue-500 ${className}`}
+            className={`w-full cursor-pointer hover:text-blue-500 ${className}`}
             title={showTooltip ? "Click to view full text" : undefined}
           >
             {content.substring(0, maxLength) + "..."}

@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Search, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-// Import the integrated PaginatedTable component
 import PaginatedTable from '@/components/_PaginatedTable';
 import { TableCell } from "@/components/ui/table";
+import BookingDetailsDialog from '@/components/_BookingDetailsDialog'; // Add this import
 
-// Import types and utilities from shared files
 import {
   formatDate,
   formatTimeString,
@@ -23,20 +22,22 @@ import {
 } from '@/_utils';
 import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
-import TruncatedTextCell from '@/components/_TruncatedTextCell';
 import BasePageLayout from '@/components/_BasePageLayout';
 
 const BookingHistory = () => {
+  // Existing state
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<Message | null>(null);
-
-  // Multi-select filters instead of single dropdown values
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // New state for booking details dialog
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   // Generate status filter options dynamically from booking statuses
   const statusFilterOptions = useMemo(() => {
@@ -142,7 +143,6 @@ const BookingHistory = () => {
           {formatDate(booking.booking_date)}
         </TableCell>
       ),
-      className: 'text-center'
     },
     {
       key: 'time',
@@ -152,7 +152,6 @@ const BookingHistory = () => {
           {formatTimeString(booking.start_time)} - {formatTimeString(booking.end_time)}
         </TableCell>
       ),
-      className: 'text-center'
     },
     {
       key: 'location',
@@ -162,7 +161,25 @@ const BookingHistory = () => {
           {booking.infrastructure_location || 'N/A'}
         </TableCell>
       ),
-      className: 'text-center'
+    },
+    {
+      key: 'details',
+      header: 'Details',
+      cell: (booking: BookingEntry) => (
+        <TableCell className="text-center">
+          <Button
+            size="sm"
+            variant="custom1"
+            onClick={() => {
+              setSelectedBookingId(booking.id);
+              setIsDetailsDialogOpen(true);
+            }}
+          >
+            <FileText className="h-4 w-4 mr-1" />
+            View
+          </Button>
+        </TableCell>
+      ),
     },
     {
       key: 'status',
@@ -174,19 +191,6 @@ const BookingHistory = () => {
           </Badge>
         </TableCell>
       ),
-      className: 'text-center'
-    },
-    {
-      key: 'purpose',
-      header: 'Purpose',
-      cell: (booking: BookingEntry) => (
-        <TruncatedTextCell
-          text={booking.purpose}
-          maxLength={30}
-          cellClassName="text-center"
-        />
-      ),
-      className: 'text-center'
     },
     {
       key: 'actions',
@@ -199,8 +203,9 @@ const BookingHistory = () => {
               <>
                 <Button
                   size="sm"
+                  variant={"custom2"}
                   onClick={() => handleCancelBooking(booking.id, booking.status)}
-                  className="discard h-7"
+                  className="discard"
                   disabled={isWithin24h}
                   title={isWithin24h ? "Cannot cancel bookings within 24 hours" : "Cancel this booking"}
                 >
@@ -217,7 +222,6 @@ const BookingHistory = () => {
           })()}
         </TableCell>
       ),
-      className: 'text-center'
     }
   ];
 
@@ -295,6 +299,11 @@ const BookingHistory = () => {
           />
         </CardContent>
       </Card>
+      <BookingDetailsDialog
+        bookingId={selectedBookingId}
+        isOpen={isDetailsDialogOpen}
+        onClose={() => setIsDetailsDialogOpen(false)}
+      />
     </BasePageLayout>
   );
 };

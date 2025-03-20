@@ -7,7 +7,8 @@ import {
   FilterQuestionData,
   BookingEntry,
   Infrastructure,
-  User
+  User,
+  BookingDetails
 } from './types';
 
 /**
@@ -484,4 +485,21 @@ export const unsubscribeEmailAction = async (email: string) => {
   } catch (error) {
     throw error;
   }
+};
+
+/**
+ * Fetch booking details including filter question answers
+ * @param bookingId - ID of the booking
+ * @returns Promise with booking details and answers
+ */
+export const fetchBookingDetails = async (bookingId: number): Promise<BookingDetails> => {
+  const user = getLocalUser();
+  const isAdminOrManager = user.role === 'admin' || user.role === 'manager';
+
+  // Use the appropriate endpoint based on user role
+  const endpoint = isAdminOrManager
+    ? `/bookings/manager-admin/${bookingId}/details`
+    : `/bookings/user/${bookingId}/details`;
+
+  return apiRequest(endpoint);
 };

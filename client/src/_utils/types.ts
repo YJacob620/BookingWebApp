@@ -89,3 +89,17 @@ export interface FilterQuestionData {
  * Answer to an infrastructure filter-question
  */
 export type FilterQuestionAnswer = string | number | File | null;
+
+export interface BookingAnswer {
+  question_id: number;
+  question_text: string;
+  question_type: string;
+  answer_text: string | null;
+  document_path: string | null;
+  document_url?: string;
+}
+
+export interface BookingDetails {
+  booking: BookingEntry;
+  answers: BookingAnswer[];
+}
