@@ -85,15 +85,12 @@ export interface FilterQuestionData {
   display_order: number;
 }
 
-/**
- * Answer to an infrastructure filter-question
- */
-export type FilterQuestionAnswer = string | number | File | null;
+export type FilterQuestionsAnswersType = string | number | File | null;
 
 export interface BookingAnswer {
   question_id: number;
   question_text: string;
-  question_type: string;
+  question_type: 'dropdown' | 'text' | 'number' | 'document';
   answer_text: string | null;
   document_path: string | null;
   document_url?: string;

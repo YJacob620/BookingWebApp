@@ -14,6 +14,7 @@ const userManagementRoutes_Admin = require('./routes/userManagement-Admin');
 const preferencesRoutes_User_Manager = require('./routes/preferences-User-Manager');
 const emailService = require('./utils/emailService');
 const emailActionsRoutes = require('./routes/emailActions-Manager');
+const fileDownloadRoutes = require('./routes/fileDownloadRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -60,6 +61,7 @@ app.use('/api/infrastructures/manager', infrastructuresRoutes_Manager);
 app.use('/api/infrastructures/user', infrastructuresRoutes_User);
 app.use('/api/bookings/manager-admin', bookingRoutes_Manager_Admin);
 app.use('/api/bookings/user', bookingRoutes_User);
+app.use('/api/bookings', fileDownloadRoutes);
 app.use('/api/user_management', userManagementRoutes_Admin);
 app.use('/api/preferences/user-manager', preferencesRoutes_User_Manager);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

@@ -280,11 +280,18 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
                     // Extract question ID from field name (format: file_123)
                     if (fieldName.startsWith('file_')) {
                         const questionId = fieldName.replace('file_', '');
+
+                        // Store information about the uploaded file with its original name
+                        const originalFilename = file.originalname;
+
                         answersObj[questionId] = {
                             type: 'file',
                             filePath: file.path,
-                            originalName: file.originalname
+                            originalName: originalFilename
                         };
+
+                        // Log the file information for debugging
+                        console.log(`File uploaded for question ${questionId}: ${originalFilename} -> ${file.path}`);
                     }
                 }
             }
@@ -305,11 +312,14 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
 
                 // Save answer to database
                 if (answerText !== null || documentPath !== null) {
+                    // Store the original filename in answer_text for file uploads
+                    const finalAnswerText = documentPath ? path.basename(answerData.originalName || 'Uploaded file') : answerText;
+
                     await connection.execute(
                         `INSERT INTO booking_answers 
                          (booking_id, question_id, answer_text, document_path) 
                          VALUES (?, ?, ?, ?)`,
-                        [timeslot_id, questionId, answerText, documentPath]
+                        [timeslot_id, questionId, finalAnswerText, documentPath]
                     );
                 }
             }

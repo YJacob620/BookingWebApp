@@ -28,14 +28,14 @@ import {
   bookTimeslotWithAnswers,
   fetchInfrastructureQuestions,
   FilterQuestionData,
-  FilterQuestionAnswer,
+  FilterQuestionsAnswersType,
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
 import { Input } from '@/components/ui/input';
 import BasePageLayout from '@/components/_BasePageLayout';
 import InfrastructureSelector from '@/components/_InfrastructureSelector';
 
-type UserAnswersMap = Record<number, FilterQuestionAnswer>;
+type UserAnswersMap = Record<number, FilterQuestionsAnswersType>;
 
 const BookTimeslot = () => {
   const navigate = useNavigate();

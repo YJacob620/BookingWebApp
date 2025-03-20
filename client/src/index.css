@@ -201,7 +201,7 @@ textarea:hover {
 }
 
 .underlined-title {
-  @apply text-lg font-medium underline underline-offset-5 flex justify-center;
+  @apply text-2xl font-medium underline underline-offset-5;
 }
 
 @layer base {

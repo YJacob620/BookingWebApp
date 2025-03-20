@@ -488,10 +488,18 @@ export const unsubscribeEmailAction = async (email: string) => {
 };
 
 /**
- * Fetch booking details including filter question answers
- * @param bookingId - ID of the booking
- * @returns Promise with booking details and answers
+ * Get the URL for downloading a document file
+ * This constructs a URL to the secure file download endpoint
+ * 
+ * @param bookingId - ID of the booking that contains the file
+ * @param questionId - ID of the question the file answers
+ * @returns Full URL to the file download endpoint
  */
+export const getDocumentDownloadUrl = (bookingId: number, questionId: number): string => {
+  return `${API_BASE_URL}/bookings/download/${bookingId}/${questionId}`;
+};
+
+// Then update the fetchBookingDetails function to include document URLs
 export const fetchBookingDetails = async (bookingId: number): Promise<BookingDetails> => {
   const user = getLocalUser();
   const isAdminOrManager = user.role === 'admin' || user.role === 'manager';
@@ -501,5 +509,18 @@ export const fetchBookingDetails = async (bookingId: number): Promise<BookingDet
     ? `/bookings/manager-admin/${bookingId}/details`
     : `/bookings/user/${bookingId}/details`;
 
-  return apiRequest(endpoint);
+  const data = await apiRequest<BookingDetails>(endpoint);
+
+  // Ensure document_url is set for all answers with document_path
+  if (data.answers) {
+    data.answers = data.answers.map(answer => {
+      if (answer.document_path && !answer.document_url) {
+        // Set a download URL that will be handled by our secure endpoint
+        answer.document_url = getDocumentDownloadUrl(bookingId, answer.question_id);
+      }
+      return answer;
+    });
+  }
+
+  return data;
 };

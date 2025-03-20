@@ -3,6 +3,7 @@ import {
     Dialog,
     DialogContent,
     DialogFooter,
+    DialogHeader,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ import {
     calculateDuration
 } from '@/_utils';
 import TruncatedText from '@/components/_TruncatedText';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 interface BookingDetailsDialogProps {
     bookingId: number | null;
@@ -76,7 +78,13 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className={className + " !max-w-2xl overflow-y-auto max-h-[90vh]"}>
+            <DialogContent
+                className={className + " !max-w-2xl overflow-y-scroll max-h-[90vh] card1 "}
+                aria-describedby={undefined}
+            >
+                <DialogHeader>
+                    <DialogTitle className='text-center text-3xl font-medium'>Booking Details</DialogTitle>
+                </DialogHeader>
                 {isLoading ? (
                     <div className="py-8 text-center">
                         <Loader className="h-8 w-8 animate-spin mx-auto mb-4" />
@@ -93,8 +101,8 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                 ) : details && details.booking ? (
                     <div className="space-y-6">
                         {/* Booking Summary */}
-                        <div className="space-y-4">
-                            <h3 className="underlined-title">Booking Information</h3>
+                        <div className="space-y-4 pb-5 border-b-4 border-gray-700">
+                            <h3 className="underlined-title">Information</h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-3">
@@ -130,7 +138,6 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                                 </div>
 
                                 <div className="space-y-3">
-
                                     <div className="flex items-center text-sm">
                                         <span className="text-gray-400 mr-2">Status:</span>
                                         <Badge className={getStatusColor(details.booking.status)}>
