@@ -101,7 +101,7 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                 ) : details && details.booking ? (
                     <div className="space-y-6">
                         {/* Booking Summary */}
-                        <div className="space-y-4 pb-5 border-b-4 border-gray-700">
+                        <div className="space-y-4 pb-5">
                             <h3 className="underlined-title">Information</h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,8 +165,10 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
 
                                 <div className="pb-4 space-y-4">
                                     {details.answers.map((answer, index) => (
-                                        <div key={answer.question_id} className={`pb-4 ${index < details.answers.length ? ' border-b border-gray-700/30' : ''}`}>
-                                            <p className="font-medium text-md">{answer.question_text}</p>
+                                        <div
+                                            key={answer.question_id}
+                                            className={`pb-4 ${index < details.answers.length ? ' border-b border-gray-700/60' : ''}`}>
+                                            <p className="font-medium text-lg text-center">{answer.question_text}</p>
 
                                             {answer.question_type === 'document' ? (
                                                 answer.document_url ? (
@@ -183,9 +185,15 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                                                     <span className="text-gray-400 text-sm mt-1">No file uploaded</span>
                                                 )
                                             ) : (
-                                                <p className="text-gray-200 text-sm mt-1">
-                                                    {answer.answer_text || 'No answer provided'}
-                                                </p>
+                                                <TruncatedText
+                                                    text={answer.answer_text}
+                                                    maxLength={100}
+                                                    placeholder="No answer provided"
+                                                    className="text-gray-200 text-sm mt-1"
+                                                    contentClassName="max-w-md"
+                                                    preserveNewlines={true}
+                                                />
+
                                             )}
                                         </div>
                                     ))}

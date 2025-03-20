@@ -57,7 +57,7 @@ const TruncatedText: React.FC<TruncatedTextProps> = ({
 
   // If no content, just display the placeholder
   if (!hasContent) {
-    return <span>{placeholder}</span>;
+    return <span className={className}>{placeholder}</span>;
   }
 
   // If the content is short enough, just display it
