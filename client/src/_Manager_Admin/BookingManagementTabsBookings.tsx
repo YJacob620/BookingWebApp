@@ -62,7 +62,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     selectedBookingStatusFilters,
     selectedBookingDateFilters,
     bookingsSearchQuery,
-    bookingsSortConfig
+    bookingsSortConfig,
+    bookingsDayFilter
   } = filterState;
 
   // New state for booking details dialog
@@ -82,7 +83,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   // Apply filters when bookings, status filter, date filter, or search query changes
   useEffect(() => {
     applyFilters();
-  }, [bookings, selectedBookingStatusFilters, selectedBookingDateFilters, bookingsSearchQuery]);
+  }, [bookings, selectedBookingStatusFilters, selectedBookingDateFilters, bookingsSearchQuery, bookingsDayFilter]);
 
   const applyFilters = () => {
     let filtered = [...bookings];
@@ -92,6 +93,20 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
     // Apply date filters using utility function
     filtered = applyDateFilters(filtered, selectedBookingDateFilters);
+
+    // Apply specific day filter if set
+    if (bookingsDayFilter) {
+      filtered = filtered.filter(booking => {
+        const bookingDate = new Date(booking.booking_date);
+        const filterDate = new Date(bookingsDayFilter);
+
+        return (
+          bookingDate.getFullYear() === filterDate.getFullYear() &&
+          bookingDate.getMonth() === filterDate.getMonth() &&
+          bookingDate.getDate() === filterDate.getDate()
+        );
+      });
+    }
 
     // Apply search query
     if (bookingsSearchQuery) {
@@ -103,6 +118,24 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     }
 
     setFilteredBookings(filtered);
+  };
+
+  // Clear specific day filter
+  const handleClearDateFilter = () => {
+    onFilterStateChange({ bookingsDayFilter: '' });
+  };
+
+  // Handle specific day filter change
+  const handleDateFilterChange = (date: string) => {
+    // Clear predefined date filters if specific date is set
+    if (date) {
+      onFilterStateChange({
+        selectedBookingDateFilters: [],
+        bookingsDayFilter: date
+      });
+    } else {
+      onFilterStateChange({ bookingsDayFilter: date });
+    }
   };
 
   const handleApproveBooking = async (bookingId: number) => {
@@ -282,8 +315,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       </div>
 
       {/* Filter controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="justify-center">
+      <div className="grid grid-cols-2 grid-rows-2 gap-4">
+        <div>
           <p>Search</p>
           <Input
             id="search-bookings"
@@ -292,6 +325,28 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
             onChange={(e) => onFilterStateChange({ bookingsSearchQuery: e.target.value })}
             className='h-10'
           />
+        </div>
+        <div>
+          <p>Filter by Specific Date</p>
+          <div className="flex space-x-2">
+            <Input
+              id="date-filter-input"
+              type="date"
+              value={bookingsDayFilter}
+              onChange={(e) => handleDateFilterChange(e.target.value)}
+              disabled={selectedBookingDateFilters.length > 0}
+              className='h-10'
+            />
+            {bookingsDayFilter && (
+              <Button
+                variant="custom5"
+                onClick={handleClearDateFilter}
+                className="p-2"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
         </div>
 
         <MultiSelectFilter
@@ -311,6 +366,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           onSelectionChange={(values) =>
             onFilterStateChange({ selectedBookingDateFilters: values })}
           placeholder="All Dates"
+          disabled={!!bookingsDayFilter}
+          triggerClassName={bookingsDayFilter ? 'opacity-50' : ''}
         />
       </div>
 

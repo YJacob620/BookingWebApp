@@ -4,7 +4,7 @@ export const DATE_FILTER_OPTIONS = [
     'upcoming',
     'past',
 ] as const;
-type DateFilterOption = (typeof DATE_FILTER_OPTIONS)[number];
+// type DateFilterOption = (typeof DATE_FILTER_OPTIONS)[number];
 
 export interface FilterOption<T> {
     value: T;

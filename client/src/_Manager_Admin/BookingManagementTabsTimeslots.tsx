@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell } from "@/components/ui/table";
 import {
@@ -20,7 +19,6 @@ import {
   applyDateFilters,
   applyStatusFilters,
   createFilterOptions,
-  BOOKING_STATUSES,
   DATE_FILTER_OPTIONS,
   TIMESLOT_STATUSES,
   TimeslotStatus
@@ -113,19 +111,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       });
     } else {
       onFilterStateChange({ timeslotDayFilter: date });
-    }
-  };
-
-  // Handle predefined date filter changes
-  const handlePredefinedDateFiltersChange = (values: string[]) => {
-    // Clear custom date filter if predefined filters are selected
-    if (values.length > 0) {
-      onFilterStateChange({
-        bookingsDayFilter: '',
-        selectedBookingDateFilters: values
-      });
-    } else {
-      onFilterStateChange({ selectedBookingDateFilters: values });
     }
   };
 
@@ -289,7 +274,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       {/* Filter controls - updated with MultiSelectFilter */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-1">
-          <Label>Filter by Specific Date</Label>
+          <p>Filter by Specific Date</p>
           <div className="flex space-x-2">
             <Input
               id="date-filter-input"
@@ -297,6 +282,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
               value={timeslotDayFilter}
               onChange={(e) => handleDateFilterChange(e.target.value)}
               disabled={selectedTimeslotDateFilters.length > 0}
+              className='h-10'
             />
             {timeslotDayFilter && (
               <Button
