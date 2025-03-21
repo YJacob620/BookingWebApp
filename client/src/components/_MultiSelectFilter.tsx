@@ -157,11 +157,6 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                                             id={`filter-${label}-${option.value}`}
                                             checked={isSelected}
                                             className="mr-2 checkbox1 h-4 w-4"
-                                            // Don't add an onCheckedChange handler here to avoid duplicate events
-                                            onClick={(e) => {
-                                                // Stop event propagation to prevent double-triggering
-                                                e.stopPropagation();
-                                            }}
                                         />
                                         {variant === 'badge' && option.color ? (
                                             <div className="flex-1">
