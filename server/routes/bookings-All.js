@@ -161,11 +161,10 @@ router.get('/:id/details', authenticateToken, async (req, res) => {
             [id, booking.infrastructure_id]
         );
 
-        // Format document paths into URLs if present
         const formattedAnswers = answers.map(answer => {
             if (answer.document_path) {
                 // Create URL path for document downloads
-                answer.document_url = `${process.env.BACKEND_URL}/bookings/download-file/${id}/${answer.question_id}`;
+                answer.document_url = `/bookings/download-file/${id}/${answer.question_id}`;
 
                 // Remove the physical path as it shouldn't be exposed to clients
                 delete answer.document_path;

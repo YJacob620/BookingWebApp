@@ -18,6 +18,7 @@ import ManagerDashboard from '@/_Manager/ManagerDashboard.tsx';
 import AuthenticationGuard from '@/components/_AuthenticationGuard.tsx';
 import EmailActionHandler from '@/_Manager/EmailActionHandler.tsx';
 import EmailUnsubscribePage from '@/_User_Manager/EmailUnsubscribePage.tsx';
+import FileDownloadHandler from '@/_All/FileDownloadHandler.tsx';
 
 function App() {
   return (
@@ -172,6 +173,15 @@ function App() {
           element={
             <AuthenticationGuard requiredRoles={['admin', 'manager']}>
               <BookingManagement />
+            </AuthenticationGuard>
+          }
+        />
+
+        <Route
+          path={`${RoutePaths.DOWNLOAD_BOOKINGS_DOC}/:bookingId/:questionId`}
+          element={
+            <AuthenticationGuard requiredRoles={['admin', 'manager', 'faculty', 'student']}>
+              <FileDownloadHandler />
             </AuthenticationGuard>
           }
         />

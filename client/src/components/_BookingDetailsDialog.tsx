@@ -28,6 +28,7 @@ import {
 } from '@/_utils';
 import TruncatedText from '@/components/_TruncatedText';
 import { DialogTitle } from '@radix-ui/react-dialog';
+import { Link } from 'react-router-dom';
 
 interface BookingDetailsDialogProps {
     bookingId: number | null;
@@ -172,15 +173,14 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
 
                                             {answer.question_type === 'document' ? (
                                                 answer.document_url ? (
-                                                    <a
-                                                        href={answer.document_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
+                                                    <Link
+                                                        to={`${answer.document_url}?filename=${encodeURIComponent(answer.answer_text || 'download.pdf')}`}
                                                         className="flex items-center text-blue-400 hover:underline mt-1"
+                                                        target='_blank'
                                                     >
                                                         <Download className="h-4 w-4 mr-1" />
                                                         {answer.answer_text || 'Download file'}
-                                                    </a>
+                                                    </Link>
                                                 ) : (
                                                     <span className="text-gray-400 text-sm mt-1">No file uploaded</span>
                                                 )

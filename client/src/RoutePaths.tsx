@@ -25,6 +25,9 @@ export const MANAGER_BOOKINGS = '/manager-bookings/:infrastructureId';
 export const EMAIL_ACTION_CONFIRMATION = '/email-action-confirmation';
 export const EMAIL_ACTION_HANDLER = '/email-action/:action/:token';
 
+// For-all routes
+export const DOWNLOAD_BOOKINGS_DOC = '/bookings/download-file';
+
 // Helper functions for parameterized routes
 export const getVerifyEmailPath = (token: string) =>
     VERIFY_EMAIL.replace(':token', token);

@@ -496,3 +496,8 @@ export const fetchBookingDetails = async (bookingId: number): Promise<BookingDet
   const data = await apiRequest<BookingDetails>(`/bookings/${bookingId}/details`);
   return data;
 };
+
+export const downloadBookingDocument = async (bookingId: string, questionId: string) => {
+  const data = await apiRequest<void>(`${API_BASE_URL}/bookings/download-file/${bookingId}/${questionId}`);
+  return data;
+};
