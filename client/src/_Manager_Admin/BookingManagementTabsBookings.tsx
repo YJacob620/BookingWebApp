@@ -211,7 +211,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           {formatDate(booking.booking_date)}
         </TableCell>
       ),
-      className: 'text-center',
       sortable: true
     },
     {

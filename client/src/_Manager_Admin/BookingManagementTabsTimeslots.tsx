@@ -185,7 +185,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         </TableCell>
       ),
       className: 'text-center',
-      sortable: true
     },
     {
       key: 'end_time',
@@ -196,7 +195,6 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         </TableCell>
       ),
       className: 'text-center',
-      sortable: true
     },
     {
       key: 'duration',
@@ -271,7 +269,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         </div>
       </div>
 
-      {/* Filter controls - updated with MultiSelectFilter */}
+      {/* Filter controls */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-1">
           <p>Filter by Specific Date</p>
@@ -329,7 +327,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           rowsPerPageOptions={[5, 10, 25, 50]}
           emptyMessage="No timeslots for this infrastructure."
           sortConfig={timeslotsSortConfig}
-          onSortChange={(newSortConfig) => onFilterStateChange({ bookingsSortConfig: newSortConfig })}
+          onSortChange={(newSortConfig) => onFilterStateChange({ timeslotsSortConfig: newSortConfig })}
           noResults={
             timeslots.length > 0 ? (
               <div className="text-gray-400">
