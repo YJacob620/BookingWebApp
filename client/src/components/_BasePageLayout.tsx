@@ -1,9 +1,9 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import BackToDashboardButton from '@/components/_BackToDashboardButton';
 import LogoutButton from '@/components/_LogoutButton';
 import { Message } from '@/_utils';
+import AlertManager from './_AlertManager';
 
 interface BasePageLayoutProps {
   // Content to display
@@ -38,63 +38,70 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
   explanationText,
   className
 }) => {
+  // State to manage alerts
+  const [currentAlert, setCurrentAlert] = useState<Message | null>(alertMessage || null);
+
   // Apply page title if provided
   if (pageTitle && typeof document !== 'undefined') {
     document.title = pageTitle;
   }
 
+  // Update current alert when alertMessage prop changes
+  useEffect(() => {
+    if (alertMessage) {
+      setCurrentAlert(alertMessage);
+    }
+  }, [alertMessage]);
+
+  // Clear the current alert
+  const clearAlert = () => {
+    setCurrentAlert(null);
+  };
+
   return (
-    <Card className={`general-container ${className}`}>
-      <div className="max-w-7xl mx-3">
-        <div
-          className={`grid ${showDashboardButton && showLogoutButton ? 'grid-cols-2' : 'grid-cols-1'}`}
-        >
-          {showDashboardButton && (
-            <div className="flex justify-start mb-7">
-              <BackToDashboardButton />
-            </div>
-          )}
-          {showLogoutButton && (
-            <div className="flex justify-end mb-7">
-              <LogoutButton />
-            </div>
-          )}
-        </div>
+    <>
+      {/* Floating alert manager */}
+      <AlertManager
+        alertMessage={currentAlert}
+        onClearAlert={clearAlert}
+      />
 
-
-        {pageTitle && (
-          <div className="flex justify-center items-center">
-            <h1>{pageTitle}</h1>
-          </div>
-        )}
-
-
-        {explanationText && (
-          <p className="explanation-text1 mt-2">
-            {explanationText}
-          </p>
-        )}
-        <br />
-
-        {alertMessage && (
-          <Alert
-            className={`mb-6 ${alertMessage.type === 'success'
-              ? 'alert-success'
-              : alertMessage.type === 'error'
-                ? 'alert-error'
-                : alertMessage.type === 'warning'
-                  ? 'alert-warning'
-                  : alertMessage.type === 'neutral'
-                    ? 'alert-neutral'
-                    : ''
-              }`}
+      <Card className={`general-container ${className}`}>
+        <div className="max-w-7xl mx-3">
+          <div
+            className={`grid ${showDashboardButton && showLogoutButton ? 'grid-cols-2' : 'grid-cols-1'}`}
           >
-            <AlertDescription className='justify-center'>{alertMessage.text}</AlertDescription>
-          </Alert>
-        )}
-        {children}
-      </div>
-    </Card>
+            {showDashboardButton && (
+              <div className="flex justify-start mb-7">
+                <BackToDashboardButton />
+              </div>
+            )}
+            {showLogoutButton && (
+              <div className="flex justify-end mb-7">
+                <LogoutButton />
+              </div>
+            )}
+          </div>
+
+
+          {pageTitle && (
+            <div className="flex justify-center items-center">
+              <h1>{pageTitle}</h1>
+            </div>
+          )}
+
+
+          {explanationText && (
+            <p className="explanation-text1 mt-2">
+              {explanationText}
+            </p>
+          )}
+          <br />
+
+          {children}
+        </div>
+      </Card>
+    </>
   );
 };
 
