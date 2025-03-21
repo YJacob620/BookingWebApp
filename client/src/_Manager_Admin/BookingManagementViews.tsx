@@ -12,7 +12,7 @@ import {
 
 import BookingManagementViewsCalendar from './BookingManagementViewsCalendar';
 import BookingManagementViewsList from './BookingManagementViewsList';
-import { FilterState } from './BookingManagement';
+import { FilterSortState } from './BookingManagement';
 
 
 const BookingManagementViews = ({
@@ -21,10 +21,10 @@ const BookingManagementViews = ({
   onFilterStateChange
 }: {
   bookingEntries: BookingEntry[];
-  filterState: FilterState;
-  onFilterStateChange: (newState: Partial<FilterState>) => void;
+  filterState: FilterSortState;
+  onFilterStateChange: (newState: Partial<FilterSortState>) => void;
 }) => {
-  const { viewMode, showOnly, viewsDayFilter } = filterState;
+  const { viewsViewMode: viewMode, viewsTypeFilter: showOnly, viewsDayFilter } = filterState;
   const [isLoading, setIsLoading] = useState(true);
 
   // Load data when component mounts or when refreshTrigger changes
@@ -38,7 +38,7 @@ const BookingManagementViews = ({
 
   const handleCalendarDateClick = (date: string) => {
     onFilterStateChange({ viewsDayFilter: date });
-    onFilterStateChange({ viewMode: 'list' });
+    onFilterStateChange({ viewsViewMode: 'list' });
   };
 
   // Filter calendar items based on date and type
@@ -79,7 +79,7 @@ const BookingManagementViews = ({
         <Tabs
           defaultValue={viewMode}
           value={viewMode}
-          onValueChange={(value) => onFilterStateChange({ viewMode: value as 'calendar' | 'list' })}
+          onValueChange={(value) => onFilterStateChange({ viewsViewMode: value as 'calendar' | 'list' })}
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
@@ -97,7 +97,7 @@ const BookingManagementViews = ({
         <Tabs
           defaultValue={showOnly}
           value={showOnly}
-          onValueChange={(value) => onFilterStateChange({ showOnly: value as 'all' | 'timeslots' | 'bookings' })}
+          onValueChange={(value) => onFilterStateChange({ viewsTypeFilter: value as 'all' | 'timeslots' | 'bookings' })}
           className="w-full"
         >
           <TabsList className="w-[calc(100%-10rem)] mx-auto grid grid-cols-3" >

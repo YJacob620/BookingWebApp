@@ -40,6 +40,8 @@ export interface PaginatedTableColumn<T> {
   className?: string;
   /** Whether this column can be sorted (default: false) */
   sortable?: boolean;
+  /** Which direction will this column be sorted by at first */
+  defaultSort?: 'asc' | 'desc';
 }
 
 export interface PaginatedTableProps<T> {
@@ -160,10 +162,18 @@ const PaginatedTable = <T extends object>({
   }, [sortedData, currentPage, rowsPerPage]);
 
   // Handle sorting
-  const handleSort = (key: string) => {
+  const handleSort = (key: string, defaultSortDirection: 'asc' | 'desc' = 'asc') => {
+    let newDirection: 'asc' | 'desc';
+    if (sortConfig?.key === key && sortConfig?.direction === 'asc') {
+      newDirection = 'desc';
+    } else if (sortConfig?.direction === 'desc') {
+      newDirection = 'asc';
+    } else {
+      newDirection = defaultSortDirection;
+    }
     const newSortConfig: SortConfig<T> = {
       key: key as keyof T,
-      direction: sortConfig?.key === key && sortConfig?.direction === 'asc' ? 'desc' : 'asc'
+      direction: newDirection
     };
 
     // If external sort handler is provided, call it
@@ -227,7 +237,7 @@ const PaginatedTable = <T extends object>({
                   <TableHead
                     key={`${column.key}-${index}`}
                     className={column.className}
-                    onClick={isSortable ? () => handleSort(column.key) : undefined}
+                    onClick={isSortable ? () => handleSort(column.key, column.defaultSort) : undefined}
                     style={isSortable ? { cursor: 'pointer' } : undefined}
                   >
                     <div className="flex items-center justify-center">

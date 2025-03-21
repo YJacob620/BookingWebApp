@@ -18,12 +18,16 @@ import {
     TimeslotStatus
 } from '@/_utils';
 
-// Define a type for the preserved filter states
-export interface FilterState {
+/**
+ * Interface for concentrating all of the information about the current filtering 
+ * and sorting state of the Booking Management page.
+ */
+export interface FilterSortState {
     // BookingManagementViews
-    viewMode: 'calendar' | 'list';
-    showOnly: 'all' | 'timeslots' | 'bookings';
+    viewsViewMode: 'calendar' | 'list';
+    viewsTypeFilter: 'all' | 'timeslots' | 'bookings';
     viewsDayFilter: string,
+
     // BookingManagementTabs
     activeTab: string;
 
@@ -41,9 +45,9 @@ export interface FilterState {
 }
 
 // Default filter state
-const defaultFilterState: FilterState = {
-    viewMode: 'calendar',
-    showOnly: 'all',
+const defaultFilterState: FilterSortState = {
+    viewsViewMode: 'calendar',
+    viewsTypeFilter: 'all',
     viewsDayFilter: '',
 
     activeTab: 'bookings',
@@ -69,7 +73,7 @@ const BookingManagement: React.FC = () => {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Store filter state for persistence
-    const [filterState, setFilterState] = useState<FilterState>(defaultFilterState);
+    const [filterState, setFilterState] = useState<FilterSortState>(defaultFilterState);
 
     // Ref to store scroll position
     const scrollPositionRef = useRef<number>(0);
@@ -169,7 +173,7 @@ const BookingManagement: React.FC = () => {
     };
 
     // Handler for updating filter state
-    const handleFilterStateChange = (newState: Partial<FilterState>) => {
+    const handleFilterStateChange = (newState: Partial<FilterSortState>) => {
         setFilterState(prevState => ({
             ...prevState,
             ...newState

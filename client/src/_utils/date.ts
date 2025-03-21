@@ -2,7 +2,7 @@
 
 /**
  * Formats a date into a localized date format
- * @param dateString - ISO date string (YYYY-MM-DD)
+ * @param dateString - ISO date string (YYYY-MM-DD) or a Date object
  * @returns Formatted date string
  */
 export const formatDate = (dateString: string | Date): string => {
@@ -13,6 +13,7 @@ export const formatDate = (dateString: string | Date): string => {
     day: 'numeric',
   });
   const weekday = date.toLocaleDateString('en-GB', { weekday: 'long' });
+  // return `${formattedDate} ${weekday}`;
   return `${formattedDate} ${weekday}`;
 };
 

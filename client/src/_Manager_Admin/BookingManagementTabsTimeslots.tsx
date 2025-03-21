@@ -23,7 +23,7 @@ import {
   TIMESLOT_STATUSES,
   TimeslotStatus
 } from '@/_utils';
-import { FilterState } from './BookingManagement';
+import { FilterSortState } from './BookingManagement';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
@@ -33,8 +33,8 @@ interface TimeslotListProps {
   onDelete: (message: string) => void;
   onError: (message: string) => void;
   onDataChange: () => void;
-  filterState: FilterState;
-  onFilterStateChange: (newState: Partial<FilterState>) => void;
+  filterState: FilterSortState;
+  onFilterStateChange: (newState: Partial<FilterSortState>) => void;
 }
 
 const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
@@ -141,23 +141,23 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     {
       key: 'select',
       header: 'Select',
-      cell: (slot: BookingEntry) => (
+      cell: (booking: BookingEntry) => (
         <TableCell>
           <div className="pr-2">
             <Checkbox
-              checked={selectedTimeslots.includes(slot.id)}
+              checked={selectedTimeslots.includes(booking.id)}
               onCheckedChange={(checked) => {
                 if (checked) {
                   onFilterStateChange({
-                    selectedTimeslots: [...selectedTimeslots, slot.id]
+                    selectedTimeslots: [...selectedTimeslots, booking.id]
                   });
                 } else {
                   onFilterStateChange({
-                    selectedTimeslots: selectedTimeslots.filter(id => id !== slot.id)
+                    selectedTimeslots: selectedTimeslots.filter(id => id !== booking.id)
                   });
                 }
               }}
-              disabled={slot.status !== 'available'}
+              disabled={booking.status !== 'available'}
               className="checkbox1 h-5 w-5"
             />
           </div>
@@ -168,57 +168,53 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     {
       key: 'booking_date',
       header: 'Date',
-      cell: (slot: BookingEntry) => (
-        <TableCell className="text-center">
-          {formatDate(slot.booking_date)}
+      cell: (booking: BookingEntry) => (
+        <TableCell>
+          {formatDate(booking.booking_date)}
         </TableCell>
       ),
-      className: 'text-center',
-      sortable: true
+      sortable: true,
+      defaultSort: 'desc'
     },
     {
       key: 'start_time',
       header: 'Start Time',
       cell: (slot: BookingEntry) => (
-        <TableCell className="text-center">
+        <TableCell>
           {formatTimeString(slot.start_time)}
         </TableCell>
       ),
-      className: 'text-center',
     },
     {
       key: 'end_time',
       header: 'End Time',
       cell: (slot: BookingEntry) => (
-        <TableCell className="text-center">
+        <TableCell>
           {formatTimeString(slot.end_time)}
         </TableCell>
       ),
-      className: 'text-center',
     },
     {
       key: 'duration',
       header: 'Duration',
       cell: (slot: BookingEntry) => (
-        <TableCell className="text-center">
+        <TableCell>
           <div className="flex items-center justify-center gap-2">
             {calculateDuration(slot.start_time, slot.end_time)} minutes
           </div>
         </TableCell>
       ),
-      className: 'text-center'
     },
     {
       key: 'status',
       header: 'Status',
       cell: (slot: BookingEntry) => (
-        <TableCell className="text-center">
+        <TableCell>
           <Badge className={getStatusColor(slot.status)}>
             {slot.status.charAt(0).toUpperCase() + slot.status.slice(1)}
           </Badge>
         </TableCell>
       ),
-      className: 'text-center',
       sortable: true
     },
     {

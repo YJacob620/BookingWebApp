@@ -7,7 +7,7 @@ import { RefreshCcw } from "lucide-react";
 import BookingManagementTabsBookings from './BookingManagementTabsBookings';
 import BookingManagementTabsTimeslots from './BookingManagementTabsTimeslots';
 import BookingManagementTabsCreate from './BookingManagementTabsCreate';
-import { FilterState } from './BookingManagement';
+import { FilterSortState } from './BookingManagement';
 
 import {
   BookingEntry,
@@ -22,8 +22,8 @@ interface BookingManagementTabsProps {
   onError: (message: string) => void;
   onUpdatePastBookings: () => Promise<void>;
   onDataChange: () => void;
-  filterState: FilterState;
-  onFilterStateChange: (newState: Partial<FilterState>) => void;
+  filterState: FilterSortState;
+  onFilterStateChange: (newState: Partial<FilterSortState>) => void;
 }
 
 const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({

@@ -31,7 +31,7 @@ import {
 import BookingDetailsDialog from '@/components/_BookingDetailsDialog';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
-import { FilterState } from './BookingManagement';
+import { FilterSortState } from './BookingManagement';
 
 interface BookingListProps {
   items: BookingEntry[];
@@ -39,8 +39,8 @@ interface BookingListProps {
   onStatusChange: (message: string) => void;
   onError: (message: string) => void;
   onDataChange: () => void;
-  filterState: FilterState;
-  onFilterStateChange: (newState: Partial<FilterState>) => void;
+  filterState: FilterSortState;
+  onFilterStateChange: (newState: Partial<FilterSortState>) => void;
 }
 
 const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
@@ -211,7 +211,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           {formatDate(booking.booking_date)}
         </TableCell>
       ),
-      sortable: true
+      sortable: true,
+      defaultSort: 'desc'
     },
     {
       key: 'start_time',
