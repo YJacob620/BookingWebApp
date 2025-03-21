@@ -74,37 +74,32 @@ const authenticateAdminOrManager = (req, res, next) => {
  * @param {Object} rollbackOnFail - Whether to call connection.rollback() on failure
  * @returns {Promise<boolean>} Returns true if access is allowed and continues, false if denied and response sent
  */
-const hasInfrastructureAccess = async (req, res, infrastructureId, connection = pool, rollbackOnFail = false) => {
+const hasInfrastructureAccess = async (
+    req, res, infrastructureId, connection = pool, rollbackOnFail = false, sendResponseOnFalse = true) => {
     // Admins always have access to all infrastructures
     if (req.user.role === 'admin') {
         return true;
     }
-
     try {
         const [rows] = await connection.execute(
             'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
             [req.user.userId, infrastructureId]
         );
-
         if (rows.length > 0) {
             return true;
         }
-
-        // Access denied, handle response
         if (rollbackOnFail && connection !== pool) {
             await connection.rollback();
         }
-
-        const message = 'Forbidden access to infrastructure';
-        res.status(403).json({ message });
+        if (sendResponseOnFalse) {
+            res.status(403).json('Forbidden access to infrastructure');
+        }
         return false;
     } catch (error) {
         console.error('Error checking infrastructure access:', error);
-
         if (rollbackOnFail && connection !== pool) {
             await connection.rollback();
         }
-
         res.status(500).json({ message: 'Failed to check infrastructure access' });
         return false;
     }
