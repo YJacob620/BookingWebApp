@@ -72,6 +72,7 @@ const authenticateAdminOrManager = (req, res, next) => {
  * @param {number} infrastructureId - ID of the infrastructure to check
  * @param {Object} connection - Optional DB connection for transactions
  * @param {Object} rollbackOnFail - Whether to call connection.rollback() on failure
+ * @param {Object} sendResponseOnFalse - Whether to send a response if and before returning false
  * @returns {Promise<boolean>} Returns true if access is allowed and continues, false if denied and response sent
  */
 const hasInfrastructureAccess = async (

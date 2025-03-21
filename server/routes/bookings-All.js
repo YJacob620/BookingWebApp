@@ -34,26 +34,11 @@ router.get('/download-file/:bookingId/:questionId', authenticateToken, async (re
 
         const booking = bookings[0];
 
-        // Check permissions based on role
-        let hasAccess = false;
-
-        if (userRole === 'admin') {
-            // Admins can access any file
-            hasAccess = true;
-        } else if (userRole === 'manager') {
-            // Managers can access files for infrastructures they manage
-            const [managerInfras] = await pool.execute(
-                'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
-                [userId, booking.infrastructure_id]
-            );
-            hasAccess = managerInfras.length > 0;
-        } else {
-            // Regular users can only access their own files
-            hasAccess = booking.user_email === userEmail;
-        }
-
-        if (!hasAccess) {
-            return res.status(403).json({ message: 'Forbidden access' });
+        // Check access to infrastructure
+        if (!hasInfrastructureAccess(req, res, booking.infrastructure_id, null, false, false)) {
+            if (!(booking.user_email === userEmail)) { // Regular users can only access their own files
+                return res.status(403).json({ message: 'Forbidden access' });
+            }
         }
 
         // Get the file details
