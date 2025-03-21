@@ -24,10 +24,8 @@ const BookingManagementViews = ({
   filterState: FilterState;
   onFilterStateChange: (newState: Partial<FilterState>) => void;
 }) => {
-  // Use filter state from parent instead of local state
-  const { viewMode, showOnly } = filterState;
+  const { viewMode, showOnly, viewsDayFilter } = filterState;
   const [isLoading, setIsLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState<string>('');
 
   // Load data when component mounts or when refreshTrigger changes
   useEffect(() => {
@@ -39,7 +37,7 @@ const BookingManagementViews = ({
   }, [bookingEntries]);
 
   const handleCalendarDateClick = (date: string) => {
-    onFilterStateChange({ bookingsDayFilter: date });
+    onFilterStateChange({ viewsDayFilter: date });
     onFilterStateChange({ viewMode: 'list' });
   };
 
@@ -47,9 +45,9 @@ const BookingManagementViews = ({
   const filteredItems = useMemo(() => {
     return bookingEntries.filter(item => {
       let dateMatches = true;
-      if (dateFilter) {
+      if (viewsDayFilter) {
         const itemDate = new Date(item.booking_date);
-        const filterDate = new Date(dateFilter);
+        const filterDate = new Date(viewsDayFilter);
 
         dateMatches = (
           itemDate.getFullYear() === filterDate.getFullYear() &&
@@ -66,11 +64,11 @@ const BookingManagementViews = ({
 
       return dateMatches && typeMatches;
     });
-  }, [dateFilter, showOnly, bookingEntries]);
+  }, [viewsDayFilter, showOnly, bookingEntries]);
 
   // Clear date filter
   const handleClearDateFilter = () => {
-    onFilterStateChange({ bookingsDayFilter: '' });
+    onFilterStateChange({ viewsDayFilter: '' });
   };
 
   return (
@@ -124,16 +122,17 @@ const BookingManagementViews = ({
               <Input
                 id="dateFilter"
                 type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
+                value={viewsDayFilter}
+                onChange={(e) => onFilterStateChange({ viewsDayFilter: e.target.value })}
                 className="w-auto"
               />
-              {dateFilter && (
+              {viewsDayFilter && (
                 <Button
+                  variant={"custom5"}
+                  className="px-2 py-1 text-md"
                   onClick={handleClearDateFilter}
-                  size="sm"
                 >
-                  Clear Filter
+                  Clear
                 </Button>
               )}
             </div>
@@ -150,7 +149,7 @@ const BookingManagementViews = ({
             <BookingManagementViewsCalendar
               bookingEntries={bookingEntries}
               showOnly={showOnly}
-              dateFilter={dateFilter}
+              dateFilter={viewsDayFilter}
               onDateClick={handleCalendarDateClick}
             />
           ) : (

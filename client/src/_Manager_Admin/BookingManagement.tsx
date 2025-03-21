@@ -23,7 +23,7 @@ export interface FilterState {
     // BookingManagementViews
     viewMode: 'calendar' | 'list';
     showOnly: 'all' | 'timeslots' | 'bookings';
-
+    viewsDayFilter: string,
     // BookingManagementTabs
     activeTab: string;
 
@@ -44,6 +44,7 @@ export interface FilterState {
 const defaultFilterState: FilterState = {
     viewMode: 'calendar',
     showOnly: 'all',
+    viewsDayFilter: '',
 
     activeTab: 'bookings',
 

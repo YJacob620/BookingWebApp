@@ -101,18 +101,18 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
 
   // Clear custom date filter and update date filters
   const handleClearDateFilter = () => {
-    onFilterStateChange({ bookingsDayFilter: '' });
+    onFilterStateChange({ timeslotDayFilter: '' });
   };
 
   const handleDateFilterChange = (date: string) => {
     // Clear predefined date filters if custom date is set
     if (date) {
       onFilterStateChange({
-        selectedBookingDateFilters: [],
-        bookingsDayFilter: date
+        selectedTimeslotDateFilters: [],
+        timeslotDayFilter: date
       });
     } else {
-      onFilterStateChange({ bookingsDayFilter: date });
+      onFilterStateChange({ timeslotDayFilter: date });
     }
   };
 
