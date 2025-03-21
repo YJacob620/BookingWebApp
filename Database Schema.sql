@@ -299,11 +299,6 @@ DROP PROCEDURE IF EXISTS update_past_statuses;
 DELIMITER //
 CREATE PROCEDURE update_past_statuses()
 BEGIN
-    -- Declare variables to track counts
-    DECLARE completed_count INT DEFAULT 0;
-    DECLARE expired_count INT DEFAULT 0;
-    DECLARE expired_timeslots_count INT DEFAULT 0;
-    
     -- Start transaction for consistency
     START TRANSACTION;
     
@@ -314,16 +309,12 @@ BEGIN
     AND booking_type = 'booking'
     AND CONCAT(booking_date, ' ', end_time) < NOW();
     
-    SET completed_count = ROW_COUNT();
-    
     -- Update pending bookings to expired
     UPDATE bookings 
 	SET status = 'expired' 
 	WHERE status = 'pending' 
 	AND booking_type = 'booking'
 	AND CONCAT(booking_date, ' ', start_time) < NOW();
-    
-    SET expired_count = ROW_COUNT();
     
     -- Update available timeslots to expired
     UPDATE bookings 
@@ -332,15 +323,8 @@ BEGIN
     AND booking_type = 'timeslot'
     AND CONCAT(booking_date, ' ', end_time) < NOW();
     
-    SET expired_timeslots_count = ROW_COUNT();
-    
     -- Commit the transaction
     COMMIT;
-    
-    -- For logging purposes (can be viewed in MySQL logs)
-    SELECT CONCAT('Status update completed: ', completed_count, ' bookings marked as completed, ', 
-                 expired_count, ' bookings marked as expired, ', 
-                 expired_timeslots_count, ' timeslots marked as expired') AS result;
 END //
 DELIMITER ;
 DROP EVENT IF EXISTS update_bookings_statuses;

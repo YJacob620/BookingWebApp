@@ -294,29 +294,11 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res)
 router.post('/force-bookings-status-update', authenticateAdminOrManager, async (req, res) => {
     try {
         // Call the stored procedure directly
-        const [result] = await pool.execute('CALL update_past_statuses()');
+        await pool.execute('CALL update_past_statuses()');
 
-        // Extract counts from the result (the procedure returns a result set)
-        const updateResult = result[0][0];
-
-        // Parse the result string into count values
-        const resultString = updateResult.result;
-
-        // Use regex to extract the counts from the concatenated string
-        const completedMatch = resultString.match(/(\d+) bookings marked as completed/);
-        const expiredBookingsMatch = resultString.match(/(\d+) bookings marked as expired/);
-        const expiredTimeslotsMatch = resultString.match(/(\d+) timeslots marked as expired/);
-
-        const completedCount = completedMatch ? parseInt(completedMatch[1]) : 0;
-        const expiredBookingsCount = expiredBookingsMatch ? parseInt(expiredBookingsMatch[1]) : 0;
-        const expiredTimeslotsCount = expiredTimeslotsMatch ? parseInt(expiredTimeslotsMatch[1]) : 0;
-
+        // Return a simple success response
         res.json({
-            message: 'Status update forced successfully',
-            completedCount,
-            expiredBookingsCount,
-            expiredTimeslotsCount,
-            totalUpdated: completedCount + expiredBookingsCount + expiredTimeslotsCount
+            message: 'Status update forced successfully'
         });
     } catch (err) {
         console.error('Database error:', err);
