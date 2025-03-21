@@ -93,7 +93,7 @@ const hasInfrastructureAccess = async (
             await connection.rollback();
         }
         if (sendResponseOnFalse) {
-            res.status(403).json('Forbidden access to infrastructure');
+            res.status(403).json({ message: 'Forbidden access' });
         }
         return false;
     } catch (error) {

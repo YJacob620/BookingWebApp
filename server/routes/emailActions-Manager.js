@@ -12,7 +12,6 @@ router.get('/:action/:token', async (req, res) => {
             message: 'Invalid action'
         });
     }
-
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -36,7 +35,6 @@ router.get('/:action/:token', async (req, res) => {
             'SELECT * FROM bookings WHERE id = ?',
             [tokenRecord.booking_id]
         );
-
         if (bookings.length === 0) {
             return res.status(404).json({
                 success: false,

@@ -35,7 +35,7 @@ router.get('/download-file/:bookingId/:questionId', authenticateToken, async (re
         const booking = bookings[0];
 
         // Check access to infrastructure
-        if (!hasInfrastructureAccess(req, res, booking.infrastructure_id, null, false, false)) {
+        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, null, false, false)) {
             if (!(booking.user_email === userEmail)) { // Regular users can only access their own files
                 return res.status(403).json({ message: 'Forbidden access' });
             }
@@ -82,53 +82,31 @@ router.get('/download-file/:bookingId/:questionId', authenticateToken, async (re
 router.get('/:id/details', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.user.userId;
         const userEmail = req.user.email;
         const userRole = req.user.role;
 
-        // Different SQL based on user role to optimize the query
-        let bookingQuery;
-        let params;
-
-        if (userRole === 'admin' || userRole === 'manager') {
-            // Admin/Manager query (can access any booking they have permission for)
-            bookingQuery = `
-                SELECT b.*, 
-                    i.name as infrastructure_name, 
-                    i.location as infrastructure_location,
-                    u.name as user_name
-                FROM bookings b
-                JOIN infrastructures i ON b.infrastructure_id = i.id
-                LEFT JOIN users u ON b.user_email = u.email
-                WHERE b.id = ?
-            `;
-            params = [id];
-        } else {
-            // Regular user query (can only access their own bookings)
-            bookingQuery = `
-                SELECT b.*, 
-                    i.name as infrastructure_name, 
-                    i.location as infrastructure_location
-                FROM bookings b
-                JOIN infrastructures i ON b.infrastructure_id = i.id
-                WHERE b.id = ? AND b.user_email = ?
-            `;
-            params = [id, userEmail];
-        }
-
-        // Execute the appropriate query
-        const [bookings] = await pool.execute(bookingQuery, params);
+        // Get the booking with its infrastructure ID
+        const [bookings] = await pool.execute(`
+            SELECT b.*, 
+                i.name as infrastructure_name, 
+                i.location as infrastructure_location,
+                i.id as infrastructure_id
+            FROM bookings b
+            JOIN infrastructures i ON b.infrastructure_id = i.id
+            WHERE b.id = ?`,
+            [id]);
 
         if (bookings.length === 0) {
-            return res.status(404).json({ message: 'Booking not found or unauthorized' });
+            return res.status(404).json({ message: 'Booking not found' });
         }
 
         const booking = bookings[0];
 
-        // For admin/manager, verify infrastructure access permission
-        if ((userRole === 'admin' || userRole === 'manager') &&
-            !await hasInfrastructureAccess(req, res, booking.infrastructure_id)) {
-            return; // The hasInfrastructureAccess function will handle the response
+        // Assert permission to access this booking
+        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, null, false, false)) {
+            if (booking.user_email !== userEmail) {
+                return res.status(403).json({ message: 'Forbidden access' });
+            }
         }
 
         // Get filter questions and answers
