@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Message } from '@/_utils';
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert } from "@/components/ui/alert";
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
 interface FloatingAlertProps {
@@ -63,7 +63,7 @@ const FloatingAlert: React.FC<FloatingAlertProps> = ({
         // Wait for animation to complete before removing from DOM
         setTimeout(() => {
             onClose();
-        }, 300); // Match the CSS transition duration
+        }, 100);
     };
 
     const getIcon = () => {
@@ -80,36 +80,27 @@ const FloatingAlert: React.FC<FloatingAlertProps> = ({
         }
     };
 
-    const alertClass = `
-    fixed top-4 left-1/2 transform -translate-x-1/2 z-50 
-    max-w-md w-full shadow-lg rounded-md overflow-hidden
-    transition-all duration-300 ease-in-out
-    ${isExiting ? 'opacity-0 translate-y-[-20px]' : 'opacity-100 translate-y-0'}
-    ${message.type === 'success' ? 'alert-success' :
+    const alertClass = `${isExiting ? 'opacity-0 translate-y-[-20px]' : 'opacity-100 translate-y-0'} 
+        ${message.type === 'success' ? 'alert-success' :
             message.type === 'error' ? 'alert-error' :
                 message.type === 'warning' ? 'alert-warning' : 'alert-neutral'
-        }
-  `;
-
+        }`;
     return (
-        <Alert className={alertClass}>
-            <div className="flex items-center w-full px-1">
-                <div className="flex-shrink-0 mr-2">
-                    {getIcon()}
-                </div>
+        <Alert
+            className={"fixed top-4 left-1/2 transform -translate-x-1/2 max-w-md w-full shadow-lg "
+                + "rounded-md overflow-hidden transition-all duration-100 ease-in-out " + alertClass}
+        >
+            <div className=''>{getIcon()}</div>
+            <p className="text-center py-1">{message.text}</p>
+            <button
+                onClick={handleClose}
+                className="absolute top-2 right-2 cursor-pointer p-1 rounded-full hover:bg-black/10 transition-colors"
+                aria-label="Close"
+            >
+                <X className="h-4 w-4" />
+            </button>
 
-                <AlertDescription className="flex-grow py-1">{message.text}</AlertDescription>
-
-                <button
-                    onClick={handleClose}
-                    className="ml-2 p-1 rounded-full hover:bg-black/10 transition-colors flex-shrink-0"
-                    aria-label="Close"
-                >
-                    <X className="h-4 w-4" />
-                </button>
-            </div>
-
-            {/* Progress bar for success messages */}
+            {/* Progress bar (if applicable) */}
             {message.type === 'success' && (
                 <div className="h-1 bg-white/20 w-full absolute bottom-0 left-0">
                     <div
@@ -120,6 +111,9 @@ const FloatingAlert: React.FC<FloatingAlertProps> = ({
             )}
         </Alert>
     );
+
+
+
 };
 
 interface AlertManagerProps {
@@ -166,7 +160,7 @@ const AlertManager: React.FC<AlertManagerProps> = ({
 
     return (
         <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
-            <div className="relative max-w-md mx-auto">
+            <div className="">
                 {activeAlerts.map((alert, index) => (
                     <div
                         key={alert.id}
