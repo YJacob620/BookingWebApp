@@ -21,7 +21,9 @@ import {
   applyStatusFilters,
   createFilterOptions,
   BOOKING_STATUSES,
-  DATE_FILTER_OPTIONS
+  DATE_FILTER_OPTIONS,
+  TIMESLOT_STATUSES,
+  TimeslotStatus
 } from '@/_utils';
 import { FilterState } from './BookingManagement';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
@@ -50,14 +52,13 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   const [timeslots, setTimeslots] = useState<BookingEntry[]>([]);
   const [filteredTimeslots, setFilteredTimeslots] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
+
   // Get relevant states from filterState
   const {
-    // selectedStatuses,
-    // selectedDateFilters,
-    bookingsDayFilter: customDateFilter,
-    bookingsSortConfig: sortConfig,
+    selectedTimeslotStatusFilters,
+    selectedTimeslotDateFilters,
+    timeslotDayFilter,
+    timeslotsSortConfig,
     selectedTimeslots
   } = filterState;
 
@@ -76,16 +77,16 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     let filtered = [...timeslots];
 
     // Apply status filters using utility function
-    filtered = applyStatusFilters(filtered, selectedStatuses);
+    filtered = applyStatusFilters(filtered, selectedTimeslotStatusFilters);
 
     // Apply date filters using utility function
-    filtered = applyDateFilters(filtered, selectedDateFilters);
+    filtered = applyDateFilters(filtered, selectedTimeslotDateFilters);
 
     // Apply custom date filter if set
-    if (customDateFilter) {
+    if (timeslotDayFilter) {
       filtered = filtered.filter(slot => {
         const slotDate = new Date(slot.booking_date);
-        const filterDate = new Date(customDateFilter);
+        const filterDate = new Date(timeslotDayFilter);
 
         return (
           slotDate.getFullYear() === filterDate.getFullYear() &&
@@ -96,7 +97,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     }
 
     setFilteredTimeslots(filtered);
-  }, [timeslots, selectedStatuses, selectedDateFilters, customDateFilter]);
+  }, [timeslots, selectedTimeslotStatusFilters, selectedTimeslotDateFilters, timeslotDayFilter]);
 
   // Clear custom date filter and update date filters
   const handleClearDateFilter = () => {
@@ -293,12 +294,11 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
             <Input
               id="date-filter-input"
               type="date"
-              value={customDateFilter}
+              value={timeslotDayFilter}
               onChange={(e) => handleDateFilterChange(e.target.value)}
-              className={`${selectedDateFilters.length > 0 ? 'opacity-50' : ''}`}
-              disabled={selectedDateFilters.length > 0}
+              disabled={selectedTimeslotDateFilters.length > 0}
             />
-            {customDateFilter && (
+            {timeslotDayFilter && (
               <Button
                 variant="custom5"
                 onClick={handleClearDateFilter}
@@ -310,40 +310,25 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           </div>
         </div>
 
-        {/* <MultiSelectFilter
+        <MultiSelectFilter
           label="Status"
-          options={statusFilterOptions}
-          selectedValues={selectedStatuses}
-          onSelectionChange={(values) => onFilterStateChange({ selectedStatuses: values })}
+          options={createFilterOptions(TIMESLOT_STATUSES, getStatusColor)}
+          selectedValues={selectedTimeslotStatusFilters}
+          onSelectionChange={(values) =>
+            onFilterStateChange({ selectedTimeslotStatusFilters: values as TimeslotStatus[] })}
           variant="badge"
           placeholder="All Statuses"
         />
 
-        <MultiSelectFilter
-          label="Date Range"
-          options={DATE_FILTER_OPTIONS}
-          selectedValues={selectedDateFilters}
-          onSelectionChange={handlePredefinedDateFiltersChange}
-          placeholder="All Dates"
-          disabled={!!customDateFilter}
-          triggerClassName={customDateFilter ? 'opacity-50' : ''}
-        /> */}
-        <MultiSelectFilter
-          label="Status"
-          options={createFilterOptions(BOOKING_STATUSES, getStatusColor)}
-          selectedValues={selectedStatuses}
-          onSelectionChange={setSelectedStatuses}
-          variant="badge"
-          placeholder="All Statuses"
-        />
-
-        {/* Date filter using MultiSelectFilter */}
         <MultiSelectFilter
           label="Date"
           options={createFilterOptions(DATE_FILTER_OPTIONS)}
-          selectedValues={selectedDateFilters}
-          onSelectionChange={setSelectedDateFilters}
+          selectedValues={selectedTimeslotDateFilters}
+          onSelectionChange={(values) =>
+            onFilterStateChange({ selectedTimeslotDateFilters: values })}
           placeholder="All Dates"
+          disabled={!!timeslotDayFilter}
+          triggerClassName={timeslotDayFilter ? 'opacity-50' : ''}
         />
       </div>
 
@@ -357,7 +342,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           initialRowsPerPage={10}
           rowsPerPageOptions={[5, 10, 25, 50]}
           emptyMessage="No timeslots for this infrastructure."
-          sortConfig={sortConfig}
+          sortConfig={timeslotsSortConfig}
           onSortChange={(newSortConfig) => onFilterStateChange({ bookingsSortConfig: newSortConfig })}
           noResults={
             timeslots.length > 0 ? (

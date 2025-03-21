@@ -26,6 +26,7 @@ import {
   createFilterOptions,
   BOOKING_STATUSES,
   DATE_FILTER_OPTIONS,
+  BookingStatus,
 } from '@/_utils';
 import BookingDetailsDialog from '@/components/_BookingDetailsDialog';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
@@ -56,9 +57,9 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const [filteredBookings, setFilteredBookings] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Get relevant states from filterState
+  // Get relevant states from filterState - use these directly instead of local state
   const {
-    selectedBookingStatusFilters: selectedBookingStatuses,
+    selectedBookingStatusFilters,
     selectedBookingDateFilters,
     bookingsSearchQuery,
     bookingsSortConfig
@@ -81,13 +82,13 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   // Apply filters when bookings, status filter, date filter, or search query changes
   useEffect(() => {
     applyFilters();
-  }, [bookings, selectedBookingStatuses, selectedBookingDateFilters, bookingsSearchQuery]);
+  }, [bookings, selectedBookingStatusFilters, selectedBookingDateFilters, bookingsSearchQuery]);
 
   const applyFilters = () => {
     let filtered = [...bookings];
 
     // Apply status filters using utility function
-    filtered = applyStatusFilters(filtered, selectedBookingStatuses);
+    filtered = applyStatusFilters(filtered, selectedBookingStatusFilters);
 
     // Apply date filters using utility function
     filtered = applyDateFilters(filtered, selectedBookingDateFilters);
@@ -293,38 +294,22 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           />
         </div>
 
-        {/* <MultiSelectFilter
-          label="Status"
-          options={statusFilterOptions}
-          selectedValues={selectedStatuses}
-          onSelectionChange={(values) => onFilterStateChange({ selectedStatuses: values })}
-          variant="badge"
-          placeholder="All Statuses"
-        />
-
-        <MultiSelectFilter
-          label="Date"
-          options={createDateFilterOptions()}
-          selectedValues={selectedDateFilters}
-          onSelectionChange={(values) => onFilterStateChange({ selectedDateFilters: values })}
-          placeholder="All Dates"
-        /> */}
-
         <MultiSelectFilter
           label="Status"
           options={createFilterOptions(BOOKING_STATUSES, getStatusColor)}
-          selectedValues={selectedBookingStatuses}
-          onSelectionChange={(values) => onFilterStateChange({ selectedBookingStatusFilters: values })}
+          selectedValues={selectedBookingStatusFilters}
+          onSelectionChange={(values) =>
+            onFilterStateChange({ selectedBookingStatusFilters: values as BookingStatus[] })}
           variant="badge"
           placeholder="All Statuses"
         />
 
-        {/* Date filter using MultiSelectFilter */}
         <MultiSelectFilter
           label="Date"
           options={createFilterOptions(DATE_FILTER_OPTIONS)}
           selectedValues={selectedBookingDateFilters}
-          onSelectionChange={(values) => onFilterStateChange({ selectedBookingDateFilters: values })}
+          onSelectionChange={(values) =>
+            onFilterStateChange({ selectedBookingDateFilters: values })}
           placeholder="All Dates"
         />
       </div>
@@ -340,7 +325,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
             initialRowsPerPage={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
             emptyMessage="No bookings exist for this infrastructure."
-            bookingsSortConfig={bookingsSortConfig}
+            sortConfig={bookingsSortConfig}
             onSortChange={(newSortConfig) => onFilterStateChange({ bookingsSortConfig: newSortConfig })}
             noResults={
               bookings.length > 0 ? (

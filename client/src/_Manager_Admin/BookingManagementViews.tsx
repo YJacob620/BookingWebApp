@@ -6,20 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, List } from "lucide-react";
 
-import BookingManagementViewsCalendar from './BookingManagementViewsCalendar';
-import BookingManagementViewsList from './BookingManagementViewsList';
-
 import {
   BookingEntry,
 } from '@/_utils';
 
+import BookingManagementViewsCalendar from './BookingManagementViewsCalendar';
+import BookingManagementViewsList from './BookingManagementViewsList';
+import { FilterState } from './BookingManagement';
 
-const BookingManagementViews = ({ bookingEntries }: { bookingEntries: BookingEntry[] }) => {
-  // State management
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+
+const BookingManagementViews = ({
+  bookingEntries,
+  filterState,
+  onFilterStateChange
+}: {
+  bookingEntries: BookingEntry[];
+  filterState: FilterState;
+  onFilterStateChange: (newState: Partial<FilterState>) => void;
+}) => {
+  // Use filter state from parent instead of local state
+  const { viewMode, showOnly } = filterState;
   const [isLoading, setIsLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState<string>('');
-  const [showOnly, setShowOnly] = useState<'all' | 'timeslots' | 'bookings'>('all');
 
   // Load data when component mounts or when refreshTrigger changes
   useEffect(() => {
@@ -31,8 +39,8 @@ const BookingManagementViews = ({ bookingEntries }: { bookingEntries: BookingEnt
   }, [bookingEntries]);
 
   const handleCalendarDateClick = (date: string) => {
-    setDateFilter(date);
-    setViewMode('list');
+    onFilterStateChange({ bookingsDayFilter: date });
+    onFilterStateChange({ viewMode: 'list' });
   };
 
   // Filter calendar items based on date and type
@@ -58,11 +66,11 @@ const BookingManagementViews = ({ bookingEntries }: { bookingEntries: BookingEnt
 
       return dateMatches && typeMatches;
     });
-  }, [dateFilter, showOnly]);
+  }, [dateFilter, showOnly, bookingEntries]);
 
   // Clear date filter
   const handleClearDateFilter = () => {
-    setDateFilter('');
+    onFilterStateChange({ bookingsDayFilter: '' });
   };
 
   return (
@@ -73,7 +81,7 @@ const BookingManagementViews = ({ bookingEntries }: { bookingEntries: BookingEnt
         <Tabs
           defaultValue={viewMode}
           value={viewMode}
-          onValueChange={(value) => setViewMode(value as 'calendar' | 'list')}
+          onValueChange={(value) => onFilterStateChange({ viewMode: value as 'calendar' | 'list' })}
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
@@ -91,7 +99,7 @@ const BookingManagementViews = ({ bookingEntries }: { bookingEntries: BookingEnt
         <Tabs
           defaultValue={showOnly}
           value={showOnly}
-          onValueChange={(value) => setShowOnly(value as 'all' | 'timeslots' | 'bookings')}
+          onValueChange={(value) => onFilterStateChange({ showOnly: value as 'all' | 'timeslots' | 'bookings' })}
           className="w-full"
         >
           <TabsList className="w-[calc(100%-10rem)] mx-auto grid grid-cols-3" >

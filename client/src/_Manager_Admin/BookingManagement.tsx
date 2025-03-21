@@ -203,6 +203,8 @@ const BookingManagement: React.FC = () => {
                     </p>
                     <BookingManagementViews
                         bookingEntries={bookingEntries}
+                        filterState={filterState}
+                        onFilterStateChange={handleFilterStateChange}
                     />
 
                     <p className="text-xl">Manage Bookings and Timeslots</p>
