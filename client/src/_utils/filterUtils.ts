@@ -1,27 +1,45 @@
-import { getStatusColor } from '@/_utils';
-import { FilterOption } from '@/components/_MultiSelectFilter';
+
+export const DATE_FILTER_OPTIONS = [
+    'today',
+    'upcoming',
+    'past',
+] as const;
+type DateFilterOption = (typeof DATE_FILTER_OPTIONS)[number];
+
+export interface FilterOption<T> {
+    value: T;
+    label: string;
+    color?: string; // Optional color for badge display
+}
 
 /**
- * Creates status filter options with appropriate styling from basic status array
- * @param statuses Array of status values
- * @returns Array of FilterOption objects with values, labels, and colors
+ * Creates filter options for a given set of statuses.
+ *
+ * This function generates a list of `FilterOption` objects, each containing a `value`,
+ * a `label` (capitalized version of the status), and an optional `color`.
+ * It can handle any set of statuses and allows you to pass a custom function for color assignment.
+ *
+ * @param statuses - An array of status values (e.g., `BookingStatus[]`, `TimeslotStatus[]`).
+ * @param getColor - An optional function to determine the color for each status.
+ *                   If provided, it will be called with each status value to return the color.
+ *                   If not provided, the `color` field will be omitted from the `FilterOption`.
+ * 
+ * @returns An array of `FilterOption<T>`, each containing:
+ * - `value`: The status value.
+ * - `label`: A capitalized version of the status value.
+ * - `color`: (Optional) The color associated with the status, determined by `getColor` function.
  */
-export const createStatusFilterOptions = (statuses: string[]): FilterOption[] => {
+export const createFilterOptions = <T>(
+    statuses: readonly T[],
+    getColor?: (status: T) => string
+): FilterOption<T>[] => {
     return statuses.map(status => ({
         value: status,
-        label: status.charAt(0).toUpperCase() + status.slice(1),
-        color: getStatusColor(status)
+        label: String(status).charAt(0).toUpperCase() + String(status).slice(1),
+        color: getColor ? getColor(status) : undefined,
     }));
 };
 
-/**
- * Predefined date filter options
- */
-export const DATE_FILTER_OPTIONS: FilterOption[] = [
-    { value: 'today', label: 'Today' },
-    { value: 'upcoming', label: 'Upcoming' },
-    { value: 'past', label: 'Past' }
-];
 
 /**
  * Apply date filtering to a collection of items with booking_date

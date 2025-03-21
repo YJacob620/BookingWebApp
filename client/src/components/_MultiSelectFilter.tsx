@@ -8,14 +8,12 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 
-export interface FilterOption {
-    value: string;
-    label: string;
-    color?: string; // Optional color for badge display
-}
+import {
+    FilterOption,
+} from '@/_utils';
 
 interface MultiSelectFilterProps {
-    options: FilterOption[];
+    options: FilterOption<string>[];
     selectedValues: string[];
     onSelectionChange: (values: string[]) => void;
     label: string;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,13 +14,7 @@ import {
 } from '@/_utils';
 
 
-interface BookingManagementViewsProps {
-  bookingEntries: BookingEntry[];
-}
-
-const BookingManagementViews: React.FC<BookingManagementViewsProps> = ({
-  bookingEntries,
-}) => {
+const BookingManagementViews = ({ bookingEntries }: { bookingEntries: BookingEntry[] }) => {
   // State management
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [isLoading, setIsLoading] = useState(true);
@@ -153,7 +147,7 @@ const BookingManagementViews: React.FC<BookingManagementViewsProps> = ({
             />
           ) : (
             <BookingManagementViewsList
-              items={filteredItems}
+              bookingEntries={filteredItems}
             />
           )}
 

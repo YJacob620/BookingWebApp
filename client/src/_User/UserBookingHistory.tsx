@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,9 @@ import {
   userCancelBooking,
   BookingEntry,
   Message,
+  BOOKING_STATUSES,
 } from '@/_utils';
-import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
+import { applyDateFilters, applyStatusFilters, createFilterOptions, DATE_FILTER_OPTIONS } from '@/_utils/filterUtils';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import BasePageLayout from '@/components/_BasePageLayout';
 
@@ -38,13 +39,6 @@ const BookingHistory = () => {
   // New state for booking details dialog
   const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-
-  // Generate status filter options dynamically from booking statuses
-  const statusFilterOptions = useMemo(() => {
-    // Get unique statuses from bookings
-    const statuses = [...new Set(bookings.map(booking => booking.status))];
-    return createStatusFilterOptions(statuses);
-  }, [bookings]);
 
   useEffect(() => {
     fetchBookings();
@@ -260,7 +254,7 @@ const BookingHistory = () => {
               {/* Status filter using MultiSelectFilter */}
               <MultiSelectFilter
                 label="Status"
-                options={statusFilterOptions}
+                options={createFilterOptions(BOOKING_STATUSES, getStatusColor)}
                 selectedValues={selectedStatuses}
                 onSelectionChange={setSelectedStatuses}
                 variant="badge"
@@ -270,7 +264,7 @@ const BookingHistory = () => {
               {/* Date filter using MultiSelectFilter */}
               <MultiSelectFilter
                 label="Date"
-                options={DATE_FILTER_OPTIONS}
+                options={createFilterOptions(DATE_FILTER_OPTIONS)}
                 selectedValues={selectedDateFilters}
                 onSelectionChange={setSelectedDateFilters}
                 placeholder="All Dates"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TableCell } from "@/components/ui/table";
 import {
   Clock,
@@ -18,13 +18,7 @@ import {
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
-interface BookingsListViewProps {
-  items: BookingEntry[];
-}
-
-const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
-  items
-}) => {
+const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: BookingEntry[] }) => {
   // Set default sorting to date in descending order
   const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
 
@@ -129,7 +123,7 @@ const BookingManagementViewsList: React.FC<BookingsListViewProps> = ({
   return (
     <div>
       <PaginatedTable
-        data={items}
+        data={bookingEntries}
         columns={columns}
         initialRowsPerPage={10}
         rowsPerPageOptions={[5, 10, 25, 50]}

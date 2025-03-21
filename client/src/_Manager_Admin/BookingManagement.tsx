@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Loader } from "lucide-react";
 
 // Import components
@@ -13,7 +13,52 @@ import {
     Message,
     forceUpdatePastBookings,
     fetchAllBookingEntries,
+    SortConfig,
+    BookingStatus,
+    TimeslotStatus
 } from '@/_utils';
+
+// Define a type for the preserved filter states
+export interface FilterState {
+    // BookingManagementViews
+    viewMode: 'calendar' | 'list';
+    showOnly: 'all' | 'timeslots' | 'bookings';
+
+    // BookingManagementTabs
+    activeTab: string;
+
+    bookingsSearchQuery: string;
+    bookingsDayFilter: string;
+    selectedBookingStatusFilters: BookingStatus[];
+    selectedBookingDateFilters: string[];
+    bookingsSortConfig: SortConfig<BookingEntry>;
+
+    timeslotDayFilter: string;
+    selectedTimeslotStatusFilters: TimeslotStatus[];
+    selectedTimeslotDateFilters: string[];
+    timeslotsSortConfig: SortConfig<BookingEntry>;
+    selectedTimeslots: number[]; // Selected timeslot IDs (for batch operations)
+}
+
+// Default filter state
+const defaultFilterState: FilterState = {
+    viewMode: 'calendar',
+    showOnly: 'all',
+
+    activeTab: 'bookings',
+
+    bookingsSearchQuery: '',
+    bookingsDayFilter: '',
+    selectedBookingStatusFilters: [],
+    selectedBookingDateFilters: [],
+    bookingsSortConfig: { key: 'booking_date', direction: 'desc' },
+
+    timeslotDayFilter: '',
+    selectedTimeslotStatusFilters: [],
+    selectedTimeslotDateFilters: [],
+    timeslotsSortConfig: { key: 'booking_date', direction: 'desc' },
+    selectedTimeslots: [],
+};
 
 const BookingManagement: React.FC = () => {
     const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | undefined>(undefined);
@@ -21,6 +66,12 @@ const BookingManagement: React.FC = () => {
     const [isLoadingEntries, setIsLoadingEntries] = useState<boolean>(false);
     const [message, setMessage] = useState<Message | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    // Store filter state for persistence
+    const [filterState, setFilterState] = useState<FilterState>(defaultFilterState);
+
+    // Ref to store scroll position
+    const scrollPositionRef = useRef<number>(0);
 
     // Check for refresh flag from email action completion
     useEffect(() => {
@@ -40,6 +91,31 @@ const BookingManagement: React.FC = () => {
             }
         }
     }, [selectedInfrastructure]);
+
+    // Save scroll position before refreshing data
+    useEffect(() => {
+        const saveScrollPosition = () => {
+            scrollPositionRef.current = window.scrollY;
+        };
+
+        // Save position before refresh
+        if (refreshTrigger > 0) {
+            saveScrollPosition();
+        }
+    }, [refreshTrigger]);
+
+    // Restore scroll position after data is loaded
+    useEffect(() => {
+        if (!isLoadingEntries && refreshTrigger > 0) {
+            // Use setTimeout to ensure the DOM has updated
+            setTimeout(() => {
+                window.scrollTo({
+                    top: scrollPositionRef.current,
+                    behavior: 'auto' // Use 'auto' instead of 'smooth' to prevent visible scrolling
+                });
+            }, 0);
+        }
+    }, [isLoadingEntries, bookingEntries]);
 
     // Fetch all booking entries when infrastructure is selected or refresh is triggered
     useEffect(() => {
@@ -91,6 +167,14 @@ const BookingManagement: React.FC = () => {
         }
     };
 
+    // Handler for updating filter state
+    const handleFilterStateChange = (newState: Partial<FilterState>) => {
+        setFilterState(prevState => ({
+            ...prevState,
+            ...newState
+        }));
+    };
+
     return (
         <BasePageLayout
             pageTitle="Booking & Timeslot Management"
@@ -132,6 +216,8 @@ const BookingManagement: React.FC = () => {
                         onError={handleError}
                         onUpdatePastBookings={handleUpdatePastBookings}
                         onDataChange={() => setRefreshTrigger(prev => prev + 1)}
+                        filterState={filterState}
+                        onFilterStateChange={handleFilterStateChange}
                     />
                 </>
             )}

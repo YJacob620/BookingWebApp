@@ -32,6 +32,8 @@ const buttonVariants = cva(
           "cursor-pointer border text-sm bg-gray-950/60 hover:bg-gray-950/90",
         custom3_approve: "cursor-pointer border-2 border-green-600 bg-green-800 hover:bg-green-700 hover:border-green-500",
         custom4_reject: "cursor-pointer border-2 border-red-600 bg-red-900 hover:bg-red-600 hover:border-red-400",
+        custom5:
+          "cursor-pointer border border-gray-700 text-sm bg-gray-800/60 def-hover",
       },
       size: {
         default: "h-auto py-[0.6em] px-[1.2em] text-base",

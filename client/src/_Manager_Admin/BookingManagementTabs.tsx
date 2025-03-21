@@ -7,8 +7,12 @@ import { RefreshCcw } from "lucide-react";
 import BookingManagementTabsBookings from './BookingManagementTabsBookings';
 import BookingManagementTabsTimeslots from './BookingManagementTabsTimeslots';
 import BookingManagementTabsCreate from './BookingManagementTabsCreate';
+import { FilterState } from './BookingManagement';
 
-import { BookingEntry, Infrastructure } from '@/_utils';
+import {
+  BookingEntry,
+  Infrastructure,
+} from '@/_utils';
 
 
 interface BookingManagementTabsProps {
@@ -18,6 +22,8 @@ interface BookingManagementTabsProps {
   onError: (message: string) => void;
   onUpdatePastBookings: () => Promise<void>;
   onDataChange: () => void;
+  filterState: FilterState;
+  onFilterStateChange: (newState: Partial<FilterState>) => void;
 }
 
 const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
@@ -27,8 +33,12 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
   onError,
   onUpdatePastBookings,
   onDataChange,
+  filterState,
+  onFilterStateChange
 }) => {
-  const [activeTab, setActiveTab] = useState<string>("bookings");
+  // Use the activeTab from parent's filterState
+  const { activeTab } = filterState;
+
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleForceUpdate = async () => {
@@ -63,13 +73,17 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
           </p>
         </div>
 
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => onFilterStateChange({ activeTab: value })}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="bookings">
-              Manage Bookings {/*`(${bookings.length})`*/}
+              Manage Bookings
             </TabsTrigger>
             <TabsTrigger value="timeslots">
-              Manage Timeslots {/*`(${timeslots.length})`*/}
+              Manage Timeslots
             </TabsTrigger>
             <TabsTrigger value="create">Create Timeslots</TabsTrigger>
           </TabsList>
@@ -80,6 +94,8 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
               onStatusChange={onSuccess}
               onError={onError}
               onDataChange={onDataChange}
+              filterState={filterState}
+              onFilterStateChange={onFilterStateChange}
             />
           </TabsContent>
           <TabsContent value="timeslots">
@@ -89,6 +105,8 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
               onDelete={onSuccess}
               onError={onError}
               onDataChange={onDataChange}
+              filterState={filterState}
+              onFilterStateChange={onFilterStateChange}
             />
           </TabsContent>
           <TabsContent value="create">

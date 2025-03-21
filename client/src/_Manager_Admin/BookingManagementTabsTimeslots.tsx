@@ -1,19 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell } from "@/components/ui/table";
 import {
-  MoreHorizontal,
   Trash2,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
 import {
@@ -24,9 +17,13 @@ import {
   cancelTimeslots,
   Infrastructure,
   BookingEntry,
-  SortConfig
+  applyDateFilters,
+  applyStatusFilters,
+  createFilterOptions,
+  BOOKING_STATUSES,
+  DATE_FILTER_OPTIONS
 } from '@/_utils';
-import { createStatusFilterOptions, DATE_FILTER_OPTIONS, applyDateFilters, applyStatusFilters } from '@/_utils/filterUtils';
+import { FilterState } from './BookingManagement';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 
@@ -36,6 +33,8 @@ interface TimeslotListProps {
   onDelete: (message: string) => void;
   onError: (message: string) => void;
   onDataChange: () => void;
+  filterState: FilterState;
+  onFilterStateChange: (newState: Partial<FilterState>) => void;
 }
 
 const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
@@ -43,23 +42,24 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   items,
   onDelete,
   onError,
-  onDataChange
+  onDataChange,
+  filterState,
+  onFilterStateChange
 }) => {
   // Main state
   const [timeslots, setTimeslots] = useState<BookingEntry[]>([]);
-  const [selectedSlots, setSelectedSlots] = useState<number[]>([]);
-  const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [customDateFilter, setCustomDateFilter] = useState<string>('');
+  const [filteredTimeslots, setFilteredTimeslots] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
-
-  // Generate status filter options from timeslot statuses
-  const statusFilterOptions = useMemo(() => {
-    // Get unique statuses from timeslots
-    const statuses = [...new Set(items.map(item => item.status))];
-    return createStatusFilterOptions(statuses);
-  }, [items]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
+  // Get relevant states from filterState
+  const {
+    // selectedStatuses,
+    // selectedDateFilters,
+    bookingsDayFilter: customDateFilter,
+    bookingsSortConfig: sortConfig,
+    selectedTimeslots
+  } = filterState;
 
   // Load timeslots when infrastructure changes
   useEffect(() => {
@@ -72,7 +72,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   }, [selectedInfrastructure, items]);
 
   // Filtered timeslots based on filters
-  const filteredTimeslots = useMemo(() => {
+  useEffect(() => {
     let filtered = [...timeslots];
 
     // Apply status filters using utility function
@@ -95,42 +95,37 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       });
     }
 
-    return filtered;
+    setFilteredTimeslots(filtered);
   }, [timeslots, selectedStatuses, selectedDateFilters, customDateFilter]);
-
-  // Handle sort change from PaginatedTable
-  const handleSortChange = (newSortConfig: SortConfig<BookingEntry>) => {
-    setSortConfig(newSortConfig);
-  };
-
-  // Clear selected slots when filtered timeslots change
-  useEffect(() => {
-    // Only keep selected slots that are still in the filtered list
-    setSelectedSlots(prev =>
-      prev.filter(id => filteredTimeslots.some(slot => slot.id === id))
-    );
-  }, [filteredTimeslots]);
 
   // Clear custom date filter and update date filters
   const handleClearDateFilter = () => {
-    setCustomDateFilter('');
+    onFilterStateChange({ bookingsDayFilter: '' });
   };
 
   const handleDateFilterChange = (date: string) => {
     // Clear predefined date filters if custom date is set
     if (date) {
-      setSelectedDateFilters([]);
+      onFilterStateChange({
+        selectedBookingDateFilters: [],
+        bookingsDayFilter: date
+      });
+    } else {
+      onFilterStateChange({ bookingsDayFilter: date });
     }
-    setCustomDateFilter(date);
   };
 
   // Handle predefined date filter changes
   const handlePredefinedDateFiltersChange = (values: string[]) => {
     // Clear custom date filter if predefined filters are selected
     if (values.length > 0) {
-      setCustomDateFilter('');
+      onFilterStateChange({
+        bookingsDayFilter: '',
+        selectedBookingDateFilters: values
+      });
+    } else {
+      onFilterStateChange({ selectedBookingDateFilters: values });
     }
-    setSelectedDateFilters(values);
   };
 
   const handleDeleteTimeslots = async (ids: number[]) => {
@@ -143,7 +138,9 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       onDelete(`Successfully canceled ${ids.length} timeslot(s)`);
 
       // Remove deleted items from selection
-      setSelectedSlots(prev => prev.filter(id => !ids.includes(id)));
+      onFilterStateChange({
+        selectedTimeslots: selectedTimeslots.filter(id => !ids.includes(id))
+      });
 
       // Refresh the data
       onDataChange();
@@ -162,12 +159,16 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         <TableCell>
           <div className="pr-2">
             <Checkbox
-              checked={selectedSlots.includes(slot.id)}
+              checked={selectedTimeslots.includes(slot.id)}
               onCheckedChange={(checked) => {
                 if (checked) {
-                  setSelectedSlots(prev => [...prev, slot.id]);
+                  onFilterStateChange({
+                    selectedTimeslots: [...selectedTimeslots, slot.id]
+                  });
                 } else {
-                  setSelectedSlots(prev => prev.filter(id => id !== slot.id));
+                  onFilterStateChange({
+                    selectedTimeslots: selectedTimeslots.filter(id => id !== slot.id)
+                  });
                 }
               }}
               disabled={slot.status !== 'available'}
@@ -241,29 +242,19 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       header: 'Actions',
       cell: (slot: BookingEntry) => (
         <TableCell className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="bg-slate-950">
-              <Button
-                variant="ghost"
-                className="h-6 w-8 p-0 mx-auto"
-                disabled={slot.status !== 'available'}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to cancel this timeslot?')) {
-                    handleDeleteTimeslots([slot.id]);
-                  }
-                }}
-                className="def-hover text-red-500"
-              >
-                Cancel
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {slot.status == 'available' && (
+            <Button
+              variant="custom2"
+              className="px-2 py-1 discard"
+              onClick={() => {
+                if (window.confirm('Are you sure you want to cancel this timeslot?')) {
+                  handleDeleteTimeslots([slot.id]);
+                }
+              }}
+            >
+              Cancel
+            </Button>
+          )}
         </TableCell>
       ),
       className: 'text-center'
@@ -273,23 +264,25 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   return (
     <div className="space-y-4">
       {/* Description section */}
-      <div className="mb-4 flex flex-col md:flex-row justify-between items-center gap-2">
+      <div className="flex-row justify-center">
         <p className="explanation-text1">
           View and manage timeslots for this infrastructure.
         </p>
-        {selectedSlots.length > 0 && (
+        <div className="flex-row">
           <Button
+            variant={"custom2"}
             onClick={() => {
-              if (window.confirm(`Are you sure you want to cancel ${selectedSlots.length} selected timeslot(s)?`)) {
-                handleDeleteTimeslots(selectedSlots);
+              if (window.confirm(`Are you sure you want to cancel ${selectedTimeslots.length} selected timeslot(s)?`)) {
+                handleDeleteTimeslots(selectedTimeslots);
               }
             }}
-            className="h-8 discard"
+            className="px-2 h-10 discard text-md mt-4"
+            disabled={selectedTimeslots.length == 0}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Cancel Selected ({selectedSlots.length})
+            <Trash2 className="h-4 w-4" />
+            Cancel Selected ({selectedTimeslots.length})
           </Button>
-        )}
+        </div>
       </div>
 
       {/* Filter controls - updated with MultiSelectFilter */}
@@ -307,9 +300,9 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
             />
             {customDateFilter && (
               <Button
-                variant="outline"
+                variant="custom5"
                 onClick={handleClearDateFilter}
-                className="h-10"
+                className="p-2"
               >
                 Clear
               </Button>
@@ -317,11 +310,11 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           </div>
         </div>
 
-        <MultiSelectFilter
+        {/* <MultiSelectFilter
           label="Status"
           options={statusFilterOptions}
           selectedValues={selectedStatuses}
-          onSelectionChange={setSelectedStatuses}
+          onSelectionChange={(values) => onFilterStateChange({ selectedStatuses: values })}
           variant="badge"
           placeholder="All Statuses"
         />
@@ -334,6 +327,23 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           placeholder="All Dates"
           disabled={!!customDateFilter}
           triggerClassName={customDateFilter ? 'opacity-50' : ''}
+        /> */}
+        <MultiSelectFilter
+          label="Status"
+          options={createFilterOptions(BOOKING_STATUSES, getStatusColor)}
+          selectedValues={selectedStatuses}
+          onSelectionChange={setSelectedStatuses}
+          variant="badge"
+          placeholder="All Statuses"
+        />
+
+        {/* Date filter using MultiSelectFilter */}
+        <MultiSelectFilter
+          label="Date"
+          options={createFilterOptions(DATE_FILTER_OPTIONS)}
+          selectedValues={selectedDateFilters}
+          onSelectionChange={setSelectedDateFilters}
+          placeholder="All Dates"
         />
       </div>
 
@@ -348,7 +358,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           rowsPerPageOptions={[5, 10, 25, 50]}
           emptyMessage="No timeslots for this infrastructure."
           sortConfig={sortConfig}
-          onSortChange={handleSortChange}
+          onSortChange={(newSortConfig) => onFilterStateChange({ bookingsSortConfig: newSortConfig })}
           noResults={
             timeslots.length > 0 ? (
               <div className="text-gray-400">

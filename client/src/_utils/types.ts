@@ -35,7 +35,29 @@ export interface InfrastFormData {
   is_active: boolean;
 }
 
-type BookingEntryStatus = 'available' | 'pending' | 'approved' | 'rejected' | 'completed' | 'expired' | 'canceled';
+export const BOOKING_STATUSES = [
+  'pending',
+  'approved',
+  'rejected',
+  'completed',
+  'expired',
+  'canceled',
+] as const;
+export type BookingStatus = (typeof BOOKING_STATUSES)[number];
+
+export const TIMESLOT_STATUSES = [
+  'available',
+  'expired',
+  'canceled',
+] as const;
+export type TimeslotStatus = (typeof TIMESLOT_STATUSES)[number];
+
+export const BOOKING_ENTRY_STATUSES = [
+  ...BOOKING_STATUSES,
+  ...TIMESLOT_STATUSES,
+] as const;
+export type BookingEntryStatus = (typeof BOOKING_ENTRY_STATUSES)[number];
+
 
 /**
  * Combined interface representing both booking and timeslot entries.
