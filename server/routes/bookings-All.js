@@ -53,7 +53,7 @@ router.get('/download-file/:bookingId/:questionId', authenticateToken, async (re
         }
 
         if (!hasAccess) {
-            return res.status(403).json({ message: 'You do not have permission to access this file' });
+            return res.status(403).json({ message: 'Forbidden access' });
         }
 
         // Get the file details
@@ -165,7 +165,7 @@ router.get('/:id/details', authenticateToken, async (req, res) => {
         const formattedAnswers = answers.map(answer => {
             if (answer.document_path) {
                 // Create URL path for document downloads
-                answer.document_url = `${process.env.BACKEND_URL}/bookings/download/${id}/${answer.question_id}`;
+                answer.document_url = `${process.env.BACKEND_URL}/bookings/download-files/${id}/${answer.question_id}`;
 
                 // Remove the physical path as it shouldn't be exposed to clients
                 delete answer.document_path;
