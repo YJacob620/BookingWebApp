@@ -3,7 +3,7 @@ const pool = require('../config/db');
 const { JWT_SECRET } = require('../config/env');
 
 // Middleware to verify JWT token
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -11,13 +11,28 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({ message: 'Authentication required' });
     }
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({ message: 'Invalid or expired token' });
+    try {
+        const user = jwt.verify(token, JWT_SECRET);
+
+        // Check if user is blacklisted
+        const [users] = await pool.execute(
+            'SELECT is_blacklisted FROM users WHERE id = ?',
+            [user.userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(403).json({ message: 'User not found' });
         }
+
+        if (users[0].is_blacklisted === 1 || users[0].is_blacklisted === true) {
+            return res.status(403).json({ message: 'This account has been blacklisted. Please contact support.' });
+        }
+
         req.user = user;
         next();
-    });
+    } catch (err) {
+        return res.status(403).json({ message: 'Invalid or expired token' });
+    }
 };
 
 const authenticateAdmin = (req, res, next) => {
