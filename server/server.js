@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 require('./config/env'); // Validate environment variables
 const pool = require('./config/db'); // Create database connection pool
 const authenticationRoutes = require('./routes/authenticationRoutes');
@@ -14,7 +13,7 @@ const userManagementRoutes_Admin = require('./routes/userManagement-Admin');
 const preferencesRoutes_User_Manager = require('./routes/preferences-User-Manager');
 const emailService = require('./utils/emailService');
 const emailActionsRoutes = require('./routes/emailActions-Manager');
-const fileDownloadRoutes = require('./routes/fileDownloadRoutes');
+const bookingRoutes_All = require('./routes/bookings-All');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -59,12 +58,11 @@ app.use('/api/infrastructures/admin', infrastructuresRoutes_Admin);
 app.use('/api/infrastructures/manager-admin', infrastructuresRoutes_Manager_Admin);
 app.use('/api/infrastructures/manager', infrastructuresRoutes_Manager);
 app.use('/api/infrastructures/user', infrastructuresRoutes_User);
+app.use('/api/bookings', bookingRoutes_All);
 app.use('/api/bookings/manager-admin', bookingRoutes_Manager_Admin);
 app.use('/api/bookings/user', bookingRoutes_User);
-app.use('/api/bookings', fileDownloadRoutes);
 app.use('/api/user_management', userManagementRoutes_Admin);
 app.use('/api/preferences/user-manager', preferencesRoutes_User_Manager);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/email-action', emailActionsRoutes);
 
 // Start the server only after async operations complete

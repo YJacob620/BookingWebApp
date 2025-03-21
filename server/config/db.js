@@ -1,6 +1,6 @@
 const mysql = require('mysql2/promise');
 
-// Create MySQL connection pool
+// Create MySQL connection pool with proper encoding
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
@@ -9,7 +9,8 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 100,
-    queueLimit: 0
+    queueLimit: 0,
+    charset: 'utf8mb4'
 });
 
 // Export pool for use in other modules

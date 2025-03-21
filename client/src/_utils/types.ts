@@ -92,7 +92,6 @@ export interface BookingAnswer {
   question_text: string;
   question_type: 'dropdown' | 'text' | 'number' | 'document';
   answer_text: string | null;
-  document_path: string | null;
   document_url?: string;
 }
 

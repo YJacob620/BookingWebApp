@@ -14,6 +14,7 @@ const generateSecureFilename = (originalname) => {
     const timestamp = Date.now();
     const randomString = crypto.randomBytes(8).toString('hex');
     const fileExtension = path.extname(originalname);
+    // Encode the original filename in the database only, not in the filesystem
     const safeName = `${timestamp}-${randomString}${fileExtension}`;
     return safeName;
 };
@@ -29,6 +30,22 @@ const storage = multer.diskStorage({
         cb(null, secureFilename);
     }
 });
+
+// // Configure storage. When storing a file, ensure the original name is properly preserved
+// const storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//         cb(null, uploadDir);
+//     },
+//     filename: function (req, file, cb) {
+//         // Generate a secure filename that will be later associated with the booking
+//         const secureFilename = generateSecureFilename(file.originalname);
+
+//         // Store the original filename in the file object for later use
+//         file.originalFilename = Buffer.from(file.originalname).toString('utf8');
+
+//         cb(null, secureFilename);
+//     }
+// });
 
 // Create the upload middleware
 const upload = multer({

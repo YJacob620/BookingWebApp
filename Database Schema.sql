@@ -67,10 +67,10 @@ CREATE TABLE IF NOT EXISTS `infrastructure_managers` (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (infrastructure_id) REFERENCES infrastructures(id) ON DELETE CASCADE,
     UNIQUE KEY (user_id, infrastructure_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --  Table for infrastructure filter-questions
-CREATE TABLE IF NOT EXISTS infrastructure_questions (
+CREATE TABLE IF NOT EXISTS `infrastructure_questions` (
     id INT PRIMARY KEY AUTO_INCREMENT,
     infrastructure_id INT NOT NULL,
     question_text TEXT NOT NULL,
@@ -80,10 +80,10 @@ CREATE TABLE IF NOT EXISTS infrastructure_questions (
     options TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (infrastructure_id) REFERENCES infrastructures(id) ON DELETE CASCADE
-);
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
  --  Table for user answers on the filter-questions
-CREATE TABLE IF NOT EXISTS booking_answers (
+CREATE TABLE IF NOT EXISTS `booking_answers` (
     id INT PRIMARY KEY AUTO_INCREMENT,
     booking_id INT NOT NULL,
     question_id INT NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS booking_answers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES infrastructure_questions(id) ON DELETE CASCADE
-);
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table for secure email tokens
 CREATE TABLE IF NOT EXISTS `email_action_tokens` (
