@@ -8,9 +8,9 @@ import { Info, Loader } from 'lucide-react';
 
 import { resendVerification, login, User, getDashboardPath, Message } from '@/_utils';
 import BasePageLayout from '../components/_BasePageLayout';
-import { FORGOT_PASSWORD, REGISTER } from '@/RoutePaths';
+import { FORGOT_PASSWORD, REGISTER, CREATE_BOOKING } from '@/RoutePaths';
 
-import { useTranslation,Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 // Interface for form data
 interface LoginFormData {
@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
     const [isResendingVerification, setIsResendingVerification] = useState<boolean>(false);
     const [resendSuccess, setResendSuccess] = useState<boolean>(false);
 
-    const [t,i18n] = useTranslation()
+    const [t] = useTranslation();
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -77,6 +77,16 @@ const LoginPage: React.FC = () => {
         setIsLoading(true);
 
         try {
+            // Check if trying to log in as guest
+            if (formData.email.toLowerCase().includes('guest@')) {
+                setMessage({
+                    type: 'error',
+                    text: 'Guest accounts cannot be logged into. Please use our guest booking feature instead.'
+                });
+                setIsLoading(false);
+                return;
+            }
+
             // Use the imported login utility
             const result = await login(formData.email, formData.password);
 
@@ -184,20 +194,36 @@ const LoginPage: React.FC = () => {
                             />
                         </div>
 
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full apply"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                    Logging in...
-                                </>
-                            ) : (
-                                'Log in'
-                            )}
-                        </Button>
+                        <div className="flex flex-col gap-4">
+                            <Button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full apply"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                        Logging in...
+                                    </>
+                                ) : (
+                                    t('Login')
+                                )}
+                            </Button>
+
+                            <div className="text-center">
+                                <p className="text-sm explanation-text1">- OR -</p>
+                            </div>
+
+                            <Link to={`${CREATE_BOOKING}?guest=true`}>
+                                <Button
+                                    type="button"
+                                    variant="custom5"
+                                    className="w-full h-7"
+                                >
+                                    Continue as Guest
+                                </Button>
+                            </Link>
+                        </div>
                     </form>
                 </CardContent>
                 <CardFooter className="flex flex-col">

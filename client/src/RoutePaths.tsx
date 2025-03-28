@@ -28,6 +28,9 @@ export const EMAIL_ACTION_HANDLER = '/email-action/:action/:token';
 // For-all routes
 export const DOWNLOAD_BOOKINGS_DOC = '/bookings/download-file';
 
+// Guest routes
+export const GUEST_CONFIRMATION = '/guest-confirm/:token';
+
 // Helper functions for parameterized routes
 export const getVerifyEmailPath = (token: string) =>
     VERIFY_EMAIL.replace(':token', token);

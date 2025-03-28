@@ -5,8 +5,8 @@ const router = express.Router();
 const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
-// Get active infrastructures (for all users)
-router.get('/active', authenticateToken, async (req, res) => {
+// Get active infrastructures (for all users including guests)
+router.get('/active', /*authenticateToken,*/ async (req, res) => {
     try {
         const [rows] = await pool.execute(
             'SELECT * FROM infrastructures WHERE is_active = 1 ORDER BY name'

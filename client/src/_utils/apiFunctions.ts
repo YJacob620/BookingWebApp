@@ -90,16 +90,24 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
 /**
  * Fetch all relevant infrastructures (handles any user role)
  */
-export const fetchInfrastructures = (user: User | null = null): Promise<Infrastructure[]> => {
-  if (!user) user = getLocalUser();
-  if (!user) throw new Error("getLocalUser failed");
+export const fetchInfrastructures = (isGuest: boolean = false): Promise<Infrastructure[]> => {
+  console.log("isGuest ", isGuest);
+
+  if (isGuest) {
+    return apiRequest('/infrastructures/user/active');
+  }
+  const user = getLocalUser();
+  // if (!user) throw new Error("getLocalUser failed");
+  if (!user) {
+    return apiRequest('/infrastructures/user/active');
+  }
   if (user.role === "admin") {
     return apiRequest('/infrastructures/admin');
   }
   if (user.role === "manager") {
     return apiRequest('/infrastructures/manager');
   }
-  return apiRequest('/infrastructures/user/active');
+  throw new Error("Unexpected error when fetching infrastructures");
 };
 
 /**
@@ -500,4 +508,53 @@ export const fetchBookingDetails = async (bookingId: number): Promise<BookingDet
 export const downloadBookingDocument = async (bookingId: string, questionId: string) => {
   const data = await apiRequest<void>(`${API_BASE_URL}/bookings/download-file/${bookingId}/${questionId}`);
   return data;
+};
+
+/**
+ * Initiate a guest booking request
+ * @param email - Guest email address
+ * @param infrastructureId - ID of the selected infrastructure
+ * @param timeslotId - ID of the selected timeslot
+ * @param purpose - Purpose of the booking (optional)
+ * @param answers - Answers to infrastructure questions (optional)
+ * @returns Promise with the response data
+ */
+export const initiateGuestBooking = async (
+  email: string,
+  infrastructureId: number,
+  timeslotId: number,
+  purpose: string = '',
+  answers: Record<string, any> = {}
+): Promise<{ success: boolean, message: string, data?: any }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/guest/initiate-booking`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        infrastructureId,
+        timeslotId,
+        purpose,
+        answers
+      }),
+    });
+
+    const data = await response.json();
+
+    return {
+      success: response.ok,
+      message: data.message || (response.ok
+        ? 'Booking verification email sent! Please check your inbox to confirm your booking.'
+        : 'Failed to process booking request'),
+      data: response.ok ? data : null
+    };
+  } catch (error) {
+    console.error('Error initiating guest booking:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'An error occurred while processing your booking'
+    };
+  }
 };

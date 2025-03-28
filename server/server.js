@@ -14,6 +14,7 @@ const preferencesRoutes_User_Manager = require('./routes/preferences-User-Manage
 const emailService = require('./utils/emailService');
 const emailActionsRoutes = require('./routes/emailActions-Manager');
 const bookingRoutes_All = require('./routes/bookings-All');
+const guestRoutes = require('./routes/guestRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -64,6 +65,7 @@ app.use('/api/bookings/user', bookingRoutes_User);
 app.use('/api/user_management', userManagementRoutes_Admin);
 app.use('/api/preferences/user-manager', preferencesRoutes_User_Manager);
 app.use('/api/email-action', emailActionsRoutes);
+app.use('/api/guest', guestRoutes);
 
 // Start the server only after async operations complete
 app.listen(PORT, () => {

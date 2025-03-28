@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarCheck } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CalendarCheck, Mail, ArrowRight } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,6 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format, isBefore, startOfDay } from "date-fns";
+import { Input } from '@/components/ui/input';
 
 import {
   Infrastructure,
@@ -29,9 +31,10 @@ import {
   fetchInfrastructureQuestions,
   FilterQuestionData,
   FilterQuestionsAnswersType,
+  Message,
+  initiateGuestBooking
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
-import { Input } from '@/components/ui/input';
 import BasePageLayout from '@/components/_BasePageLayout';
 import InfrastructureSelector from '@/components/_InfrastructureSelector';
 
@@ -39,7 +42,11 @@ type UserAnswersMap = Record<number, FilterQuestionsAnswersType>;
 
 const BookTimeslot = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isGuestMode = searchParams.get('guest') === 'true';
+
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessingGuestBooking, setIsProcessingGuestBooking] = useState(false);
   const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
   const [allTimeslots, setAllTimeslots] = useState<BookingEntry[]>([]);
   const [availableTimeslots, setAvailableTimeslots] = useState<BookingEntry[]>([]);
@@ -47,30 +54,34 @@ const BookTimeslot = () => {
   const [selectedInfrastructureId, setSelectedInfrastructureId] = useState<number | null>(null);
   const [selectedTimeslotId, setSelectedTimeslotId] = useState<number | null>(null);
   const [purpose, setPurpose] = useState<string>('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [message, setMessage] = useState<Message | null>(null);
   const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
   const [answers, setAnswers] = useState<UserAnswersMap>({});
   const [isFormValid, setIsFormValid] = useState(false);
 
+  // Guest-specific state
+  const [guestEmail, setGuestEmail] = useState<string>('');
+  const [showGuestEmailForm, setShowGuestEmailForm] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
 
-    if (!token) {
+    // Allow guest mode without token
+    if (!token && !isGuestMode) {
       navigate(LOGIN);
       return;
     }
 
     fetchActiveInfrastructures();
-  }, [navigate]);
+  }, [navigate, isGuestMode]);
 
   // Fetch infrastructures when component mounts
   const fetchActiveInfrastructures = async () => {
     try {
       setIsLoading(true);
-
-      // Use the imported fetchActiveInfrastructures utility
-      const data = await fetchInfrastructures();
+      console.log("isGuestMode ", isGuestMode);
+      const data = await fetchInfrastructures(isGuestMode);
       setInfrastructures(data);
     } catch (error) {
       console.error('Error fetching infrastructures:', error);
@@ -204,7 +215,87 @@ const BookTimeslot = () => {
     return uniqueDates;
   }, [allTimeslots]);
 
+  // New handler for guest booking
+  const handleGuestBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
 
+    if (!guestEmail.trim()) {
+      setMessage({ type: 'error', text: 'Please enter your email address' });
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(guestEmail)) {
+      setMessage({ type: 'error', text: 'Please enter a valid email address' });
+      return;
+    }
+
+    setIsProcessingGuestBooking(true);
+    setMessage(null);
+
+    try {
+      // Prepare answers for API in the desired format
+      const formattedAnswers: Record<string, any> = {};
+      if (questions.length > 0) {
+        Object.entries(answers).forEach(([questionId, value]) => {
+          // For simplicity, we're only handling text answers for guests
+          if (value !== null && typeof value !== 'object') {
+            formattedAnswers[questionId] = value;
+          }
+        });
+      }
+
+      // Call the API function instead of using fetch directly
+      const result = await initiateGuestBooking(
+        guestEmail,
+        selectedInfrastructureId!,
+        selectedTimeslotId!,
+        purpose,
+        formattedAnswers
+      );
+
+      if (result.success) {
+        setMessage({
+          type: 'success',
+          text: result.message
+        });
+
+        // Reset form
+        setSelectedTimeslotId(null);
+        setPurpose('');
+        setSelectedDate(undefined);
+        setShowGuestEmailForm(false);
+
+        // Reset answers
+        const initialAnswers: UserAnswersMap = {};
+        questions.forEach(q => {
+          initialAnswers[q.id] = q.question_type === 'document' ? null : '';
+        });
+        setAnswers(initialAnswers);
+
+        // Redirect to login page after a delay
+        setTimeout(() => {
+          navigate(LOGIN);
+        }, 5000);
+      } else {
+        setMessage({
+          type: 'error',
+          text: result.message
+        });
+      }
+    } catch (error) {
+      console.error('Error processing guest booking:', error);
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'An error occurred while processing your booking'
+      });
+    } finally {
+      setIsProcessingGuestBooking(false);
+    }
+  };
+
+  // Modified submit handler to handle both regular and guest bookings
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -216,53 +307,13 @@ const BookTimeslot = () => {
       return;
     }
 
-    // Validate required answers if there are questions
-    if (questions.length > 0) {
-      const missingRequired = [];
-
-      // Check each required question for a valid answer
-      for (const q of questions.filter(q => q.is_required)) {
-        const answer = answers[q.id];
-        let isAnswerValid = false;
-
-        switch (q.question_type) {
-          case 'text':
-          case 'dropdown':
-            // For text/dropdown, must be non-empty string
-            isAnswerValid = typeof answer === 'string' && answer.trim() !== '';
-            break;
-
-          case 'number':
-            // For numbers, must be a number or a non-empty string
-            isAnswerValid =
-              (typeof answer === 'number' && !isNaN(answer)) ||
-              (typeof answer === 'string' && answer.trim() !== '');
-            break;
-
-          case 'document':
-            // For documents, must be a File object
-            isAnswerValid = answer instanceof File;
-            break;
-
-          default:
-            // Unknown type, consider it missing
-            isAnswerValid = false;
-        }
-
-        if (!isAnswerValid) {
-          missingRequired.push(q.question_text);
-        }
-      }
-
-      if (missingRequired.length > 0) {
-        setMessage({
-          type: 'error',
-          text: `Please answer the following required questions: ${missingRequired.join(', ')}`
-        });
-        return;
-      }
+    // For guest mode, show email form instead of proceeding directly
+    if (isGuestMode) {
+      setShowGuestEmailForm(true);
+      return;
     }
 
+    // Regular booking flow for authenticated users
     try {
       setIsLoading(true);
 
@@ -435,129 +486,202 @@ const BookTimeslot = () => {
 
   return (
     <BasePageLayout
-      pageTitle="Request a Booking"
-      explanationText={"Fill and submit the form to request a booking from an infrastructure manager"}
-      showDashboardButton
+      pageTitle={isGuestMode ? "Guest Booking" : "Request a Booking"}
+      explanationText={isGuestMode
+        ? "As a guest, you can book infrastructure without an account. Limited to one booking per day."
+        : "Fill and submit the form to request a booking from an infrastructure manager"}
+      showDashboardButton={!isGuestMode}
       alertMessage={message}
     >
-      <Card className="card1 mb-8">
-        <CardTitle className="text-2xl py-4">Book Infrastructures</CardTitle>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Infrastructure Selection - replaced with InfrastructureSelector component */}
-            <div className="space-y-2">
-              {isLoading ? (
-                <p>Loading available infrastructures...</p>
-              ) : infrastructures.length === 0 ? (
-                <p>No infrastructures available</p>
-              ) : (
-                <>
-                  <p className="small-title">Select Infrastructure</p>
-                  <InfrastructureSelector
-                    onSelectInfrastructure={handleInfrastructureSelected}
-                    onError={(errorMsg) => setMessage({ type: 'error', text: errorMsg })}
-                  />
-                </>
-              )}
+      {showGuestEmailForm ? (
+        <Card className="card1 max-w-md mx-auto">
+          <CardContent className="p-6">
+            <div className="flex items-center mb-4">
+              <Mail className="h-8 w-8 text-blue-500 mr-3" />
+              <h2 className="text-xl font-bold">Confirm Your Email</h2>
             </div>
 
-            {/* Date Selection */}
-            <div className="space-y-2">
-              <p className="small-title">Select Date</p>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`def-hover w-full h-9 px-2 text-[14px] justify-start text-left font-normal 
-                        ${!selectedDate && "text-gray-400"}`}
-                  >
-                    <CalendarCheck className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, 'PPP') : "Select a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="calendar-popover">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      setSelectedDate(date);
-                      setSelectedTimeslotId(null); // Reset timeslot when date changes
-                    }}
-                    disabled={isDateDisabled}
-                  />
+            <p className="mb-4 explanation-text1">
+              Please enter your email address. You'll receive a confirmation link to finalize your booking.
+            </p>
 
-                </PopoverContent>
-              </Popover>
-              {isLoadingTimeslots && <p className="text-sm text-gray-400">Loading available dates...</p>}
-              {!isLoadingTimeslots && selectedInfrastructureId && availableDates.length === 0 && (
-                <p className="text-sm text-amber-500">No available timeslots for this infrastructure</p>
-              )}
-            </div>
-
-            {/* Timeslot Selection */}
-            <div className="space-y-2">
-              <p className="small-title">Select Timeslot</p>
-              <Select
-                onValueChange={(value) => setSelectedTimeslotId(Number(value))}
-                value={selectedTimeslotId?.toString() || ""}
-                disabled={availableTimeslots.length === 0 || !selectedDate}
-              >
-                <SelectTrigger id="timeslot">
-                  <SelectValue placeholder={
-                    !selectedInfrastructureId
-                      ? "Select infrastructure first" : !selectedDate
-                        ? "Select a date first" : availableTimeslots.length === 0
-                          ? "No available timeslots for this date" : "Select a timeslot"
-                  } />
-                </SelectTrigger>
-                <SelectContent className="card1">
-                  {availableTimeslots.map((slot) => (
-                    <SelectItem key={slot.id} value={slot.id.toString()}>
-                      {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Purpose */}
-            <div className="space-y-2">
-              <p className="small-title">Purpose of Booking (optional)</p>
-              <Textarea
-                id="purpose"
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-                placeholder="Briefly describe the purpose of your booking"
-                className="h-24"
-              />
-            </div>
-
-            {/* Dynamic question fields */}
-            {questions.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Additional Information</h3>
-                {renderQuestionFields()}
+            <form onSubmit={handleGuestBooking} className="space-y-4">
+              <div>
+                <label className="block mb-1">Email Address</label>
+                <Input
+                  type="email"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  required
+                />
               </div>
-            )}
 
-            {/* Submit button - updated to use isFormValid state */}
-            <Button
-              type="submit"
-              disabled={!isFormValid || isLoading}
-              className="w-full"
-            >
-              {isLoading ? (
-                <>
-                  <span className="mr-2">Submitting...</span>
-                  <span className="animate-spin">⏳</span>
-                </>
-              ) : (
-                'Submit Booking Request'
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowGuestEmailForm(false)}
+                  disabled={isProcessingGuestBooking}
+                >
+                  Back
+                </Button>
+
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={isProcessingGuestBooking || !guestEmail}
+                >
+                  {isProcessingGuestBooking ?
+                    'Processing...' :
+                    'Send Confirmation Email'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="card1 mb-8">
+          <CardTitle className="text-2xl py-4">
+            {isGuestMode ? "Guest Booking" : "Book Infrastructure"}
+          </CardTitle>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Infrastructure Selection - replaced with InfrastructureSelector component */}
+              <div className="space-y-2">
+                {isLoading ? (
+                  <p>Loading available infrastructures...</p>
+                ) : infrastructures.length === 0 ? (
+                  <p>No infrastructures available</p>
+                ) : (
+                  <>
+                    <p className="small-title">Select Infrastructure</p>
+                    <InfrastructureSelector
+                      onSelectInfrastructure={handleInfrastructureSelected}
+                      onError={(errorMsg) => setMessage({ type: 'error', text: errorMsg })}
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Date Selection */}
+              <div className="space-y-2">
+                <p className="small-title">Select Date</p>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`def-hover w-full h-9 px-2 text-[14px] justify-start text-left font-normal 
+                        ${!selectedDate && "text-gray-400"}`}
+                    >
+                      <CalendarCheck className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, 'PPP') : "Select a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="calendar-popover">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
+                        setSelectedDate(date);
+                        setSelectedTimeslotId(null); // Reset timeslot when date changes
+                      }}
+                      disabled={isDateDisabled}
+                    />
+
+                  </PopoverContent>
+                </Popover>
+                {isLoadingTimeslots && <p className="text-sm text-gray-400">Loading available dates...</p>}
+                {!isLoadingTimeslots && selectedInfrastructureId && availableDates.length === 0 && (
+                  <p className="text-sm text-amber-500">No available timeslots for this infrastructure</p>
+                )}
+              </div>
+
+              {/* Timeslot Selection */}
+              <div className="space-y-2">
+                <p className="small-title">Select Timeslot</p>
+                <Select
+                  onValueChange={(value) => setSelectedTimeslotId(Number(value))}
+                  value={selectedTimeslotId?.toString() || ""}
+                  disabled={availableTimeslots.length === 0 || !selectedDate}
+                >
+                  <SelectTrigger id="timeslot">
+                    <SelectValue placeholder={
+                      !selectedInfrastructureId
+                        ? "Select infrastructure first" : !selectedDate
+                          ? "Select a date first" : availableTimeslots.length === 0
+                            ? "No available timeslots for this date" : "Select a timeslot"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent className="card1">
+                    {availableTimeslots.map((slot) => (
+                      <SelectItem key={slot.id} value={slot.id.toString()}>
+                        {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Purpose */}
+              <div className="space-y-2">
+                <p className="small-title">Purpose of Booking (optional)</p>
+                <Textarea
+                  id="purpose"
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  placeholder="Briefly describe the purpose of your booking"
+                  className="h-24"
+                />
+              </div>
+
+              {/* Dynamic question fields */}
+              {questions.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Additional Information</h3>
+                  {renderQuestionFields()}
+                </div>
               )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+
+              {/* Submit button - updated for guest mode */}
+              <Button
+                type="submit"
+                disabled={!isFormValid || isLoading}
+                className="w-full"
+              >
+                {isLoading ? (
+                  <>
+                    <span className="mr-2">Submitting...</span>
+                    <span className="animate-spin">⏳</span>
+                  </>
+                ) : (
+                  isGuestMode ? (
+                    <>
+                      Continue to Verification
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  ) : (
+                    'Submit Booking Request'
+                  )
+                )}
+              </Button>
+
+              {isGuestMode && (
+                <Alert className="bg-gray-800 border border-gray-700">
+                  <AlertDescription>
+                    <p>As a guest, after submitting this form:</p>
+                    <ol className="list-decimal pl-5 mt-2 space-y-1">
+                      <li>You'll be asked for your email address</li>
+                      <li>We'll send you an email with a confirmation link</li>
+                      <li>Click the link to finalize your booking</li>
+                    </ol>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </form>
+          </CardContent>
+        </Card>
+      )}
     </BasePageLayout>
   );
 };

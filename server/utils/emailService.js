@@ -412,3 +412,75 @@ module.exports = {
     sendBookingStatusUpdate,
     generateSecureActionToken
 };
+
+/**
+ * Send guest booking verification email with a confirmation link
+ * @param {string} email - Guest email
+ * @param {string} verificationUrl - The verification URL
+ * @returns {Promise} - Nodemailer response
+ */
+const sendGuestBookingVerificationEmail = async (email, verificationUrl) => {
+    const mailOptions = {
+        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Confirm Your Infrastructure Booking',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">Confirm Your Booking</h2>
+                <p>Hello,</p>
+                <p>Thank you for using our infrastructure booking system. Please click the button below to confirm your booking request:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Confirm Booking</a>
+                </div>
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="word-break: break-all;"><a href="${verificationUrl}">${verificationUrl}</a></p>
+                <p>This link will expire in 24 hours. If you did not request this booking, you can safely ignore this email.</p>
+                <p>Best regards,<br>Scientific Infrastructure Team</p>
+            </div>
+        `
+    };
+
+    return transporter.sendMail(mailOptions);
+};
+
+/**
+ * Send confirmation to guest after booking is created
+ * @param {string} email - Guest email
+ * @param {Object} booking - Booking details
+ * @param {Object} infrastructure - Infrastructure details
+ * @returns {Promise} - Nodemailer response
+ */
+const sendGuestBookingConfirmation = async (email, booking, infrastructure) => {
+    const mailOptions = {
+        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: `Booking Request Confirmed for ${infrastructure.name}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">Booking Request Confirmed</h2>
+                <p>Hello,</p>
+                <p>Your booking request for <strong>${infrastructure.name}</strong> has been confirmed and is now pending review by an infrastructure manager.</p>
+                
+                <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                    <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
+                    <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
+                    <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
+                    <p><strong>Status:</strong> <span style="color: #FF9800;">Pending</span></p>
+                </div>
+                
+                <p>An infrastructure manager will review your request shortly. You will receive another email when your request is approved or rejected.</p>
+                <p>If you want to make future bookings more easily, consider <a href="${process.env.FRONTEND_URL}/register">registering an account</a>.</p>
+                <p>Best regards,<br>Scientific Infrastructure Team</p>
+            </div>
+        `
+    };
+
+    return transporter.sendMail(mailOptions);
+};
+
+// Update module.exports
+module.exports = {
+    // ... existing exports
+    sendGuestBookingVerificationEmail,
+    sendGuestBookingConfirmation
+};

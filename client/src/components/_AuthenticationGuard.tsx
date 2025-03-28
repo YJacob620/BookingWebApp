@@ -5,6 +5,8 @@ import { LOGIN } from '@/RoutePaths';
 import { UserRole } from '@/_utils';
 import { getDashboardPath } from '@/_utils/localAuthUtils';
 import { verifyAdmin, verifyManager, verifyUser } from '@/_utils';
+import { CREATE_BOOKING } from '@/RoutePaths';
+
 
 interface TokenParams {
   // Name of the token parameter in URL (e.g., 'token')
@@ -52,6 +54,8 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
 
   useEffect(() => {
     const checkAuth = async () => {
+      const isGuestMode = location.search.includes('guest=true');
+
       // CASE 1: TOKEN-BASED AUTH FLOW
       if (tokenParams) {
         // If no token present, redirect to login
@@ -107,7 +111,14 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
         return;
       }
 
-      // CASE 3: PROTECTED ROUTE (role-based auth)
+      // CASE 3: GUEST BOOKING PAGE
+      if (isGuestMode && location.pathname === CREATE_BOOKING) {
+        // Allow access to booking page in guest mode without authentication
+        setIsAuthorized(true);
+        return;
+      }
+
+      // CASE 4: PROTECTED ROUTE (role-based auth)
       const authToken = localStorage.getItem('token');
       if (!authToken) {
         navigate(LOGIN);
