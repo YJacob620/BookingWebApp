@@ -116,7 +116,6 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                 </PopoverTrigger>
                 <PopoverContent className={`${popoverWidth} p-0 bg-gray-900`} align="start">
                     <div className="p-2 border-b border-gray-700 flex justify-between items-center">
-                        <span className="font-medium">{label}</span>
                         <div className="flex space-x-1">
                             <Button
                                 variant="outline"

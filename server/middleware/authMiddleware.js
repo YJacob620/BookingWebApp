@@ -77,6 +77,9 @@ const authenticateAdminOrManager = (req, res, next) => {
  */
 const hasInfrastructureAccess = async (
     req, res, infrastructureId, connection = pool, rollbackOnFail = false, sendResponseOnFalse = true) => {
+    if (connection === null) {
+        connection = pool;
+    }
     // Admins always have access to all infrastructures
     if (req.user.role === 'admin') {
         return true;

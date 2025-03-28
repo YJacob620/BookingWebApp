@@ -166,6 +166,7 @@ const BookingManagement: React.FC = () => {
         try {
             await forceUpdatePastBookings();
             setRefreshTrigger(prev => prev + 1); // Refresh the data after status updates
+            handleSuccess("Updated past entries successfully");
         } catch (error) {
             console.error('Error updating past bookings:', error);
             handleError('An error occurred while updating past bookings');

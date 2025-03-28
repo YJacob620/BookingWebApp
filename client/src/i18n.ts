@@ -6,10 +6,10 @@ import resourcesToBackend from 'i18next-resources-to-backend';
 const isDev = import.meta.env.DEV
 
 i18n
-.use(initReactI18next)
-.use(resourcesToBackend((language: any, namespace: any) => import(`./locales/${language}/${namespace}.json`)))
-.init({
-    debug: isDev, // Enable logging for development
-    fallbackLng: 'en', // Default language
-    saveMissing: isDev, // you should not use saveMissing in production
-})
+    .use(initReactI18next)
+    .use(resourcesToBackend((language: any, namespace: any) => import(`./locales/${language}/${namespace}.json`)))
+    .init({
+        debug: isDev, // Enable logging for development
+        fallbackLng: 'en', // Default language
+        saveMissing: isDev, // you should not use saveMissing in production
+    })

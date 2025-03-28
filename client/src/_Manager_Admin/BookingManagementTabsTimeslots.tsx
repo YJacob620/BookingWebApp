@@ -268,7 +268,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       {/* Filter controls */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-1">
-          <p>Filter by Specific Date</p>
+          <p>Filter by Date</p>
           <div className="flex space-x-2">
             <Input
               id="date-filter-input"
@@ -291,7 +291,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         </div>
 
         <MultiSelectFilter
-          label="Status"
+          label="Filter by Status"
           options={createFilterOptions(TIMESLOT_STATUSES, getStatusColor)}
           selectedValues={selectedTimeslotStatusFilters}
           onSelectionChange={(values) =>
@@ -301,12 +301,12 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         />
 
         <MultiSelectFilter
-          label="Date"
+          label="Filter by Time-Period"
           options={createFilterOptions(DATE_FILTER_OPTIONS)}
           selectedValues={selectedTimeslotDateFilters}
           onSelectionChange={(values) =>
             onFilterStateChange({ selectedTimeslotDateFilters: values })}
-          placeholder="All Dates"
+          placeholder="All Times"
           disabled={!!timeslotDayFilter}
           triggerClassName={timeslotDayFilter ? 'opacity-50' : ''}
         />

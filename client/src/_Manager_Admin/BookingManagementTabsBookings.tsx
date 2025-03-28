@@ -327,7 +327,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           />
         </div>
         <div>
-          <p>Filter by Specific Date</p>
+          <p>Filter by Date</p>
           <div className="flex space-x-2">
             <Input
               id="date-filter-input"
@@ -350,7 +350,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         </div>
 
         <MultiSelectFilter
-          label="Status"
+          label="Filter by Status"
           options={createFilterOptions(BOOKING_STATUSES, getStatusColor)}
           selectedValues={selectedBookingStatusFilters}
           onSelectionChange={(values) =>
@@ -360,12 +360,12 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         />
 
         <MultiSelectFilter
-          label="Date"
+          label="Filter by Time-Period"
           options={createFilterOptions(DATE_FILTER_OPTIONS)}
           selectedValues={selectedBookingDateFilters}
           onSelectionChange={(values) =>
             onFilterStateChange({ selectedBookingDateFilters: values })}
-          placeholder="All Dates"
+          placeholder="All Times"
           disabled={!!bookingsDayFilter}
           triggerClassName={bookingsDayFilter ? 'opacity-50' : ''}
         />

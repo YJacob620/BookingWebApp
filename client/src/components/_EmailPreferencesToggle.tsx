@@ -80,7 +80,7 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({ classNa
                         <h3 className="text-lg font-medium mb-1">Email Notifications</h3>
                         <p className="text-sm text-gray-400">
                             {enabled
-                                ? 'You will receive email notifications about your bookings and updates'
+                                ? 'You will receive email notifications about bookings and updates'
                                 : 'You will not receive any email notifications from the system'}
                         </p>
                     </div>

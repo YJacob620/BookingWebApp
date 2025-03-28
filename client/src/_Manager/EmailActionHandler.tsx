@@ -9,8 +9,9 @@ import BasePageLayout from '@/components/_BasePageLayout';
 import { Message } from '@/_utils';
 
 /**
- * Single component that handles both the processing and display of email action results
- * It extracts the action and token from the URL, calls the API, and displays the result
+ * Single component that handles both the processing and display of email action results.
+ * It extracts the action and token from the URL, calls the API, and displays the result.
+ * It's used when an infrastructure manager accepts/rejects bookings request via emails.  
  */
 const EmailActionHandler: React.FC = () => {
     const { action, token } = useParams<{ action: 'approve' | 'reject'; token: string }>();

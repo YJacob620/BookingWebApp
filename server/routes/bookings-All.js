@@ -35,7 +35,7 @@ router.get('/download-file/:bookingId/:questionId', authenticateToken, async (re
         const booking = bookings[0];
 
         // Check access to infrastructure
-        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, null, false, false)) {
+        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, undefined, false, false)) {
             if (!(booking.user_email === userEmail)) { // Regular users can only access their own files
                 return res.status(403).json({ message: 'Forbidden access' });
             }
@@ -103,7 +103,7 @@ router.get('/:id/details', authenticateToken, async (req, res) => {
         const booking = bookings[0];
 
         // Assert permission to access this booking
-        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, null, false, false)) {
+        if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, undefined, false, false)) {
             if (booking.user_email !== userEmail) {
                 return res.status(403).json({ message: 'Forbidden access' });
             }

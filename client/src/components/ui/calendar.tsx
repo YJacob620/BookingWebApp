@@ -54,7 +54,7 @@ export const Calendar = ({
         ),
         [SelectionState.range_end]: "day-range-end",
         [SelectionState.selected]:
-          "bg-gray-100 text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+          "!opacity-100 !bg-gray-200 !text-primary-foreground hover:!bg-primary hover:!text-primary-foreground focus:!bg-primary focus:text-primary-foreground",
         [SelectionState.range_middle]:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         [DayFlag.today]: "bg-accent text-accent-foreground",
