@@ -10,6 +10,8 @@ import { resendVerification, login, User, getDashboardPath, Message } from '@/_u
 import BasePageLayout from '../components/_BasePageLayout';
 import { FORGOT_PASSWORD, REGISTER } from '@/RoutePaths';
 
+import { useTranslation,Trans } from 'react-i18next';
+
 // Interface for form data
 interface LoginFormData {
     email: string;
@@ -27,6 +29,8 @@ const LoginPage: React.FC = () => {
     const [needsVerification, setNeedsVerification] = useState<boolean>(false);
     const [isResendingVerification, setIsResendingVerification] = useState<boolean>(false);
     const [resendSuccess, setResendSuccess] = useState<boolean>(false);
+
+    const [t,i18n] = useTranslation()
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
