@@ -23,7 +23,7 @@ interface InfrastructureSelectorProps {
 
 const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   onSelectInfrastructure,
-  onError
+  onError,
 }) => {
   const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
   const [selectedInfraId, setSelectedInfraId] = useState<number | null>(null);
@@ -67,7 +67,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   if (infrastructures.length === 0) {
     return (
       <div className="text-center py-4 text-amber-500">
-        No infrastructures available. Please create an infrastructure first.
+        No infrastructures available.
       </div>
     );
   }

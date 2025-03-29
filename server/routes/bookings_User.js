@@ -56,7 +56,7 @@ router.get('/all', authenticateToken, async (req, res) => {
     }
 });
 
-// Cancel a booking 
+// Cancel a booking (user)
 // Users can cancel their own pending or approved bookings as long as the bookings aren't within 24 hours
 router.post('/:id/cancel', authenticateToken, async (req, res) => {
     try {
@@ -110,7 +110,7 @@ router.post('/:id/cancel', authenticateToken, async (req, res) => {
     }
 });
 
-// Request a booking (user). Handles filter-question answers (and file uploads)
+// Request a booking (user)
 router.post('/request', authenticateToken, upload.any(), async (req, res) => {
     const connection = await pool.getConnection();
     try {
@@ -390,38 +390,6 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
         });
     } finally {
         connection.release();
-    }
-});
-
-// Get available timeslots for an infrastructure with optional date filter (user)
-router.get('/:infrastructureId/available-timeslots', authenticateToken, async (req, res) => {
-    try {
-        const { infrastructureId } = req.params;
-        const { date } = req.query;
-
-        let query = `
-            SELECT * FROM bookings 
-            WHERE infrastructure_id = ? 
-            AND booking_type = 'timeslot'
-            AND status = 'available'
-            AND booking_date >= CURDATE()
-        `;
-
-        const params = [infrastructureId];
-
-        // Add date filter if provided
-        if (date) {
-            query += ' AND booking_date = ?';
-            params.push(date);
-        }
-
-        query += ' ORDER BY booking_date ASC, start_time ASC';
-
-        const [timeslots] = await pool.execute(query, params);
-        res.json(timeslots);
-    } catch (err) {
-        console.error('Database error:', err);
-        res.status(500).json({ message: 'Error fetching available timeslots' });
     }
 });
 

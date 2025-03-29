@@ -2,9 +2,6 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const pool = require('../config/db');
 const ical = require('ical-generator').default;
-// OR alternatively:
-// const icalGenerator = require('ical-generator');
-// const ical = icalGenerator.default;
 
 // Create a reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
@@ -116,8 +113,8 @@ const sendBookingNotifications = async (booking, infrastructure, managers, secur
         // Use process.nextTick to run notifications in the background
         process.nextTick(async () => {
             try {
-                await sendBookingRequestNotificationToManagers(booking, infrastructure, managers, secureToken);
-                await sendBookingRequestConfirmationToUser(booking, infrastructure);
+                await sendBookingNotificationToManagers(booking, infrastructure, managers, secureToken);
+                await sendBookingNotificationToUser(booking, infrastructure);
                 console.log('Booking notifications sent successfully');
                 resolve(true);
             } catch (error) {
@@ -138,7 +135,7 @@ const sendBookingNotifications = async (booking, infrastructure, managers, secur
  * @param {string} actionToken - Token for action links
  * @returns {Promise} - Nodemailer response
  */
-const sendBookingRequestNotificationToManagers = async (booking, infrastructure, managers, actionToken) => {
+const sendBookingNotificationToManagers = async (booking, infrastructure, managers, actionToken) => {
     // Get user details
     const [users] = await pool.execute('SELECT name, email FROM users WHERE email = ?', [booking.user_email]);
     const user = users[0] || { name: 'User', email: booking.user_email };
@@ -212,7 +209,7 @@ const sendBookingRequestNotificationToManagers = async (booking, infrastructure,
  * @param {Object} infrastructure - Infrastructure details
  * @returns {Promise} - Nodemailer response
  */
-const sendBookingRequestConfirmationToUser = async (booking, infrastructure) => {
+const sendBookingNotificationToUser = async (booking, infrastructure) => {
     // Get user details
     const [users] = await pool.execute('SELECT name, email, email_notifications FROM users WHERE email = ?', [booking.user_email]);
     const user = users[0];
@@ -407,8 +404,8 @@ module.exports = {
     sendPasswordResetEmail,
     verifyEmailConfig,
     sendBookingNotifications,
-    sendBookingRequestNotificationToManagers,
-    sendBookingRequestConfirmationToUser,
+    sendBookingRequestNotificationToManagers: sendBookingNotificationToManagers,
+    sendBookingRequestConfirmationToUser: sendBookingNotificationToUser,
     sendBookingStatusUpdate,
     generateSecureActionToken
 };
@@ -478,9 +475,16 @@ const sendGuestBookingConfirmation = async (email, booking, infrastructure) => {
     return transporter.sendMail(mailOptions);
 };
 
-// Update module.exports
 module.exports = {
-    // ... existing exports
+    generateToken,
+    sendVerificationEmail,
+    sendPasswordResetEmail,
+    verifyEmailConfig,
+    sendBookingNotifications,
+    sendBookingNotificationToManagers,
+    sendBookingNotificationToUser,
+    sendBookingStatusUpdate,
+    generateSecureActionToken,
     sendGuestBookingVerificationEmail,
     sendGuestBookingConfirmation
 };

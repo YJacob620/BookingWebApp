@@ -88,16 +88,11 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
 };
 
 /**
- * Fetch all relevant infrastructures (handles any user role)
+ * Fetch all relevant infrastructures (handles any user role).
+ * Default return value is the infrastructures relevant to guests.
  */
-export const fetchInfrastructures = (isGuest: boolean = false): Promise<Infrastructure[]> => {
-  console.log("isGuest ", isGuest);
-
-  if (isGuest) {
-    return apiRequest('/infrastructures/user/active');
-  }
+export const fetchInfrastructures = (): Promise<Infrastructure[]> => {
   const user = getLocalUser();
-  // if (!user) throw new Error("getLocalUser failed");
   if (!user) {
     return apiRequest('/infrastructures/user/active');
   }
@@ -107,7 +102,7 @@ export const fetchInfrastructures = (isGuest: boolean = false): Promise<Infrastr
   if (user.role === "manager") {
     return apiRequest('/infrastructures/manager');
   }
-  throw new Error("Unexpected error when fetching infrastructures");
+  return apiRequest('/infrastructures/user/active');
 };
 
 /**
@@ -290,7 +285,7 @@ export const toggleInfrastructureStatus = (id: number) => {
  */
 export const fetchInfrastAvailTimeslots =
   (infrastructureId: number, params?: { date?: string }): Promise<BookingEntry[]> => {
-    let url = `/bookings/user/${infrastructureId}/available-timeslots`;
+    let url = `/infrastructures/user/${infrastructureId}/available-timeslots`;
 
     if (params?.date) {
       url += `?date=${params.date}`;
@@ -374,16 +369,20 @@ export const removeInfrastructureFromManager = (userId: number, infrastructureId
 };
 
 /**
- * Fetch all questions for an infrastructure
+ * Fetch all filter-questions for an infrastructure.
+ * Default return value is that of guests.
  */
 export const fetchInfrastructureQuestions = (infrastructureId: number): Promise<FilterQuestionData[]> => {
-  const role = getLocalUser().role;
+  const user = getLocalUser();
+  if (!user) {
+    return apiRequest(`/infrastructures/user/${infrastructureId}/questions`);
+  }
+
+  const role = user.role;
   if (role === "admin" || role === "manager") {
     return apiRequest(`/infrastructures/manager-admin/${infrastructureId}/questions`);
   }
-  else {
-    return apiRequest(`/infrastructures/user/${infrastructureId}/questions`);
-  }
+  throw new Error("Unexpected error when fetching infrastructures filter-questions");
 };
 
 /**

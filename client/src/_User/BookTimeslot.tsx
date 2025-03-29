@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import {
   Infrastructure,
   BookingEntry,
-  fetchInfrastructures,
+  // fetchInfrastructures,
   bookTimeslot,
   fetchInfrastAvailTimeslots,
   bookTimeslotWithAnswers,
@@ -42,60 +42,32 @@ type UserAnswersMap = Record<number, FilterQuestionsAnswersType>;
 
 const BookTimeslot = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const isGuestMode = searchParams.get('guest') === 'true';
 
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingGuestBooking, setIsProcessingGuestBooking] = useState(false);
-  const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
   const [allTimeslots, setAllTimeslots] = useState<BookingEntry[]>([]);
-  const [availableTimeslots, setAvailableTimeslots] = useState<BookingEntry[]>([]);
+  const [selectedDateTimeslots, setDateTimeslots] = useState<BookingEntry[]>([]);
+  const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedInfrastructureId, setSelectedInfrastructureId] = useState<number | null>(null);
+  const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
   const [selectedTimeslotId, setSelectedTimeslotId] = useState<number | null>(null);
   const [purpose, setPurpose] = useState<string>('');
   const [message, setMessage] = useState<Message | null>(null);
-  const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
   const [answers, setAnswers] = useState<UserAnswersMap>({});
   const [isFormValid, setIsFormValid] = useState(false);
 
   // Guest-specific state
+  const [searchParams] = useSearchParams();
+  const isGuestMode = searchParams.get('guest') === 'true';
   const [guestEmail, setGuestEmail] = useState<string>('');
   const [showGuestEmailForm, setShowGuestEmailForm] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    // Allow guest mode without token
-    if (!token && !isGuestMode) {
-      navigate(LOGIN);
-      return;
-    }
-
-    fetchActiveInfrastructures();
-  }, [navigate, isGuestMode]);
-
-  // Fetch infrastructures when component mounts
-  const fetchActiveInfrastructures = async () => {
-    try {
-      setIsLoading(true);
-      console.log("isGuestMode ", isGuestMode);
-      const data = await fetchInfrastructures(isGuestMode);
-      setInfrastructures(data);
-    } catch (error) {
-      console.error('Error fetching infrastructures:', error);
-      setMessage({ type: 'error', text: 'Error loading infrastructures. Please try again.' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Fetch all available timeslots and filter-questions for the selected infrastructure
   useEffect(() => {
-    if (selectedInfrastructureId) {
+    if (selectedInfrastructure) {
       fetchAllAvailableTimeslots();
-      fetchInfrastructureQuestions(selectedInfrastructureId)
+      fetchInfrastructureQuestions(selectedInfrastructure.id)
         .then(data => {
           setQuestions(data);
           // Initialize answers state with empty values
@@ -108,11 +80,13 @@ const BookTimeslot = () => {
         .catch(err => {
           console.error('Error fetching questions:', err);
         });
+      setIsLoading(false);
     } else {
       setAllTimeslots([]);
-      setAvailableTimeslots([]);
+      setDateTimeslots([]);
+      setIsLoading(true);
     }
-  }, [selectedInfrastructureId]);
+  }, [selectedInfrastructure]);
 
   // Filter timeslots for the selected date
   useEffect(() => {
@@ -124,9 +98,9 @@ const BookTimeslot = () => {
         return slotDay === selectedDay;
       });
 
-      setAvailableTimeslots(filtered);
+      setDateTimeslots(filtered);
     } else {
-      setAvailableTimeslots([]);
+      setDateTimeslots([]);
     }
   }, [selectedDate, allTimeslots]);
 
@@ -189,13 +163,11 @@ const BookTimeslot = () => {
   };
 
   const fetchAllAvailableTimeslots = async () => {
-    if (!selectedInfrastructureId) return;
+    if (!selectedInfrastructure) return;
 
     try {
       setIsLoadingTimeslots(true);
-
-      // Use the imported fetchInfrastAvailTimeslots utility
-      const data = await fetchInfrastAvailTimeslots(selectedInfrastructureId);
+      const data = await fetchInfrastAvailTimeslots(selectedInfrastructure.id);
       setAllTimeslots(data);
     } catch (error) {
       console.error('Error fetching available timeslots:', error);
@@ -215,9 +187,14 @@ const BookTimeslot = () => {
     return uniqueDates;
   }, [allTimeslots]);
 
-  // New handler for guest booking
+  // Handler for when a guest wants to request a booking
   const handleGuestBooking = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedTimeslotId || !selectedInfrastructure) {
+      setMessage({ type: 'error', text: 'Please select a valid infrastructure and timeslot' });
+      return;
+    }
 
     if (!guestEmail.trim()) {
       setMessage({ type: 'error', text: 'Please enter your email address' });
@@ -249,8 +226,8 @@ const BookTimeslot = () => {
       // Call the API function instead of using fetch directly
       const result = await initiateGuestBooking(
         guestEmail,
-        selectedInfrastructureId!,
-        selectedTimeslotId!,
+        selectedInfrastructure.id,
+        selectedTimeslotId,
         purpose,
         formattedAnswers
       );
@@ -295,9 +272,8 @@ const BookTimeslot = () => {
     }
   };
 
-  // Modified submit handler to handle both regular and guest bookings
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    // e.preventDefault();
 
     if (!selectedTimeslotId) {
       setMessage({
@@ -377,9 +353,10 @@ const BookTimeslot = () => {
       setAnswers(initialAnswers);
 
       // Redirect to booking history after a delay
-      setTimeout(() => {
-        navigate('/booking-history');
-      }, 3000);
+      // setTimeout(() => {
+      //   navigate('/booking-history');
+      // }, 3000);
+
     } catch (error) {
       console.error('Error creating booking:', error);
       setMessage({
@@ -403,7 +380,7 @@ const BookTimeslot = () => {
   // Check if a date should be disabled in the calendar
   const isDateDisabled = (date: Date) => {
     // If no infrastructure is selected or no timeslots are available, disable future dates
-    if (!selectedInfrastructureId || allTimeslots.length === 0) return true;
+    if (!selectedInfrastructure || allTimeslots.length === 0) return true;
 
     // Disable dates in the past
     const today = startOfDay(new Date());
@@ -418,7 +395,7 @@ const BookTimeslot = () => {
 
   // Handle infrastructure selection from the InfrastructureSelector
   const handleInfrastructureSelected = (infrastructure: Infrastructure) => {
-    setSelectedInfrastructureId(infrastructure.id);
+    setSelectedInfrastructure(infrastructure);
   };
 
   // Render dynamic question fields
@@ -486,17 +463,17 @@ const BookTimeslot = () => {
 
   return (
     <BasePageLayout
-      pageTitle={isGuestMode ? "Guest Booking" : "Request a Booking"}
+      pageTitle="Request a Booking"
       explanationText={isGuestMode
-        ? "As a guest, you can book infrastructure without an account. Limited to one booking per day."
-        : "Fill and submit the form to request a booking from an infrastructure manager"}
+        ? "As a guest, you can request a booking without an account, but limited to one request per day."
+        : "Fill and submit the form to request a booking"}
       showDashboardButton={!isGuestMode}
       alertMessage={message}
     >
       {showGuestEmailForm ? (
         <Card className="card1 max-w-md mx-auto">
           <CardContent className="p-6">
-            <div className="flex items-center mb-4">
+            <div className="flex justify-center mb-4">
               <Mail className="h-8 w-8 text-blue-500 mr-3" />
               <h2 className="text-xl font-bold">Confirm Your Email</h2>
             </div>
@@ -520,7 +497,6 @@ const BookTimeslot = () => {
               <div className="flex gap-3">
                 <Button
                   type="button"
-                  variant="outline"
                   onClick={() => setShowGuestEmailForm(false)}
                   disabled={isProcessingGuestBooking}
                 >
@@ -542,26 +518,15 @@ const BookTimeslot = () => {
         </Card>
       ) : (
         <Card className="card1 mb-8">
-          <CardTitle className="text-2xl py-4">
-            {isGuestMode ? "Guest Booking" : "Book Infrastructure"}
-          </CardTitle>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Infrastructure Selection - replaced with InfrastructureSelector component */}
-              <div className="space-y-2">
-                {isLoading ? (
-                  <p>Loading available infrastructures...</p>
-                ) : infrastructures.length === 0 ? (
-                  <p>No infrastructures available</p>
-                ) : (
-                  <>
-                    <p className="small-title">Select Infrastructure</p>
-                    <InfrastructureSelector
-                      onSelectInfrastructure={handleInfrastructureSelected}
-                      onError={(errorMsg) => setMessage({ type: 'error', text: errorMsg })}
-                    />
-                  </>
-                )}
+              {/* Infrastructure Selection */}
+              <div className="space-y-1">
+                <p className="mt-2">Select Infrastructure</p>
+                <InfrastructureSelector
+                  onSelectInfrastructure={handleInfrastructureSelected}
+                  onError={(errorMsg) => setMessage({ type: 'error', text: errorMsg })}
+                />
               </div>
 
               {/* Date Selection */}
@@ -592,7 +557,7 @@ const BookTimeslot = () => {
                   </PopoverContent>
                 </Popover>
                 {isLoadingTimeslots && <p className="text-sm text-gray-400">Loading available dates...</p>}
-                {!isLoadingTimeslots && selectedInfrastructureId && availableDates.length === 0 && (
+                {!isLoadingTimeslots && selectedInfrastructure && availableDates.length === 0 && (
                   <p className="text-sm text-amber-500">No available timeslots for this infrastructure</p>
                 )}
               </div>
@@ -603,18 +568,18 @@ const BookTimeslot = () => {
                 <Select
                   onValueChange={(value) => setSelectedTimeslotId(Number(value))}
                   value={selectedTimeslotId?.toString() || ""}
-                  disabled={availableTimeslots.length === 0 || !selectedDate}
+                  disabled={selectedDateTimeslots.length === 0 || !selectedDate}
                 >
                   <SelectTrigger id="timeslot">
                     <SelectValue placeholder={
-                      !selectedInfrastructureId
+                      !selectedInfrastructure
                         ? "Select infrastructure first" : !selectedDate
-                          ? "Select a date first" : availableTimeslots.length === 0
+                          ? "Select a date first" : selectedDateTimeslots.length === 0
                             ? "No available timeslots for this date" : "Select a timeslot"
                     } />
                   </SelectTrigger>
                   <SelectContent className="card1">
-                    {availableTimeslots.map((slot) => (
+                    {selectedDateTimeslots.map((slot) => (
                       <SelectItem key={slot.id} value={slot.id.toString()}>
                         {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                       </SelectItem>
@@ -644,6 +609,16 @@ const BookTimeslot = () => {
               )}
 
               {/* Submit button - updated for guest mode */}
+              {isGuestMode && (
+                <Alert className="bg-gray-800 border border-gray-700">
+                  <AlertDescription>
+                    <p>As a guest, after filling and submitting this form:</p>
+                    <p>&nbsp;&nbsp;&nbsp;1. You'll be asked for your email address.</p>
+                    <p>&nbsp;&nbsp;&nbsp;2. We'll send you an email with a confirmation link.</p>
+                    <p>&nbsp;&nbsp;&nbsp;3. Click the link to finalize your booking request.</p>
+                  </AlertDescription>
+                </Alert>
+              )}
               <Button
                 type="submit"
                 disabled={!isFormValid || isLoading}
@@ -651,8 +626,7 @@ const BookTimeslot = () => {
               >
                 {isLoading ? (
                   <>
-                    <span className="mr-2">Submitting...</span>
-                    <span className="animate-spin">⏳</span>
+                    <span className="mr-2">Loading...</span>
                   </>
                 ) : (
                   isGuestMode ? (
@@ -666,18 +640,7 @@ const BookTimeslot = () => {
                 )}
               </Button>
 
-              {isGuestMode && (
-                <Alert className="bg-gray-800 border border-gray-700">
-                  <AlertDescription>
-                    <p>As a guest, after submitting this form:</p>
-                    <ol className="list-decimal pl-5 mt-2 space-y-1">
-                      <li>You'll be asked for your email address</li>
-                      <li>We'll send you an email with a confirmation link</li>
-                      <li>Click the link to finalize your booking</li>
-                    </ol>
-                  </AlertDescription>
-                </Alert>
-              )}
+
             </form>
           </CardContent>
         </Card>
