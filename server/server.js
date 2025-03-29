@@ -4,7 +4,7 @@ require('./config/env'); // Validate environment variables
 const pool = require('./config/db'); // Create database connection pool
 const authenticationRoutes = require('./routes/authenticationRoutes');
 const infrastructuresRoutes_Admin = require('./routes/infrastructures_Admin');
-const infrastructuresRoutes_User = require('./routes/infrastructures_User_Guest');
+const infrastructuresRoutes_User_Guest = require('./routes/infrastructures_User_Guest');
 const infrastructuresRoutes_Manager_Admin = require('./routes/infrastructures_Manager_Admin');
 const infrastructuresRoutes_Manager = require('./routes/infrastructures_Manager');
 const bookingRoutes_Manager_Admin = require('./routes/bookings_Manager_Admin');
@@ -58,7 +58,7 @@ app.use('/api', authenticationRoutes);
 app.use('/api/infrastructures/admin', infrastructuresRoutes_Admin);
 app.use('/api/infrastructures/manager-admin', infrastructuresRoutes_Manager_Admin);
 app.use('/api/infrastructures/manager', infrastructuresRoutes_Manager);
-app.use('/api/infrastructures/user', infrastructuresRoutes_User);
+app.use('/api/infrastructures/user-guest', infrastructuresRoutes_User_Guest);
 app.use('/api/bookings', bookingRoutes_All);
 app.use('/api/bookings/manager-admin', bookingRoutes_Manager_Admin);
 app.use('/api/bookings/user', bookingRoutes_User);

@@ -243,57 +243,17 @@ router.get('/confirm-booking/:token', async (req, res) => {
             }
         }
 
-        // Return HTML response for browser
-        res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Booking Confirmed</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        background-color: #1a1a1a;
-                        color: #e0e0e0;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        margin: 0;
-                        text-align: center;
-                    }
-                    .card {
-                        background-color: #2a2a2a;
-                        border-radius: 8px;
-                        padding: 40px;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                        max-width: 500px;
-                    }
-                    h1 {
-                        color: #4CAF50;
-                    }
-                    .button {
-                        background-color: #3a66dd;
-                        color: white;
-                        border: none;
-                        padding: 10px 20px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        text-decoration: none;
-                        margin-top: 20px;
-                        display: inline-block;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="card">
-                    <h1>Booking Confirmed!</h1>
-                    <p>Your booking request has been submitted successfully.</p>
-                    <p>You will receive an email notification when the infrastructure manager reviews your request.</p>
-                    <a href="${process.env.FRONTEND_URL}" class="button">Return to Website</a>
-                </div>
-            </body>
-            </html>
-        `);
+        // Return JSON response for the frontend
+        res.json({
+            success: true,
+            message: 'Booking confirmed successfully',
+            data: {
+                bookingId: bookingResult.booking.id,
+                infrastructureName: bookingResult.infrastructure?.name,
+                date: bookingResult.booking.booking_date,
+                time: `${bookingResult.booking.start_time} - ${bookingResult.booking.end_time}`
+            }
+        });
     } catch (error) {
         await connection.rollback();
         console.error('Error confirming guest booking:', error);

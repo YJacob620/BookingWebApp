@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,9 @@ const GuestConfirmationPage: React.FC = () => {
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Use a ref to track if the confirmation has been processed
+    const hasProcessed = useRef(false);
+
     useEffect(() => {
         if (!token) {
             setError('Invalid confirmation link');
@@ -24,14 +27,18 @@ const GuestConfirmationPage: React.FC = () => {
         }
 
         const confirmBooking = async () => {
+            // Prevent duplicate processing in StrictMode
+            if (hasProcessed.current) return;
+
             try {
+                hasProcessed.current = true;
                 const response = await fetch(`${API_BASE_URL}/guest/confirm-booking/${token}`);
 
-                // The backend returns HTML for a better user experience
-                // If it's JSON, it's probably an error
-                if (response.headers.get('content-type')?.includes('application/json')) {
-                    const data = await response.json();
-                    throw new Error(data.message || 'Failed to confirm booking');
+                // Parse the response as JSON
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || `Error: ${response.status}`);
                 }
 
                 setIsSuccess(true);
@@ -79,8 +86,6 @@ const GuestConfirmationPage: React.FC = () => {
         );
     }
 
-    // Success case will actually be handled by the HTML response from the backend
-    // This is just a fallback
     return (
         <BasePageLayout pageTitle="Booking Confirmed">
             <Card className="max-w-md mx-auto">
@@ -98,12 +103,20 @@ const GuestConfirmationPage: React.FC = () => {
                     <p className="text-center">
                         Want to manage your bookings more easily?
                     </p>
-                    <div className="flex gap-4">
-                        <Link to={LOGIN}>
-                            <Button variant="outline">Go to Login</Button>
-                        </Link>
+                    <div className="flex flex-col gap-4">
                         <Link to={REGISTER}>
-                            <Button>Create Account</Button>
+                            <Button className='apply w-full'>Create Account</Button>
+                        </Link>
+                        <div className="text-center">
+                            <p className="text-sm explanation-text1">- OR -</p>
+                        </div>
+                        <Link to={LOGIN}>
+                            <Button
+                                variant="custom5"
+                                className="w-full py-1"
+                            >
+                                Go to Login
+                            </Button>
                         </Link>
                     </div>
                 </CardFooter>

@@ -93,16 +93,15 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
  */
 export const fetchInfrastructures = (): Promise<Infrastructure[]> => {
   const user = getLocalUser();
-  if (!user) {
-    return apiRequest('/infrastructures/user/active');
+  if (user) {
+    if (user.role === "admin") {
+      return apiRequest('/infrastructures/admin');
+    }
+    if (user.role === "manager") {
+      return apiRequest('/infrastructures/manager');
+    }
   }
-  if (user.role === "admin") {
-    return apiRequest('/infrastructures/admin');
-  }
-  if (user.role === "manager") {
-    return apiRequest('/infrastructures/manager');
-  }
-  return apiRequest('/infrastructures/user/active');
+  return apiRequest('/infrastructures/user-guest/active');
 };
 
 /**
@@ -285,7 +284,7 @@ export const toggleInfrastructureStatus = (id: number) => {
  */
 export const fetchInfrastAvailTimeslots =
   (infrastructureId: number, params?: { date?: string }): Promise<BookingEntry[]> => {
-    let url = `/infrastructures/user/${infrastructureId}/available-timeslots`;
+    let url = `/infrastructures/user-guest/${infrastructureId}/available-timeslots`;
 
     if (params?.date) {
       url += `?date=${params.date}`;
@@ -375,7 +374,7 @@ export const removeInfrastructureFromManager = (userId: number, infrastructureId
 export const fetchInfrastructureQuestions = (infrastructureId: number): Promise<FilterQuestionData[]> => {
   const user = getLocalUser();
   if (!user) {
-    return apiRequest(`/infrastructures/user/${infrastructureId}/questions`);
+    return apiRequest(`/infrastructures/user-guest/${infrastructureId}/questions`);
   }
 
   const role = user.role;
