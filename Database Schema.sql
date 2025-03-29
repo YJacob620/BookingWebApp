@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS `email_action_tokens` (
   `id` INT PRIMARY KEY AUTO_INCREMENT,
   `token` VARCHAR(255) NOT NULL,
   `booking_id` INT NOT NULL,
+  `metadata` TEXT,
   `expires` TIMESTAMP NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `used` TINYINT(1) NOT NULL DEFAULT 0,

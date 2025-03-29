@@ -68,9 +68,6 @@ const GuestConfirmationPage: React.FC = () => {
                         <XCircle className="h-16 w-16 text-red-500 mb-4" />
                         <h2 className="text-2xl font-bold mb-4">Booking Confirmation Failed</h2>
                         <p className="text-center mb-4">{error}</p>
-                        <p className="text-sm text-gray-400 text-center">
-                            The confirmation link may be invalid or expired.
-                        </p>
                     </CardContent>
                     <CardFooter className="flex justify-center">
                         <Link to={LOGIN}>

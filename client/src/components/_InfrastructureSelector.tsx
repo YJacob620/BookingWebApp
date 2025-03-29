@@ -19,11 +19,13 @@ import { Infrastructure, fetchInfrastructures } from '@/_utils';
 interface InfrastructureSelectorProps {
   onSelectInfrastructure: (infrastructure: Infrastructure) => void;
   onError: (message: string) => void;
+  className?: string;
 }
 
 const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   onSelectInfrastructure,
   onError,
+  className
 }) => {
   const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
   const [selectedInfraId, setSelectedInfraId] = useState<number | null>(null);
@@ -49,9 +51,9 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
       setIsLoading(true);
       const data = await fetchInfrastructures();
       setInfrastructures(data);
-      if (data.length > 0) {
-        setSelectedInfraId(data[0].id);
-      }
+      // if (data.length > 0) {
+      //   setSelectedInfraId(data[0].id);
+      // }
     } catch (error) {
       console.error('Error fetching infrastructures:', error);
       onError('Failed to fetch infrastructures');
@@ -76,7 +78,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   const selectedInfrastructure = infrastructures.find(infra => infra.id === selectedInfraId);
 
   return (
-    <div className="mb-6">
+    <div className={"mb-6 " + className}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -86,7 +88,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
             aria-expanded={open}
             className="w-[calc(100%-5rem)] h-10 cursor-pointer text-gray-200 text-lg bg-slate-950 border-1 border-gray-500"
           >
-            {selectedInfrastructure ? selectedInfrastructure.name : "Select an infrastructure..."}
+            {selectedInfrastructure ? selectedInfrastructure.name : "Select an infrastructure"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="p-0 card1 min-w-80">
@@ -103,7 +105,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
                       setSelectedInfraId(infra.id);
                       setOpen(false);
                     }}
-                    className="cursor-pointer def-hover justify-center"
+                    className="cursor-pointer def-hover justify-center border-b-1"
                   >
                     <span>{infra.name}</span>
                     {infra.location && <span className="text-gray-400 ml-2">({infra.location})</span>}

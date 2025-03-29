@@ -1,4 +1,4 @@
-/* Utilities for authentication from localStorage (and not the server) */
+/* Utilities for client-side authentication from localStorage (not from the server) */
 
 import { NavigateFunction } from 'react-router-dom';
 import { LOGIN, ADMIN_DASHBOARD, MANAGER_DASHBOARD, USER_DASHBOARD } from '@/RoutePaths';

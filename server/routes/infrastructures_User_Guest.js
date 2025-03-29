@@ -1,11 +1,11 @@
-/* Router functions regarding infrastructures for regular users */
+/* Router functions regarding infrastructures for regular users and guests */
 
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 
 // Get active infrastructures (user, guest)
-router.get('/active', /*authenticateToken,*/ async (req, res) => {
+router.get('/active', async (req, res) => {
     try {
         const [rows] = await pool.execute(
             'SELECT * FROM infrastructures WHERE is_active = 1 ORDER BY name'
@@ -50,26 +50,25 @@ router.get('/:infrastructureId/available-timeslots', async (req, res) => {
 });
 
 // Get all questions for an infrastructure - only if it's active (user, guest)
-router.get('/:infrastructureId/questions',
-    async (req, res) => {
-        const { infrastructureId } = req.params;
+router.get('/:infrastructureId/questions', async (req, res) => {
+    const { infrastructureId } = req.params;
 
-        try {
-            const [rows] = await pool.execute(
-                'SELECT q.* '
-                + 'FROM infrastructure_questions q '
-                + 'JOIN infrastructures i ON q.infrastructure_id = i.id '
-                + 'WHERE q.infrastructure_id = ? '
-                + 'AND i.is_active = 1 '
-                + 'ORDER BY q.display_order',
-                [infrastructureId]
-            );
-            res.json(rows);
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-            res.status(500).json({ message: 'Error fetching questions' });
-        }
+    try {
+        const [rows] = await pool.execute(
+            'SELECT q.* '
+            + 'FROM infrastructure_questions q '
+            + 'JOIN infrastructures i ON q.infrastructure_id = i.id '
+            + 'WHERE q.infrastructure_id = ? '
+            + 'AND i.is_active = 1 '
+            + 'ORDER BY q.display_order',
+            [infrastructureId]
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching questions:', error);
+        res.status(500).json({ message: 'Error fetching questions' });
     }
+}
 );
 
 module.exports = router;

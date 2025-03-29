@@ -3,11 +3,11 @@ const router = express.Router();
 const pool = require('../config/db');
 const emailService = require('../utils/emailService');
 const argon2 = require('argon2'); // For temporary password
-const { JWT_SECRET } = require('../config/env');
 const crypto = require('crypto');
+const { processBookingRequest } = require('../utils/bookingRequestUtil');
 
 // Handle guest booking request initiation
-router.post('/initiate-booking', async (req, res) => {
+router.post('/request', async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -181,22 +181,6 @@ router.get('/confirm-booking/:token', async (req, res) => {
             });
         }
 
-        // Get the timeslot
-        const [timeslots] = await connection.execute(
-            'SELECT * FROM bookings WHERE id = ? AND booking_type = "timeslot" AND status = "available"',
-            [tokenData.booking_id]
-        );
-
-        if (timeslots.length === 0) {
-            await connection.rollback();
-            return res.status(404).json({
-                success: false,
-                message: 'Timeslot is no longer available'
-            });
-        }
-
-        const timeslot = timeslots[0];
-
         // Check daily booking limit again (in case they confirmed multiple emails)
         const today = new Date().toISOString().split('T')[0];
         const [existingBookings] = await connection.execute(
@@ -214,29 +198,21 @@ router.get('/confirm-booking/:token', async (req, res) => {
             });
         }
 
-        // Create the booking by updating the timeslot
-        await connection.execute(
-            `UPDATE bookings
-             SET booking_type = 'booking',
-                 user_email = ?,
-                 status = 'pending',
-                 purpose = ?
-             WHERE id = ?`,
-            [metadata.email, metadata.purpose || '', tokenData.booking_id]
-        );
+        // Use the shared utility function to process the booking
+        const bookingResult = await processBookingRequest(connection, {
+            email: metadata.email,
+            timeslotId: tokenData.booking_id,
+            purpose: metadata.purpose || '',
+            answers: metadata.answers || {},
+            skipAnswerValidation: true // Skip validation since we already validated during initiation
+        });
 
-        // Process answers if any were saved in metadata
-        if (metadata.answers && Object.keys(metadata.answers).length > 0) {
-            for (const [questionId, answerData] of Object.entries(metadata.answers)) {
-                // For simplicity, assuming only text answers for now
-                // File handling would need additional logic
-                await connection.execute(
-                    `INSERT INTO booking_answers 
-                     (booking_id, question_id, answer_text) 
-                     VALUES (?, ?, ?)`,
-                    [tokenData.booking_id, questionId, answerData.toString()]
-                );
-            }
+        if (!bookingResult.success) {
+            await connection.rollback();
+            return res.status(400).json({
+                success: false,
+                message: bookingResult.message
+            });
         }
 
         // Mark token as used
@@ -245,47 +221,27 @@ router.get('/confirm-booking/:token', async (req, res) => {
             [tokenData.id]
         );
 
-        // Get infrastructure details for notifications
-        const [infrastructures] = await connection.execute(
-            'SELECT * FROM infrastructures WHERE id = ?',
-            [timeslot.infrastructure_id]
-        );
-
-        // Get infrastructure managers
-        const [managers] = await connection.execute(
-            `SELECT u.id, u.name, u.email, u.email_notifications
-             FROM users u
-             JOIN infrastructure_managers im ON u.id = im.user_id
-             WHERE im.infrastructure_id = ?`,
-            [timeslot.infrastructure_id]
-        );
-
         await connection.commit();
 
         // Generate action token for manager email notifications
-        const [bookings] = await pool.execute(
-            'SELECT * FROM bookings WHERE id = ?',
-            [tokenData.booking_id]
-        );
-
-        if (infrastructures.length > 0 && managers.length > 0 && bookings.length > 0) {
+        if (bookingResult.infrastructure && bookingResult.managers.length > 0) {
             try {
                 // Generate a token for manager email actions
-                const actionToken = await emailService.generateSecureActionToken(bookings[0], pool);
+                const actionToken = await emailService.generateSecureActionToken(bookingResult.booking, pool);
 
                 // Send notifications to managers
                 await emailService.sendBookingNotifications(
-                    bookings[0],
-                    infrastructures[0],
-                    managers,
+                    bookingResult.booking,
+                    bookingResult.infrastructure,
+                    bookingResult.managers,
                     actionToken
                 );
 
                 // Send confirmation to guest
                 await emailService.sendGuestBookingConfirmation(
                     metadata.email,
-                    bookings[0],
-                    infrastructures[0]
+                    bookingResult.booking,
+                    bookingResult.infrastructure
                 );
             } catch (emailError) {
                 console.error('Failed to send notification emails:', emailError);

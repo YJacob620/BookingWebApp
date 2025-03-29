@@ -526,7 +526,7 @@ export const initiateGuestBooking = async (
   answers: Record<string, any> = {}
 ): Promise<{ success: boolean, message: string, data?: any }> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/guest/initiate-booking`, {
+    const response = await fetch(`${API_BASE_URL}/guest/request`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -50,7 +50,7 @@ const BookTimeslot = () => {
   const [isLoadingTimeslots, setIsLoadingTimeslots] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
-  const [selectedTimeslotId, setSelectedTimeslotId] = useState<number | null>(null);
+  const [selectedTimeslotId, setSelectedTimeslotId] = useState<number | undefined>(undefined);
   const [purpose, setPurpose] = useState<string>('');
   const [message, setMessage] = useState<Message | null>(null);
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
@@ -238,18 +238,7 @@ const BookTimeslot = () => {
           text: result.message
         });
 
-        // Reset form
-        setSelectedTimeslotId(null);
-        setPurpose('');
-        setSelectedDate(undefined);
-        setShowGuestEmailForm(false);
-
-        // Reset answers
-        const initialAnswers: UserAnswersMap = {};
-        questions.forEach(q => {
-          initialAnswers[q.id] = q.question_type === 'document' ? null : '';
-        });
-        setAnswers(initialAnswers);
+        resetForm();
 
         // Redirect to login page after a delay
         setTimeout(() => {
@@ -272,7 +261,7 @@ const BookTimeslot = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (/*e: React.FormEvent*/) => {
     // e.preventDefault();
 
     if (!selectedTimeslotId) {
@@ -340,17 +329,7 @@ const BookTimeslot = () => {
         text: 'Your booking request has been submitted successfully!'
       });
 
-      // Reset form
-      setSelectedTimeslotId(null);
-      setPurpose('');
-      setSelectedDate(undefined);
-
-      // Reset answers
-      const initialAnswers: UserAnswersMap = {};
-      questions.forEach(q => {
-        initialAnswers[q.id] = q.question_type === 'document' ? null : '';
-      });
-      setAnswers(initialAnswers);
+      resetForm();
 
       // Redirect to booking history after a delay
       // setTimeout(() => {
@@ -395,7 +374,10 @@ const BookTimeslot = () => {
 
   // Handle infrastructure selection from the InfrastructureSelector
   const handleInfrastructureSelected = (infrastructure: Infrastructure) => {
-    setSelectedInfrastructure(infrastructure);
+    if (!selectedInfrastructure || selectedInfrastructure.id !== infrastructure.id) {
+      resetForm();
+      setSelectedInfrastructure(infrastructure);
+    }
   };
 
   // Render dynamic question fields
@@ -461,6 +443,20 @@ const BookTimeslot = () => {
     ));
   };
 
+  // Resets form and answers
+  const resetForm = () => {
+    setSelectedDate(undefined);
+    setSelectedTimeslotId(undefined);
+    setPurpose('');
+    setShowGuestEmailForm(false);
+
+    const initialAnswers: UserAnswersMap = {};
+    questions.forEach(q => {
+      initialAnswers[q.id] = q.question_type === 'document' ? null : '';
+    });
+    setAnswers(initialAnswers);
+  }
+
   return (
     <BasePageLayout
       pageTitle="Request a Booking"
@@ -521,13 +517,11 @@ const BookTimeslot = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Infrastructure Selection */}
-              <div className="space-y-1">
-                <p className="mt-2">Select Infrastructure</p>
-                <InfrastructureSelector
-                  onSelectInfrastructure={handleInfrastructureSelected}
-                  onError={(errorMsg) => setMessage({ type: 'error', text: errorMsg })}
-                />
-              </div>
+              <InfrastructureSelector
+                onSelectInfrastructure={handleInfrastructureSelected}
+                onError={(errorMsg) => setMessage({ type: 'error', text: errorMsg })}
+                className="mt-3"
+              />
 
               {/* Date Selection */}
               <div className="space-y-2">
@@ -549,7 +543,7 @@ const BookTimeslot = () => {
                       selected={selectedDate}
                       onSelect={(date) => {
                         setSelectedDate(date);
-                        setSelectedTimeslotId(null); // Reset timeslot when date changes
+                        setSelectedTimeslotId(undefined); // Reset timeslot when date changes
                       }}
                       disabled={isDateDisabled}
                     />
@@ -625,9 +619,7 @@ const BookTimeslot = () => {
                 className="w-full"
               >
                 {isLoading ? (
-                  <>
-                    <span className="mr-2">Loading...</span>
-                  </>
+                  <span className="mr-2">Loading...</span>
                 ) : (
                   isGuestMode ? (
                     <>
@@ -639,8 +631,6 @@ const BookTimeslot = () => {
                   )
                 )}
               </Button>
-
-
             </form>
           </CardContent>
         </Card>
