@@ -6,7 +6,6 @@ import { processEmailAction } from '@/_utils/apiFunctions';
 import { getDashboardPath, getLocalUser } from '@/_utils/localAuthUtils';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
-import { Message } from '@/_utils';
 
 /**
  * Single component that handles both the processing and display of email action results.
@@ -126,29 +125,6 @@ const EmailActionHandler: React.FC = () => {
         }
     };
 
-    // Determine alert message for BasePageLayout
-    const getAlertMessage = (): Message | null => {
-        if (!status || isProcessing) return null;
-
-        if (status === 'success') {
-            return {
-                type: 'success',
-                text: action === 'approve' ? 'Booking approved successfully!' : 'Booking rejected successfully!'
-            };
-        } else if (status === 'already-processed') {
-            return {
-                type: 'warning',
-                text: `This booking has already been ${currentStatus}.`
-            };
-        } else if (status === 'error') {
-            return {
-                type: 'error',
-                text: 'An error occurred while processing your request.'
-            };
-        }
-        return null;
-    };
-
     if (isProcessing) {
         return (
             <BasePageLayout pageTitle="Processing Action">
@@ -164,7 +140,6 @@ const EmailActionHandler: React.FC = () => {
     return (
         <BasePageLayout
             pageTitle={getTitle()}
-            alertMessage={getAlertMessage()}
         >
             <div className="max-w-md mx-auto text-center">
                 {getIcon()}

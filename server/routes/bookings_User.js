@@ -4,7 +4,6 @@ const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const { upload } = require('../middleware/fileUploadMiddleware');
 const emailService = require('../utils/emailService');
-const path = require('path');
 const { processBookingRequest } = require('../utils/bookingRequestUtil');
 
 // Get recent bookings for the current user

@@ -237,12 +237,6 @@ router.get('/confirm-booking/:token', async (req, res) => {
                     actionToken
                 );
 
-                // Send confirmation to guest
-                await emailService.sendGuestBookingConfirmation(
-                    metadata.email,
-                    bookingResult.booking,
-                    bookingResult.infrastructure
-                );
             } catch (emailError) {
                 console.error('Failed to send notification emails:', emailError);
                 // Continue even if emails fail

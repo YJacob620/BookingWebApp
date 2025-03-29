@@ -226,7 +226,7 @@ const sendBookingNotificationToUser = async (booking, infrastructure) => {
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #333;">Booking Request Received</h2>
-                <p>Hello ${user.name},</p>
+                <p>Hello,</p>
                 <p>We have received your booking request for <strong>${infrastructure.name}</strong>.</p>
                 
                 <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
@@ -302,7 +302,7 @@ const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
                 html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: ${color};">Booking Status Update</h2>
-                <p>Hello ${user.name},</p>
+                <p>Hello,</p>
                 <p>${message}</p>
                 
                 <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
@@ -398,18 +398,6 @@ const generateSecureActionToken = async (booking, connection) => {
     }
 };
 
-module.exports = {
-    generateToken,
-    sendVerificationEmail,
-    sendPasswordResetEmail,
-    verifyEmailConfig,
-    sendBookingNotifications,
-    sendBookingRequestNotificationToManagers: sendBookingNotificationToManagers,
-    sendBookingRequestConfirmationToUser: sendBookingNotificationToUser,
-    sendBookingStatusUpdate,
-    generateSecureActionToken
-};
-
 /**
  * Send guest booking verification email with a confirmation link
  * @param {string} email - Guest email
@@ -420,7 +408,7 @@ const sendGuestBookingVerificationEmail = async (email, verificationUrl) => {
     const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
         to: email,
-        subject: 'Confirm Your Infrastructure Booking',
+        subject: 'Confirm Your Booking Request',
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #333;">Confirm Your Booking</h2>
@@ -440,41 +428,6 @@ const sendGuestBookingVerificationEmail = async (email, verificationUrl) => {
     return transporter.sendMail(mailOptions);
 };
 
-/**
- * Send confirmation to guest after booking is created
- * @param {string} email - Guest email
- * @param {Object} booking - Booking details
- * @param {Object} infrastructure - Infrastructure details
- * @returns {Promise} - Nodemailer response
- */
-const sendGuestBookingConfirmation = async (email, booking, infrastructure) => {
-    const mailOptions = {
-        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
-        to: email,
-        subject: `Booking Request Confirmed for ${infrastructure.name}`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Booking Request Confirmed</h2>
-                <p>Hello,</p>
-                <p>Your booking request for <strong>${infrastructure.name}</strong> has been confirmed and is now pending review by an infrastructure manager.</p>
-                
-                <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-                    <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
-                    <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
-                    <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
-                    <p><strong>Status:</strong> <span style="color: #FF9800;">Pending</span></p>
-                </div>
-                
-                <p>An infrastructure manager will review your request shortly. You will receive another email when your request is approved or rejected.</p>
-                <p>If you want to make future bookings more easily, consider <a href="${process.env.FRONTEND_URL}/register">registering an account</a>.</p>
-                <p>Best regards,<br>Scientific Infrastructure Team</p>
-            </div>
-        `
-    };
-
-    return transporter.sendMail(mailOptions);
-};
-
 module.exports = {
     generateToken,
     sendVerificationEmail,
@@ -486,5 +439,4 @@ module.exports = {
     sendBookingStatusUpdate,
     generateSecureActionToken,
     sendGuestBookingVerificationEmail,
-    sendGuestBookingConfirmation
 };
