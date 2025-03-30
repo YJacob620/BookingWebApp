@@ -16,12 +16,12 @@ const EmailVerificationPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isVerified, setIsVerified] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  // const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
     const verifyEmail = async () => {
       if (!token) {
-        setErrorMessage('Invalid verification link');
+        // setErrorMessage('Invalid verification link');
         setIsLoading(false);
         return;
       }
@@ -46,12 +46,13 @@ const EmailVerificationPage: React.FC = () => {
               }
             }, 3000);
           }
-        } else {
-          setErrorMessage(result.data.message || 'Email verification failed');
         }
+        // else {
+        //   setErrorMessage(result.data.message || 'Email verification failed');
+        // }
       } catch (error) {
         console.error('Verification error:', error);
-        setErrorMessage('An unexpected error occurred. Please try again later.');
+        // setErrorMessage('An unexpected error occurred. Please try again later.');
       } finally {
         setIsLoading(false);
       }
@@ -63,8 +64,6 @@ const EmailVerificationPage: React.FC = () => {
   return (
     <BasePageLayout
       pageTitle="Email Verification"
-      explanationText="Verifying your email address"
-      showLogoutButton
     >
       <CardContent className="flex flex-col items-center justify-center">
         {isLoading ? (
@@ -83,9 +82,9 @@ const EmailVerificationPage: React.FC = () => {
           <div className="text-center p-8">
             <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-4">Verification Failed</h2>
-            <Alert className="alert-error mb-6">
+            {/* <Alert className="alert-error mb-6">
               <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
+            </Alert> */}
             <p>The verification link may be invalid or expired.</p>
           </div>
         )}
@@ -94,12 +93,12 @@ const EmailVerificationPage: React.FC = () => {
         {!isLoading && !isVerified && (
           <div className="flex flex-col gap-4 items-center">
             <Link to="/resend-verification">
-              <Button variant="outline">
+              <Button>
                 Request New Verification Email
               </Button>
             </Link>
             <Link to={LOGIN}>
-              <Button variant="ghost">
+              <Button variant="custom5" className='p-1'>
                 Return to Login
               </Button>
             </Link>
