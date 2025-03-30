@@ -122,11 +122,6 @@ const RegistrationPage: React.FC = () => {
             const result = await register(formData);
 
             if (result.success) {
-                setMessage({
-                    type: 'success',
-                    text: result.data.message ||
-                        'Registration successful! Please check your email to verify your account.'
-                });
 
                 // Clear form
                 setFormData({
@@ -137,15 +132,13 @@ const RegistrationPage: React.FC = () => {
                     role: 'student'
                 });
 
-                // Redirect to verification pending page after a delay
-                setTimeout(() => {
-                    navigate(VERIFICATION_PENDING, {
-                        state: {
-                            email: formData.email,
-                            message: result.data.message
-                        }
-                    });
-                }, 3000);
+                // Redirect to verification pending page
+                navigate(VERIFICATION_PENDING, {
+                    state: {
+                        email: formData.email,
+                        message: result.data.message
+                    }
+                });
             } else {
                 setMessage({
                     type: 'error',

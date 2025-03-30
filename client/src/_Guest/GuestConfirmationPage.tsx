@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
-import { API_BASE_URL } from '@/_utils';
+import { processGuestConfirmation } from '@/_utils';
 import { LOGIN, REGISTER } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 
@@ -13,7 +13,7 @@ import BasePageLayout from '@/components/_BasePageLayout';
 const GuestConfirmationPage: React.FC = () => {
     const { token } = useParams<{ token: string }>();
     const [isLoading, setIsLoading] = useState(true);
-    const [isSuccess, setIsSuccess] = useState(false);
+    // const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Use a ref to track if the confirmation has been processed
@@ -32,16 +32,8 @@ const GuestConfirmationPage: React.FC = () => {
 
             try {
                 hasProcessed.current = true;
-                const response = await fetch(`${API_BASE_URL}/guest/confirm-booking/${token}`);
-
-                // Parse the response as JSON
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.message || `Error: ${response.status}`);
-                }
-
-                setIsSuccess(true);
+                await processGuestConfirmation(token);
+                // setIsSuccess(true);
             } catch (err) {
                 console.error('Error confirming booking:', err);
                 setError(err instanceof Error ? err.message : 'An error occurred confirming your booking');

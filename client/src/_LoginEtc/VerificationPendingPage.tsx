@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, Loader } from 'lucide-react';
 
-import { resendVerification, Message } from '@/_utils';
+import { resendVerification } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 
@@ -24,10 +24,6 @@ const VerificationPendingPage: React.FC = () => {
   const [resendSuccess, setResendSuccess] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [email] = useState<string>(state.email || '');
-  const [message] = useState<Message | null>({
-    type: "neutral",
-    text: state.message || 'Please check your email to verify your account.'
-  });
 
   useEffect(() => {
     // If there's no email (user might have navigated here directly without state)
@@ -68,7 +64,6 @@ const VerificationPendingPage: React.FC = () => {
   return (
     <BasePageLayout
       pageTitle="Verify Your Email"
-      alertMessage={message}
     >
       <CardContent className="flex flex-col items-center justify-center -mt-8">
         <div className="text-center p-8">

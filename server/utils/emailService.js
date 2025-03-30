@@ -226,7 +226,7 @@ const sendBookingNotificationToUser = async (booking, infrastructure) => {
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #333;">Booking Request Received</h2>
-                <p>Hello,</p>
+                <p>Hello ${user.name},</p>
                 <p>We have received your booking request for <strong>${infrastructure.name}</strong>.</p>
                 
                 <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
@@ -256,7 +256,8 @@ const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
         // Use process.nextTick to run notifications in the background
         process.nextTick(async () => {
             // Get user details from database
-            const [users] = await pool.execute('SELECT name, email, email_notifications FROM users WHERE email = ?', [booking.user_email]);
+            const [users] = await pool.execute
+                ('SELECT name, role, email, email_notifications FROM users WHERE email = ?', [booking.user_email]);
             const user = users[0];
 
             // Check if user has opted out of emails
@@ -302,7 +303,7 @@ const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
                 html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: ${color};">Booking Status Update</h2>
-                <p>Hello,</p>
+                <p>Hello ${user.name},</p>
                 <p>${message}</p>
                 
                 <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
@@ -316,7 +317,7 @@ const sendBookingStatusUpdate = async (booking, infrastructure, status) => {
                 <p>A calendar invitation has been attached to this email. You can add it to your calendar application.</p>
                 ` : ''}
                 
-                <p>You can log in to the system to view all your bookings and their statuses.</p>
+                <p>You can ${user.role === "guest" ? "register" : "log in"} to the system to view all your bookings and their statuses.</p>
                 <p>Best regards,<br>Scientific Infrastructure Team</p>
                 
                 <p style="font-size: 12px; color: #666; margin-top: 30px;">
@@ -404,7 +405,7 @@ const generateSecureActionToken = async (booking, connection) => {
  * @param {string} verificationUrl - The verification URL
  * @returns {Promise} - Nodemailer response
  */
-const sendGuestBookingVerificationEmail = async (email, verificationUrl) => {
+const sendGuestBookingVerificationEmail = async (name, email, verificationUrl) => {
     const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
         to: email,
@@ -412,7 +413,7 @@ const sendGuestBookingVerificationEmail = async (email, verificationUrl) => {
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #333;">Confirm Your Booking</h2>
-                <p>Hello,</p>
+                <p>Hello ${name},</p>
                 <p>Thank you for using our infrastructure booking system. Please click the button below to confirm your booking request:</p>
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Confirm Booking</a>

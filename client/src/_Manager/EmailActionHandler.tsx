@@ -117,7 +117,7 @@ const EmailActionHandler: React.FC = () => {
         if (status === 'success') {
             return action === 'approve'
                 ? <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                : <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />;
+                : <CheckCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />;
         } else if (status === 'already-processed') {
             return <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto mb-4" />;
         } else {

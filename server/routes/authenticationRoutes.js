@@ -115,14 +115,18 @@ router.post('/register', async (req, res) => {
             [email]
         );
 
+        let wasGuest = false;
         if (existingUsers.length > 0) {
-            return res.status(409).json({
-                message: 'Email already registered'
-            });
+            if (existingUsers[0].role !== 'guest') {
+                return res.status(409).json({
+                    message: 'Email already registered'
+                });
+            }
+            wasGuest = true;
         }
 
         // Validate role
-        const validRoles = ['admin', 'faculty', 'student', 'guest'];
+        const validRoles = ['admin', 'faculty', 'student'];
         if (!validRoles.includes(role)) {
             return res.status(400).json({
                 message: 'Invalid role'
@@ -139,16 +143,27 @@ router.post('/register', async (req, res) => {
         const now = new Date();
         const expiryDate = new Date(now.getTime() + VERIFICATION_TOKEN_EXPIRY);
 
-        // Insert user with verification token
-        const [result] = await connection.execute(
-            `INSERT INTO users 
+        let query;
+        let params;
+        if (wasGuest) {
+            query = `UPDATE users 
+             SET password_hash = ?, 
+                 name = ?, 
+                 role = ?, 
+                 verification_token = ?, 
+                 verification_token_expires = ?
+             WHERE email = ?`;
+            params = [passwordHash, name, role, verificationToken, expiryDate, email];
+        } else {
+            query = `INSERT INTO users 
             (email, password_hash, name, role, verification_token, verification_token_expires) 
-            VALUES (?, ?, ?, ?, ?, ?)`,
-            [email, passwordHash, name, role, verificationToken, expiryDate]
-        );
+            VALUES (?, ?, ?, ?, ?, ?)`;
+            params = [email, passwordHash, name, role, verificationToken, expiryDate];
+        }
+        const [result] = await connection.execute(query, params);
 
         if (result.affectedRows !== 1) {
-            throw new Error('Failed to create user');
+            throw new Error('Failed to create or update user');
         }
 
         // Get the inserted user ID

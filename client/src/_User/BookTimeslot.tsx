@@ -32,7 +32,7 @@ import {
   FilterQuestionData,
   FilterQuestionsAnswersType,
   Message,
-  initiateGuestBooking
+  requestGuestBooking
 } from '@/_utils';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
@@ -62,6 +62,7 @@ const BookTimeslot = () => {
   const isGuestMode = searchParams.get('guest') === 'true';
   const [guestEmail, setGuestEmail] = useState<string>('');
   const [showGuestEmailForm, setShowGuestEmailForm] = useState(false);
+  const [guestName, setGuestName] = useState<string>('');
 
   // Fetch all available timeslots and filter-questions for the selected infrastructure
   useEffect(() => {
@@ -196,6 +197,11 @@ const BookTimeslot = () => {
       return;
     }
 
+    if (!guestName.trim()) {
+      setMessage({ type: 'error', text: 'Please enter your name' });
+      return;
+    }
+
     if (!guestEmail.trim()) {
       setMessage({ type: 'error', text: 'Please enter your email address' });
       return;
@@ -224,7 +230,8 @@ const BookTimeslot = () => {
       }
 
       // Call the API function instead of using fetch directly
-      const result = await initiateGuestBooking(
+      const result = await requestGuestBooking(
+        guestName,
         guestEmail,
         selectedInfrastructure.id,
         selectedTimeslotId,
@@ -261,8 +268,8 @@ const BookTimeslot = () => {
     }
   };
 
-  const handleSubmit = async (/*e: React.FormEvent*/) => {
-    // e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (!selectedTimeslotId) {
       setMessage({
@@ -479,6 +486,19 @@ const BookTimeslot = () => {
             </p>
 
             <form onSubmit={handleGuestBooking} className="space-y-4">
+              <div className="space-y-2">
+                <label className="block mb-1">Name</label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block mb-1">Email Address</label>
                 <Input
@@ -502,7 +522,7 @@ const BookTimeslot = () => {
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={isProcessingGuestBooking || !guestEmail}
+                  disabled={isProcessingGuestBooking || !guestEmail || !guestName}
                 >
                   {isProcessingGuestBooking ?
                     'Processing...' :
@@ -520,6 +540,7 @@ const BookTimeslot = () => {
               <InfrastructureSelector
                 onSelectInfrastructure={handleInfrastructureSelected}
                 onError={(errorMsg) => setMessage({ type: 'error', text: errorMsg })}
+                defaultSelectedInfrast={selectedInfrastructure}
                 className="mt-3"
               />
 
@@ -532,6 +553,7 @@ const BookTimeslot = () => {
                       variant="outline"
                       className={`def-hover w-full h-9 px-2 text-[14px] justify-start text-left font-normal 
                         ${!selectedDate && "text-gray-400"}`}
+                      disabled={!selectedInfrastructure}
                     >
                       <CalendarCheck className="mr-2 h-4 w-4" />
                       {selectedDate ? format(selectedDate, 'PPP') : "Select a date"}

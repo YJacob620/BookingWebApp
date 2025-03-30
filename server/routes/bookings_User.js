@@ -3,7 +3,6 @@ const router = express.Router();
 const pool = require('../config/db');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const { upload } = require('../middleware/fileUploadMiddleware');
-const emailService = require('../utils/emailService');
 const { processBookingRequest } = require('../utils/bookingRequestUtil');
 
 // Get recent bookings for the current user
@@ -194,32 +193,6 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
                 success: false,
                 message: bookingResult.message
             });
-        }
-
-        // Generate token for email actions
-        let actionToken = null;
-        try {
-            actionToken = await emailService.generateSecureActionToken(bookingResult.booking, connection);
-        } catch (tokenError) {
-            console.warn('Failed to generate action token:', tokenError);
-            // Continue with the process even if token generation fails
-        }
-
-        await connection.commit();
-
-        // Send notifications
-        if (bookingResult.infrastructure && bookingResult.managers.length > 0 && actionToken) {
-            try {
-                await emailService.sendBookingNotifications(
-                    bookingResult.booking,
-                    bookingResult.infrastructure,
-                    bookingResult.managers,
-                    actionToken
-                );
-            } catch (emailError) {
-                console.error('Failed to send notification emails:', emailError);
-                // Continue even if emails fail
-            }
         }
 
         res.status(201).json({

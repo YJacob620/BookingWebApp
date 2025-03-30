@@ -11,12 +11,12 @@ router.post('/request', async (req, res) => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
-        const { email, infrastructureId, timeslotId, purpose = '', answers = {} } = req.body;
+        const { email, name, infrastructureId, timeslotId, purpose = '', answers = {} } = req.body;
 
-        if (!email || !infrastructureId || !timeslotId) {
+        if (!email || !name || !infrastructureId || !timeslotId) {
             return res.status(400).json({
                 success: false,
-                message: 'Email, infrastructure ID, and timeslot ID are required'
+                message: 'Name, email, infrastructure ID, and timeslot ID are required'
             });
         }
 
@@ -76,7 +76,7 @@ router.post('/request', async (req, res) => {
             const [result] = await connection.execute(
                 `INSERT INTO users (email, password_hash, name, role, is_verified) 
                  VALUES (?, ?, ?, 'guest', 0)`,
-                [email, passwordHash, `Guest ${email.split('@')[0]}`]
+                [email, passwordHash, name]
             );
 
             userId = result.insertId;
@@ -92,10 +92,16 @@ router.post('/request', async (req, res) => {
                 });
             }
 
-            // Update user to ensure role is guest and is_verified is 0
+            // Update guest-user so that is_verified is 0
             await connection.execute(
-                'UPDATE users SET role = "guest", is_verified = 0 WHERE id = ?',
+                'UPDATE users SET is_verified = 0 WHERE id = ?',
                 [userId]
+            );
+
+            // Update guest-user name to be the current one
+            await connection.execute(
+                'UPDATE users SET name = ? WHERE id = ?',
+                [name, userId]
             );
         }
 
@@ -126,7 +132,7 @@ router.post('/request', async (req, res) => {
 
         // Send verification email with booking link
         const verificationUrl = `${process.env.FRONTEND_URL}/guest-confirm/${bookingToken}`;
-        await emailService.sendGuestBookingVerificationEmail(email, verificationUrl);
+        await emailService.sendGuestBookingVerificationEmail(name, email, verificationUrl);
 
         await connection.commit();
 
@@ -222,26 +228,6 @@ router.get('/confirm-booking/:token', async (req, res) => {
         );
 
         await connection.commit();
-
-        // Generate action token for manager email notifications
-        if (bookingResult.infrastructure && bookingResult.managers.length > 0) {
-            try {
-                // Generate a token for manager email actions
-                const actionToken = await emailService.generateSecureActionToken(bookingResult.booking, pool);
-
-                // Send notifications to managers
-                await emailService.sendBookingNotifications(
-                    bookingResult.booking,
-                    bookingResult.infrastructure,
-                    bookingResult.managers,
-                    actionToken
-                );
-
-            } catch (emailError) {
-                console.error('Failed to send notification emails:', emailError);
-                // Continue even if emails fail
-            }
-        }
 
         // Return JSON response for the frontend
         res.json({

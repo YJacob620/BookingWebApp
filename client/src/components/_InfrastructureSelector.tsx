@@ -19,16 +19,18 @@ import { Infrastructure, fetchInfrastructures } from '@/_utils';
 interface InfrastructureSelectorProps {
   onSelectInfrastructure: (infrastructure: Infrastructure) => void;
   onError: (message: string) => void;
+  defaultSelectedInfrast?: Infrastructure | null;
   className?: string;
 }
 
 const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   onSelectInfrastructure,
   onError,
+  defaultSelectedInfrast = null,
   className
 }) => {
   const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
-  const [selectedInfraId, setSelectedInfraId] = useState<number | null>(null);
+  const [selectedInfrast, setSelectedInfrast] = useState<Infrastructure | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
 
@@ -38,13 +40,13 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
 
   // When selected infrastructure changes, notify parent component
   useEffect(() => {
-    if (selectedInfraId) {
-      const selectedInfra = infrastructures.find(i => i.id === selectedInfraId);
-      if (selectedInfra) {
-        onSelectInfrastructure(selectedInfra);
-      }
+    if (selectedInfrast) {
+      onSelectInfrastructure(selectedInfrast);
     }
-  }, [selectedInfraId, infrastructures, onSelectInfrastructure]);
+    else if (defaultSelectedInfrast) {
+      setSelectedInfrast(defaultSelectedInfrast);
+    }
+  }, [selectedInfrast, infrastructures, onSelectInfrastructure, defaultSelectedInfrast]);
 
   const getInfrastructures = async () => {
     try {
@@ -74,8 +76,6 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
     );
   }
 
-  // Find the selected infrastructure to display its name
-  const selectedInfrastructure = infrastructures.find(infra => infra.id === selectedInfraId);
 
   return (
     <div className={"mb-6 " + className}>
@@ -88,7 +88,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
             aria-expanded={open}
             className="w-[calc(100%-5rem)] h-10 cursor-pointer text-gray-200 text-lg bg-slate-950 border-1 border-gray-500"
           >
-            {selectedInfrastructure ? selectedInfrastructure.name : "Select an infrastructure"}
+            {selectedInfrast ? selectedInfrast.name : "Select an infrastructure"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="p-0 card1 min-w-80">
@@ -102,7 +102,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
                     key={infra.id}
                     value={infra.name}
                     onSelect={() => {
-                      setSelectedInfraId(infra.id);
+                      setSelectedInfrast(infra);
                       setOpen(false);
                     }}
                     className="cursor-pointer def-hover justify-center border-b-1"

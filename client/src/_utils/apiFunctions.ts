@@ -450,26 +450,16 @@ export const updateEmailPreferences = async (enabled: boolean):
  */
 export const processEmailAction = async (action: 'approve' | 'reject', token: string) => {
   try {
-    // const result = await apiRequest(`/email-action/${action}/${token}`, {
-    //   method: 'GET'
-    // });
-
     // This endpoint doesn't use the apiRequest helper because it doesn't require authentication
     const response = await fetch(`${API_BASE_URL}/email-action/${action}/${token}`);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `Email action failed with status ${response.status}`);
     }
-    // This is an HTML response, so we just return success
     return { success: true };
   } catch (error) {
     throw error;
   }
-  //   return result;
-  // } catch (error) {
-  //   // Rethrow the error to be handled by the component
-  //   throw error;
-  // }
 };
 
 /**
@@ -511,13 +501,15 @@ export const downloadBookingDocument = async (bookingId: string, questionId: str
 /**
  * Initiate a guest booking request
  * @param email - Guest email address
+ * @param name - Guest name
  * @param infrastructureId - ID of the selected infrastructure
  * @param timeslotId - ID of the selected timeslot
  * @param purpose - Purpose of the booking (optional)
  * @param answers - Answers to infrastructure questions (optional)
  * @returns Promise with the response data
  */
-export const initiateGuestBooking = async (
+export const requestGuestBooking = async (
+  name: string,
   email: string,
   infrastructureId: number,
   timeslotId: number,
@@ -532,6 +524,7 @@ export const initiateGuestBooking = async (
       },
       body: JSON.stringify({
         email,
+        name,
         infrastructureId,
         timeslotId,
         purpose,
@@ -555,4 +548,18 @@ export const initiateGuestBooking = async (
       message: error instanceof Error ? error.message : 'An error occurred while processing your booking'
     };
   }
+};
+
+export const processGuestConfirmation = async (token: string) => {
+  try {
+    // This endpoint doesn't use the apiRequest helper because it doesn't require authentication
+    const response = await fetch(`${API_BASE_URL}/guest/confirm-booking/${token}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Guest confirmation failed with status ${response.status}`);
+    }
+    return { success: true };
+  } catch (error) {
+    throw error;
+  };
 };
