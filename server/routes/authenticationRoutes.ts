@@ -1,4 +1,4 @@
-import express, { Request, Response, RequestHandler } from 'express';
+import express, { Request, Response } from 'express';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { PoolConnection, ResultSetHeader } from 'mysql2/promise';
@@ -21,6 +21,7 @@ import {
 
 const router = express.Router();
 
+
 interface RegisterRequestBody {
     email: string;
     password: string;
@@ -41,6 +42,7 @@ interface ResetPasswordRequestBody {
     password: string;
 }
 
+
 // Login route - Updated to check verification status
 router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
     const { email, password } = req.body;
@@ -54,9 +56,8 @@ router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Respon
 
         // Early return if user not found
         if (users.length === 0) {
-            return res.status(401).json({
-                message: 'Invalid email or password'
-            });
+            res.status(401).json({ message: 'Invalid email or password' });
+            return;
         }
 
         const user = users[0];
@@ -64,18 +65,14 @@ router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Respon
 
         // Early return if password is invalid
         if (!isValidPassword) {
-            return res.status(401).json({
-                message: 'Invalid email or password'
-            });
+            res.status(401).json({ message: 'Invalid email or password' });
+            return;
         }
 
         // Check if account is verified
         if (!user.is_verified) {
-            return res.status(403).json({
-                message: 'Your account has not been verified. Please check your email for verification link.',
-                needsVerification: true,
-                email: user.email
-            });
+            res.status(403).json({ message: 'Your account has not been verified through email.' });
+            return;
         }
 
         // Create JWT token
@@ -102,9 +99,7 @@ router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Respon
 
     } catch (err) {
         console.error('Login error:', err);
-        res.status(500).json({
-            message: 'Internal server error'
-        });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -119,24 +114,21 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
 
         // Input validation
         if (!email || !password || !name || !role) {
-            return res.status(400).json({
-                message: 'Email, password, name and role are required'
-            });
+            res.status(400).json({ message: 'Email, password, name and role are required' });
+            return;
         }
 
         // Email format validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.status(400).json({
-                message: 'Invalid email format'
-            });
+            res.status(400).json({ message: 'Invalid email format' });
+            return;
         }
 
         // Password complexity validation
         if (password.length < 8) {
-            return res.status(400).json({
-                message: 'Password must be at least 8 characters'
-            });
+            res.status(400).json({ message: 'Password must be at least 8 characters' });
+            return;
         }
 
         // Check if user already exists
@@ -148,19 +140,17 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
         let wasGuest = false;
         if (existingUsers.length > 0) {
             if (existingUsers[0].role !== 'guest') {
-                return res.status(409).json({
-                    message: 'Email already registered'
-                });
+                res.status(409).json({ message: 'Email already registered' });
             }
             wasGuest = true;
+            return;
         }
 
         // Validate role
         const validRoles = ['admin', 'faculty', 'student'];
         if (!validRoles.includes(role)) {
-            return res.status(400).json({
-                message: 'Invalid role'
-            });
+            res.status(400).json({ message: 'Invalid role' });
+            return;
         }
 
         // Hash password
@@ -235,9 +225,7 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
             await connection.rollback();
         }
         console.error('Registration error:', err);
-        res.status(500).json({
-            message: 'Internal server error'
-        });
+        res.status(500).json({ message: 'Internal server error' });
     } finally {
         if (connection) {
             connection.release();
@@ -250,9 +238,8 @@ router.get('/verify-email/:token', async (req: Request<{ token: string }>, res: 
     const { token } = req.params;
 
     if (!token) {
-        return res.status(400).json({
-            message: 'Verification token is required'
-        });
+        res.status(400).json({ message: 'Verification token is required' });
+        return;
     }
 
     try {
@@ -263,9 +250,8 @@ router.get('/verify-email/:token', async (req: Request<{ token: string }>, res: 
         );
 
         if (users.length === 0) {
-            return res.status(400).json({
-                message: 'Invalid verification token'
-            });
+            res.status(400).json({ message: 'Invalid or expired verification token' });
+            return;
         }
 
         const user = users[0];
@@ -275,9 +261,8 @@ router.get('/verify-email/:token', async (req: Request<{ token: string }>, res: 
         const tokenExpiry = new Date(user.verification_token_expires as Date);
 
         if (now > tokenExpiry) {
-            return res.status(400).json({
-                message: 'Verification token has expired'
-            });
+            res.status(400).json({ message: 'Invalid or expired verification token' });
+            return;
         }
 
         // Update user to verified status
@@ -309,9 +294,7 @@ router.get('/verify-email/:token', async (req: Request<{ token: string }>, res: 
         });
     } catch (err) {
         console.error('Email verification error:', err);
-        res.status(500).json({
-            message: 'Internal server error'
-        });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -320,9 +303,8 @@ router.post('/resend-verification', async (req: Request<{}, {}, EmailRequestBody
     const { email } = req.body;
 
     if (!email) {
-        return res.status(400).json({
-            message: 'Email is required'
-        });
+        res.status(400).json({ message: 'Email is required' });
+        return;
     }
 
     try {
@@ -333,18 +315,16 @@ router.post('/resend-verification', async (req: Request<{}, {}, EmailRequestBody
         );
 
         if (users.length === 0) {
-            return res.json({
-                message: 'No user with such an email is registered.'
-            });
+            res.json({ message: 'No user with such an email is registered.' });
+            return;
         }
 
         const user = users[0];
 
         // Check if already verified
         if (user.is_verified) {
-            return res.json({
-                message: 'Your account is already verified. You can log in.'
-            });
+            res.json({ message: 'Your account is already verified. You can log in.' });
+            return;
         }
 
         // Generate new verification token
@@ -363,14 +343,10 @@ router.post('/resend-verification', async (req: Request<{}, {}, EmailRequestBody
         // Send verification email
         await emailService.sendVerificationEmail(user.email, user.name, verificationToken);
 
-        res.json({
-            message: 'A new verification email has been sent. Please check your inbox.'
-        });
+        res.json({ message: 'A new verification email has been sent. Please check your inbox.' });
     } catch (err) {
         console.error('Resend verification error:', err);
-        res.status(500).json({
-            message: 'Internal server error'
-        });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -379,51 +355,34 @@ router.post('/forgot-password', async (req: Request<{}, {}, EmailRequestBody>, r
     const { email } = req.body;
 
     if (!email) {
-        return res.status(400).json({
-            message: 'Email is required'
-        });
+        res.status(400).json({ message: 'Email is required' });
+        return;
     }
 
     try {
-        // Find user by email
         const [users] = await pool.execute<User[]>(
             'SELECT * FROM users WHERE email = ?',
             [email]
         );
-
         if (users.length === 0) {
-            // For security reasons, don't reveal whether the email exists
-            return res.json({
-                message: 'If your email is registered, a password reset link will be sent.'
-            });
+            res.json({ message: 'No user with such an email is registered.' });
+            return;
         }
 
         const user = users[0];
-
-        // Generate password reset token
         const resetToken = emailService.generateToken();
-
-        // Calculate expiry (shorter than verification - typically 1 hour)
         const now = new Date();
         const expiryDate = new Date(now.getTime() + PASSWORD_RESET_EXPIRY);
-
-        // Update user with reset token
         await pool.execute<ResultSetHeader>(
             'UPDATE users SET password_reset_token = ?, password_reset_expires = ? WHERE id = ?',
             [resetToken, expiryDate, user.id]
         );
-
-        // Send password reset email
         await emailService.sendPasswordResetEmail(user, resetToken);
 
-        res.json({
-            message: 'If your email is registered, a password reset link will be sent.'
-        });
+        res.json({ message: 'A password reset link has been sent to your email.' });
     } catch (err) {
         console.error('Password reset request error:', err);
-        res.status(500).json({
-            message: 'Internal server error'
-        });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -433,16 +392,14 @@ router.post('/reset-password/:token', async (req: Request<{ token: string }, {},
     const { password } = req.body;
 
     if (!token || !password) {
-        return res.status(400).json({
-            message: 'Token and new password are required'
-        });
+        res.status(400).json({ message: 'Token and new password are required' });
+        return;
     }
 
     // Password complexity validation
     if (password.length < 8) {
-        return res.status(400).json({
-            message: 'Password must be at least 8 characters'
-        });
+        res.status(400).json({ message: 'Password must be at least 8 characters' });
+        return;
     }
 
     try {
@@ -453,9 +410,8 @@ router.post('/reset-password/:token', async (req: Request<{ token: string }, {},
         );
 
         if (users.length === 0) {
-            return res.status(400).json({
-                message: 'Invalid or expired password reset token'
-            });
+            res.status(400).json({ message: 'Invalid or expired password reset token' });
+            return;
         }
 
         const user = users[0];
@@ -465,9 +421,8 @@ router.post('/reset-password/:token', async (req: Request<{ token: string }, {},
         const tokenExpiry = new Date(user.password_reset_expires as Date);
 
         if (now > tokenExpiry) {
-            return res.status(400).json({
-                message: 'Password reset token has expired'
-            });
+            res.status(400).json({ message: 'Password reset token has expired' });
+            return;
         }
 
         // Hash the new password
@@ -484,14 +439,10 @@ router.post('/reset-password/:token', async (req: Request<{ token: string }, {},
             [passwordHash, user.id]
         );
 
-        res.json({
-            message: 'Password has been reset successfully. You can now log in with your new password.'
-        });
+        res.json({ message: 'Password has been reset successfully. You can now log in with your new password.' });
     } catch (err) {
         console.error('Password reset error:', err);
-        res.status(500).json({
-            message: 'Internal server error'
-        });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 

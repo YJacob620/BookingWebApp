@@ -10,8 +10,6 @@ import pool from '../configuration/db';
 
 router.get('/download-file/:bookingId/:questionId', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     const { bookingId, questionId }: { bookingId: string; questionId: string } = req.params;
-    const userId: string = req.user.userId;
-    const userRole: string = req.user.role;
     const userEmail: string = req.user.email;
 
     try {
