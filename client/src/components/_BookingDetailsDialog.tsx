@@ -173,19 +173,21 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
 
                                             {answer.question_type === 'document' ? (
                                                 answer.document_url ? (
-                                                    <div
-                                                        onClick={async (e) => {
-                                                            e.preventDefault();
-                                                            try {
-                                                                await downloadBookingFile(details.booking.id, answer.question_id, answer.answer_text ?? undefined);
-                                                            } catch (error) {
-                                                                alert('Failed to download the file.');
-                                                            }
-                                                        }}
-                                                        className="flex items-center text-blue-400 hover:underline mt-1 cursor-pointer"
-                                                    >
+                                                    <div className="flex items-center">
                                                         <Download className="h-4 w-4 mr-1" />
-                                                        {answer.answer_text || 'Download file'}
+                                                        <span
+                                                            onClick={async (e) => {
+                                                                e.preventDefault();
+                                                                try {
+                                                                    await downloadBookingFile(details.booking.id, answer.question_id, answer.answer_text ?? undefined);
+                                                                } catch (error) {
+                                                                    alert('Failed to download the file.');
+                                                                }
+                                                            }}
+                                                            className="text-blue-400 hover:underline cursor-pointer inline"
+                                                        >
+                                                            {answer.answer_text || 'Download file'}
+                                                        </span>
                                                     </div>
                                                 ) : (
                                                     <span className="text-gray-400 text-sm mt-1">No file uploaded</span>

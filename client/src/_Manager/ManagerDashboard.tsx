@@ -1,11 +1,18 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar, Database } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import * as RoutePaths from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import BasePageLayout from '@/components/_BasePageLayout';
+import { getLocalUser, User } from '@/utils';
 
 const ManagerDashboard = () => {
+    const [user, setUser] = useState<User | null>();
+    useEffect(() => {
+        setUser(getLocalUser());
+    }, []);
+
     const menuItems = [
         {
             title: 'Infrastructures',
@@ -28,6 +35,7 @@ const ManagerDashboard = () => {
             explanationText={"Manage your assigned infrastructures and booking requests"}
             className={"w-170"}
         >
+            <h2 className="text-xl font-semibold mb-5">Welcome, {user?.name || user?.email}</h2>
             <EmailPreferencesToggle className="mb-6" />
 
             <div className="grid grid-cols-1 md:grid-cols-1 gap-4 min-w-120">

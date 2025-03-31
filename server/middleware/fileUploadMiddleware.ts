@@ -5,11 +5,11 @@ import { Request } from 'express';
 
 import { generateToken } from '../utils'
 
-
 // Define interfaces for file handling
 interface FileUploadFile extends Express.Multer.File {
     originalFilename?: string;
 }
+
 
 // Create uploads directory if it doesn't exist
 const uploadDir: string = path.join(__dirname, '..', 'uploads');
@@ -31,56 +31,13 @@ const generateSecureFilename = (originalname: string): string => {
 // Configure storage
 const storage: StorageEngine = multer.diskStorage({
     destination: function (req: Request, file: FileUploadFile, cb: (error: Error | null, destination: string) => void) {
+        file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8'); // CRUCIAL FOR NON-ENGLISH FILE NAMES
         cb(null, uploadDir);
     },
     filename: function (req: Request, file: FileUploadFile, cb: (error: Error | null, filename: string) => void) {
         // Generate a secure filename that will be later associated with the booking
         const secureFilename: string = generateSecureFilename(file.originalname);
         cb(null, secureFilename);
-    }
-});
-
-// Create the upload middleware
-const upload = multer({
-    storage: storage,
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB file size limit
-    },
-    fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-        // Accept common document types
-        const allowedTypes: string[] = [
-            // Document types
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-
-            // Image types
-            'image/jpeg',
-            'image/png',
-
-            // Text file types
-            'text/plain',
-            'text/rtf',
-            'application/rtf',
-            'text/markdown',
-            'text/csv',
-            'text/xml',
-            'application/xml',
-            'application/json',
-            'text/html',
-
-            // Archive types
-            'application/zip',
-            'application/x-zip-compressed'
-        ];
-
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Invalid file type. Only PDF, Word, Excel, images, text files, and common file types are allowed.'));
-        }
     }
 });
 
@@ -97,29 +54,48 @@ const getFilePath = (filename: string): string => {
     return path.join(uploadDir, filename);
 };
 
-// Get mimetype based on filename
+const mimeTypes: Record<string, string> = {
+    '.pdf': 'application/pdf',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.txt': 'text/plain',
+    '.rtf': 'application/rtf',
+    '.md': 'text/markdown',
+    '.markdown': 'text/markdown',
+    '.csv': 'text/csv',
+    '.xml': 'text/xml',
+    '.json': 'application/json',
+    '.html': 'text/html',
+    '.htm': 'text/html',
+    '.zip': 'application/zip',
+    '.x-zip-compressed': 'application/x-zip-compressed'
+};
+
+// Create the upload middleware
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB file size limit
+    },
+    fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+        const allowedTypes = Object.values(mimeTypes); // Get allowed MIME types from dictionary
+
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only PDF, Word, Excel, images, text files, and common file types are allowed.'));
+        }
+    }
+});
+
+// Get mimetype based on filename 
 const getMimeType = (filename: string): string => {
-    const ext: string = path.extname(filename).toLowerCase();
-    const mimeTypes: Record<string, string> = {
-        '.pdf': 'application/pdf',
-        '.doc': 'application/msword',
-        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        '.xls': 'application/vnd.ms-excel',
-        '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.png': 'image/png',
-        '.txt': 'text/plain',
-        '.rtf': 'application/rtf',
-        '.md': 'text/markdown',
-        '.markdown': 'text/markdown',
-        '.csv': 'text/csv',
-        '.xml': 'text/xml',
-        '.json': 'application/json',
-        '.html': 'text/html',
-        '.htm': 'text/html',
-        '.zip': 'application/zip'
-    };
+    const ext = path.extname(filename).toLowerCase();
     return mimeTypes[ext] || 'application/octet-stream';
 };
 

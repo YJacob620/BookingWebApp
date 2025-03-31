@@ -1,6 +1,6 @@
 /* General-purpose API functions to be used by the client for communicating with the server */
 
-import { getLocalUser } from '@/utils';
+import { getLocalToken, getLocalUser } from '@/utils';
 import {
   InfrastFormData,
   BatchCreationPayload,
@@ -24,7 +24,7 @@ export const API_BASE_URL = 'http://localhost:3001/api';
  * @returns Promise with response data
  */
 const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-  const token = localStorage.getItem('token');
+  const token = getLocalToken();
   const headers: Record<string, string> = { ...(options.headers as Record<string, string> || {}) };
 
   if (token) {
@@ -110,7 +110,6 @@ export const fetchUserBookings = (recent: boolean = false): Promise<BookingEntry
   return apiRequest(`/bookings/user/${recent === true ? 'recent' : 'all'}`);
 };
 
-
 /**
  * Request a booking using FormData for all cases (replaces both bookTimeslot and bookTimeslotWithAnswers)
  * @param timeslotId - ID of the selected timeslot
@@ -139,6 +138,7 @@ export const bookTimeslot = async (
     Object.entries(answers).forEach(([questionId, answer]) => {
       if (answer instanceof File) {
         // Handle file upload
+        console.log('Adding file: ', answer.name, 'Size:', answer.size, 'bytes');
         const fieldName = `file_${questionId}`;
         formData.append(fieldName, answer);
         answersForJson[questionId] = { type: 'file', fieldName };
@@ -154,7 +154,7 @@ export const bookTimeslot = async (
   }
 
   // Make API request with token but without Content-Type header (browser sets it for FormData)
-  const token = localStorage.getItem('token');
+  const token = getLocalToken();
   const headers: Record<string, string> = {};
 
   if (token) {
@@ -316,9 +316,10 @@ export const createTimeslots =
     });
   };
 
+
 /**
- * Delete/cancel timeslots (admin only)
- */
+* Delete/cancel timeslots (admin only)
+*/
 export const cancelTimeslots = (ids: number[]) => {
   return apiRequest('/bookings/manager-admin/timeslots', {
     method: 'DELETE',
@@ -587,7 +588,7 @@ export const downloadBookingFile = async (
   questionId: number | string,
   filename?: string
 ): Promise<void> => {
-  const token = localStorage.getItem('token');
+  const token = getLocalToken();
   if (!token) {
     throw new Error('Not authenticated');
   }

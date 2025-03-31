@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -19,40 +19,24 @@ import {
   formatTimeString,
   getStatusColor,
   BookingEntry,
-  fetchUserBookings
+  fetchUserBookings,
+  User,
+  getLocalUser
 } from '@/utils';
-import { BOOKING_HISTORY, CREATE_BOOKING, LOGIN } from '@/RoutePaths';
+import { BOOKING_HISTORY, CREATE_BOOKING } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import BasePageLayout from '@/components/_BasePageLayout';
 
 const UserDashboard = () => {
-  const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<{ name: string, email: string } | null>(null);
+  const [user, setUser] = useState<User | null>();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const userString = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
-
-      if (!userString || !token) {
-        navigate(LOGIN);
-        return;
-      }
-
-      try {
-        setUser(JSON.parse(userString));
-        getRecentBookings();
-      } catch (err) {
-        console.error('Error parsing user data:', err);
-        navigate(LOGIN);
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
+    setUser(getLocalUser());
+    getRecentBookings();
+  }, []);
 
   const getRecentBookings = async () => {
     try {
@@ -78,19 +62,11 @@ const UserDashboard = () => {
   return (
     <BasePageLayout
       pageTitle="User Dashboard"
+      explanationText={"You can create a new booking or view your existing ones below"}
       showLogoutButton
     >
-      {/* Welcome section */}
-      <Card className="bg-transparent border-transparent shadow-none">
-        <CardContent className="pt-6">
-          <h2 className="text-xl font-semibold mb-2">Welcome, {user?.name || user?.email}</h2>
-          <p className="explanation-text1">
-            You can create a new booking or view your existing ones below.
-          </p>
-        </CardContent>
-      </Card>
+      <h2 className="text-xl font-semibold mb-5">Welcome, {user?.name || user?.email}</h2>
 
-      {/* Quick actions */}
       <EmailPreferencesToggle />
       <div className="my-8">
         <Link to={CREATE_BOOKING}>

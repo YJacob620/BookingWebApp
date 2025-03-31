@@ -42,7 +42,7 @@ router.get('/download-file/:bookingId/:questionId', authenticateToken, async (re
         }
 
         const filePath: string = answers[0].document_path;
-        const originalFilename = decodeURIComponent(answers[0].answer_text || 'download');
+        const originalFilename: string = answers[0].answer_text || 'download';
 
         if (!fs.existsSync(filePath)) {
             res.status(404).json({ message: 'File not found on server' });
@@ -52,7 +52,7 @@ router.get('/download-file/:bookingId/:questionId', authenticateToken, async (re
         const mimetype: string = getMimeType(filePath);
 
         res.setHeader('Content-Type', mimetype);
-        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(originalFilename)}`);
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(originalFilename)}"`);
 
         const fileStream = fs.createReadStream(filePath);
         fileStream.pipe(res);

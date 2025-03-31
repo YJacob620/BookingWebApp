@@ -123,7 +123,6 @@ const sendBookingNotifications = async (
             try {
                 await sendBookingNotificationToManagers(booking, infrastructure, managers, secureToken);
                 await sendBookingNotificationToUser(booking, infrastructure);
-                console.log('Booking notifications sent successfully');
                 resolve(true);
             } catch (error) {
                 console.error('Error sending booking notifications in background:', error);
@@ -156,7 +155,6 @@ const sendBookingNotificationToManagers = async (
     // Check if all managers have opted out of emails
     const activeManagers = managers.filter(manager => manager.email_notifications);
     if (activeManagers.length === 0) {
-        console.log('No active managers to notify');
         return;
     }
 
@@ -294,7 +292,6 @@ const sendBookingStatusUpdate = async (
 
                 // Check if user has opted out of emails
                 if (!user || !user.email_notifications) {
-                    console.log('User has opted out of email notifications');
                     resolve(false);
                     return;
                 }

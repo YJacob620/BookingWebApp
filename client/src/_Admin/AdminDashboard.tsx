@@ -4,8 +4,15 @@ import { Calendar, Database, Users } from "lucide-react";
 import * as RoutePaths from '@/RoutePaths';
 
 import BasePageLayout from '@/components/_BasePageLayout';
+import { useEffect, useState } from 'react';
+import { getLocalUser, User } from '@/utils';
 
 const AdminDashboard = () => {
+    const [user, setUser] = useState<User | null>();
+    useEffect(() => {
+        setUser(getLocalUser());
+    }, []);
+
     const menuItems = [
         {
             title: 'Users',
@@ -34,6 +41,7 @@ const AdminDashboard = () => {
             explanationText={"Select a section below to manage different aspects of the system"}
             className={"w-170"}
         >
+            <h2 className="text-xl font-semibold mb-5">Welcome, {user?.name || user?.email}</h2>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                 {menuItems.map((item, index) => (
                     <Link

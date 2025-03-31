@@ -44,16 +44,14 @@ export const getDashboardPath = (
 export const isLocalUserDataValid = (): boolean => {
   try {
     const userData = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+    const token = getLocalToken();
 
     if (!userData || !token) {
       return false;
     }
 
-    // Try to parse user data to verify it's valid JSON
+    // Try to parse user data to verify it's valid JSON and has required fields
     const parsed = JSON.parse(userData);
-
-    // Extra validation - ensure user object has required fields
     const isValid = !!(parsed && parsed.id && parsed.email && parsed.role);
 
     return isValid;
@@ -82,10 +80,10 @@ export const getLocalUser = (): User | null => {
 };
 
 /**
- * Get the currently logged in user from localStorage
+ * Get the token of the currently logged in user from localStorage
  * 
- * @returns The user object or null if not logged in or invalid data
+ * @returns The token as a string null if no user is logged in
  */
-export const getLocalToken = (): String | null => {
+export const getLocalToken = (): string | null => {
   return localStorage.getItem('token');
 };

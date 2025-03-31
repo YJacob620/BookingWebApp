@@ -146,17 +146,15 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
                 if (req.files && req.files.length > 0) {
                     for (const file of req.files) {
                         const fieldName: string = file.fieldname;
+                        console.log(`[BookingRequest] File field: ${fieldName}, originalname: ${file.originalname}, path: ${file.path}, size: ${file.size} bytes`);
 
                         if (fieldName.startsWith('file_')) {
                             const questionId: string = fieldName.replace('file_', '');
-
                             answersObj[questionId] = {
                                 type: 'file',
                                 filePath: file.path,
                                 originalName: file.originalname
                             };
-
-                            console.log(`File uploaded:${file.originalname} -> ${file.path}`);
                         }
                     }
                 }
@@ -182,6 +180,7 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
             return;
         }
 
+        await connection.commit();
         res.status(201).json({
             message: 'Booking request submitted successfully',
             booking_id: timeslot_id,

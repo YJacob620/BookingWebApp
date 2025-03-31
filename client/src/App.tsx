@@ -1,24 +1,24 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-
 import * as RoutePaths from '@/RoutePaths';
 import LoginPage from '@/_LoginEtc/LoginPage.tsx';
-import AdminDashboard from '@/_Admin/AdminDashboard.tsx';
-import InfrastructureManagement from '@/_Manager_Admin/InfrastructureManagement.tsx';
-import BookingManagement from '@/_Manager_Admin/BookingManagement.tsx';
-import BookTimeslot from '@/_User/BookTimeslot';
-import UserDashboard from '@/_User/UserDashboard.tsx';
-import BookingHistory from '@/_User/UserBookingHistory.tsx';
 import RegistrationPage from '@/_LoginEtc/RegistrationPage.tsx';
 import EmailVerificationPage from '@/_LoginEtc/EmailVerificationPage.tsx';
 import VerificationPendingPage from '@/_LoginEtc/VerificationPendingPage.tsx';
 import ForgotPasswordPage from '@/_LoginEtc/ForgotPasswordPage.tsx';
 import ResetPasswordPage from '@/_LoginEtc/ResetPasswordPage.tsx';
+import AdminDashboard from '@/_Admin/AdminDashboard.tsx';
 import UserManagement from '@/_Admin/UserManagement.tsx';
+import InfrastructureManagement from '@/_Manager_Admin/InfrastructureManagement.tsx';
+import BookingManagement from '@/_Manager_Admin/BookingManagement.tsx';
 import ManagerDashboard from '@/_Manager/ManagerDashboard.tsx';
-import AuthenticationGuard from '@/components/_AuthenticationGuard.tsx';
 import EmailActionHandler from '@/_Manager/EmailActionHandler.tsx';
 import EmailUnsubscribePage from '@/_User_Manager/EmailUnsubscribePage.tsx';
+import UserDashboard from '@/_User/UserDashboard.tsx';
+import BookTimeslot from '@/_User/BookTimeslot';
+import BookingHistory from '@/_User/UserBookingHistory.tsx';
 import GuestConfirmationPage from '@/_User/GuestConfirmationPage';
+import AuthenticationGuard from '@/components/_AuthenticationGuard.tsx';
+
 
 function App() {
   return (

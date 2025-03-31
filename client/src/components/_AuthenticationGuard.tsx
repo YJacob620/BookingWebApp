@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner';
 import { LOGIN } from '@/RoutePaths';
 import { UserRole } from '@/utils';
-import { getDashboardPath } from '@/utils/localAuthUtils';
+import { getDashboardPath, getLocalToken } from '@/utils/localAuthUtils';
 import { verifyAdmin, verifyManager, verifyUser } from '@/utils';
 import { CREATE_BOOKING } from '@/RoutePaths';
 
@@ -65,7 +65,7 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
         }
 
         // Check if user is already logged in (should not access token flows)
-        const authToken = localStorage.getItem('token');
+        const authToken = getLocalToken();
         if (authToken) {
           try {
             const userString = localStorage.getItem('user');
@@ -89,7 +89,7 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
 
       // CASE 2: PUBLIC ROUTE (login, register)
       if (!requiredRoles) {
-        const authToken = localStorage.getItem('token');
+        const authToken = getLocalToken();
         if (authToken) {
           // User is already logged in, redirect to dashboard
           try {
@@ -119,7 +119,7 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
       }
 
       // CASE 4: PROTECTED ROUTE (role-based auth)
-      const authToken = localStorage.getItem('token');
+      const authToken = getLocalToken();
       if (!authToken) {
         navigate(LOGIN);
         return;

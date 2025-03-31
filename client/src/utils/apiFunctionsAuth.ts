@@ -1,11 +1,9 @@
 /* Authentication API functions to be used by the client for communicating with the server */
 
 import {
+    API_BASE_URL,
     RegistrationFormData,
-} from './types'
-
-import {
-    API_BASE_URL
+    getLocalToken
 } from '@/utils'
 
 /**
@@ -15,7 +13,7 @@ import {
  * @returns Promise with { success, data } format
  */
 const authApiRequest = async (endpoint: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('token');
+    const token = getLocalToken();
     const headers: Record<string, string> = {
         ...(options.headers as Record<string, string> || {})
     };
