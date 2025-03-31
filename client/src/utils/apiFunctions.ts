@@ -557,3 +557,66 @@ export const processGuestConfirmation = async (token: string) => {
     throw error;
   };
 };
+
+/**
+ * Directly download a file from the booking system
+ * @param bookingId - ID of the booking containing the file
+ * @param questionId - ID of the question/document to download
+ * @param filename - Optional filename to use for the downloaded file
+ * @returns Promise that resolves when download is initiated
+ */
+export const downloadBookingFile = async (
+  bookingId: number | string,
+  questionId: number | string,
+  filename?: string
+): Promise<void> => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
+
+  try {
+    // Make authenticated request with correct header format
+    const response = await fetch(`${API_BASE_URL}/bookings/download-file/${bookingId}/${questionId}`, {
+      headers: {
+        'authorization_token': token
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.status}`);
+    }
+
+    // Get suggested filename from Content-Disposition header if available
+    let suggestedFilename = filename;
+    const contentDisposition = response.headers.get('Content-Disposition');
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch && filenameMatch[1]) {
+        suggestedFilename = decodeURIComponent(filenameMatch[1]);
+      }
+    }
+
+    // Fall back to default filename if none provided
+    const downloadFilename = suggestedFilename || `document_${bookingId}_${questionId}.pdf`;
+
+    // Create and trigger download using Blob
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = downloadFilename;
+    document.body.appendChild(a);
+    a.click();
+
+    // Clean up
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }, 100);
+  } catch (error) {
+    console.error('Download error:', error);
+    throw error;
+  }
+};

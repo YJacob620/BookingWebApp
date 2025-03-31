@@ -22,7 +22,8 @@ const generateSecureFilename = (originalname: string): string => {
     const timestamp: number = Date.now();
     const randomString = generateToken(8);
     const fileExtension: string = path.extname(originalname);
-    // Encode the original filename in the database only, not in the filesystem
+
+    // Encode the original filename in a way that preserves UTF-8 characters
     const safeName: string = `${timestamp}-${randomString}${fileExtension}`;
     return safeName;
 };

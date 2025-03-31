@@ -24,11 +24,11 @@ import {
     getStatusColor,
     formatDate,
     formatTimeString,
-    calculateDuration
+    calculateDuration,
+    downloadBookingFile
 } from '@/utils';
 import TruncatedText from '@/components/_TruncatedText';
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { Link } from 'react-router-dom';
 
 interface BookingDetailsDialogProps {
     bookingId: number | null;
@@ -173,14 +173,20 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
 
                                             {answer.question_type === 'document' ? (
                                                 answer.document_url ? (
-                                                    <Link
-                                                        to={`${answer.document_url}?filename=${encodeURIComponent(answer.answer_text || 'download.pdf')}`}
-                                                        className="flex items-center text-blue-400 hover:underline mt-1"
-                                                        target='_blank'
+                                                    <div
+                                                        onClick={async (e) => {
+                                                            e.preventDefault();
+                                                            try {
+                                                                await downloadBookingFile(details.booking.id, answer.question_id, answer.answer_text ?? undefined);
+                                                            } catch (error) {
+                                                                alert('Failed to download the file.');
+                                                            }
+                                                        }}
+                                                        className="flex items-center text-blue-400 hover:underline mt-1 cursor-pointer"
                                                     >
                                                         <Download className="h-4 w-4 mr-1" />
                                                         {answer.answer_text || 'Download file'}
-                                                    </Link>
+                                                    </div>
                                                 ) : (
                                                     <span className="text-gray-400 text-sm mt-1">No file uploaded</span>
                                                 )
