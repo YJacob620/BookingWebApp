@@ -3,6 +3,12 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { Request } from 'express';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Define interfaces for file handling
 interface FileUploadFile extends Express.Multer.File {
