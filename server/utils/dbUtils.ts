@@ -1,5 +1,5 @@
 import { Pool, PoolConnection } from 'mysql2/promise';
-import pool from '../config/db';
+import pool from '../configuration/db';
 
 /**
  * Executes a database operation within a transaction

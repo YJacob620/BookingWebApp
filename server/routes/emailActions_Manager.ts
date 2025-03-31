@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { PoolConnection } from 'mysql2/promise';
-import pool from '../config/db';
+import pool from '../configuration/db';
 import emailService from '../utils/emailService';
 
 const router = express.Router();

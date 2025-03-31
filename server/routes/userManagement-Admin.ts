@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { Pool, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 const router = express.Router();
-import pool from '../config/db';
+import pool from '../configuration/db';
 import { authenticateAdmin } from '../middleware/authMiddleware';
 
 interface User extends RowDataPacket {

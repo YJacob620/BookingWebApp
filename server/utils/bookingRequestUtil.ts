@@ -1,33 +1,11 @@
 import path from 'path';
 import { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
-import emailService from './emailService';
-
-// Define interfaces for type safety
-interface BookingTimeslot extends RowDataPacket {
-    id: number;
-    infrastructure_id: number;
-    booking_type: string;
-    status: string;
-    booking_date: string;
-    start_time: string;
-    end_time: string;
-    user_email: string | null;
-    purpose?: string;
-}
-
-interface Infrastructure extends RowDataPacket {
-    id: number;
-    name: string;
-    location?: string;
-    [key: string]: any;
-}
-
-interface Manager {
-    id: number;
-    name?: string;
-    email: string;
-    email_notifications: boolean;
-}
+import emailService from './emailService'
+import {
+    BookingTimeslot,
+    Infrastructure,
+    User,
+} from '../utils';
 
 interface QuestionAnswer {
     type: 'text' | 'file';
@@ -49,7 +27,7 @@ interface BookingRequestResult {
     message?: string;
     booking?: BookingTimeslot;
     infrastructure?: Infrastructure;
-    managers?: Manager[];
+    managers?: User[];
     actionToken?: string;
     missingAnswers?: number[];
 }
@@ -75,7 +53,7 @@ const processBookingRequest = async (
 
     try {
         // Check if the timeslot exists and is available
-        const [timeslots] = await connection.execute < BookingTimeslot[] > (
+        const [timeslots] = await connection.execute<BookingTimeslot[]>(
             `SELECT * FROM bookings 
              WHERE id = ? 
              AND booking_type = 'timeslot' 
@@ -92,7 +70,7 @@ const processBookingRequest = async (
 
         // Validate required questions (unless skipped)
         if (!skipAnswerValidation) {
-            const [requiredQuestions] = await connection.execute < RowDataPacket[] > (
+            const [requiredQuestions] = await connection.execute<RowDataPacket[]>(
                 `SELECT id FROM infrastructure_questions WHERE infrastructure_id = ? AND is_required = 1`,
                 [infrastructure_id]
             );
@@ -116,7 +94,7 @@ const processBookingRequest = async (
             [email, purpose, timeslotId]
         );
 
-        const [bookings] = await connection.execute < BookingTimeslot[] > (
+        const [bookings] = await connection.execute<BookingTimeslot[]>(
             `SELECT * FROM bookings WHERE id = ?`,
             [timeslotId]
         );
@@ -134,12 +112,12 @@ const processBookingRequest = async (
         }
 
         // Fetch additional details
-        const [infrastructures] = await connection.execute < Infrastructure[] > (
+        const [infrastructures] = await connection.execute<Infrastructure[]>(
             'SELECT * FROM infrastructures WHERE id = ?',
             [infrastructure_id]
         );
 
-        const [managers] = await connection.execute < Manager[] > (
+        const [managers] = await connection.execute<User[]>(
             `SELECT u.id, u.name, u.email, u.email_notifications 
              FROM users u JOIN infrastructure_managers im ON u.id = im.user_id 
              WHERE im.infrastructure_id = ?`,
@@ -180,8 +158,5 @@ export {
     processBookingRequest,
     type BookingRequestParams,
     type BookingRequestResult,
-    type BookingTimeslot,
-    type Infrastructure,
-    type Manager,
     type QuestionAnswer
 };

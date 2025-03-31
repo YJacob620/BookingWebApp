@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { Pool } from 'mysql2/promise';
 import { authenticateToken } from '../middleware/authMiddleware';
-import pool from '../config/db';
+import pool from '../configuration/db';
 const router = express.Router();
 
 

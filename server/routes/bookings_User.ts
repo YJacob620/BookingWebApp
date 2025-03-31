@@ -5,7 +5,7 @@ import { upload } from '../middleware/fileUploadMiddleware';
 import { processBookingRequest } from '../utils/bookingRequestUtil';
 
 const router = express.Router();
-import pool from '../config/db';
+import pool from '../configuration/db';
 
 // Get recent bookings for the current user
 router.get('/recent', authenticateToken, async (req: Request, res: Response): Promise<void> => {

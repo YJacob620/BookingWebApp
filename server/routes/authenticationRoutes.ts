@@ -1,38 +1,31 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, RequestHandler } from 'express';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { PoolConnection, ResultSetHeader } from 'mysql2/promise';
 
-import pool from '../config/db';
-import { JWT_SECRET, VERIFICATION_TOKEN_EXPIRY, PASSWORD_RESET_EXPIRY } from '../config/env';
-import emailService from '../utils/emailService';
+import pool from '../configuration/db';
+import {
+    JWT_SECRET,
+    VERIFICATION_TOKEN_EXPIRY,
+    PASSWORD_RESET_EXPIRY
+} from '../configuration/env';
 import {
     authenticateToken,
     authenticateAdmin,
     authenticateManager
 } from '../middleware/authMiddleware';
+import emailService from '../utils/emailService';
+import {
+    User,
+} from '../utils';
 
 const router = express.Router();
-
-// Define interfaces
-interface User {
-    id: number;
-    email: string;
-    password_hash: string;
-    name: string;
-    role: 'admin' | 'faculty' | 'student' | 'guest';
-    is_verified: boolean;
-    verification_token: string | null;
-    verification_token_expires: Date | null;
-    password_reset_token: string | null;
-    password_reset_expires: Date | null;
-}
 
 interface RegisterRequestBody {
     email: string;
     password: string;
     name: string;
-    role?: 'admin' | 'faculty' | 'student' | 'guest';
+    role?: 'admin' | 'faculty' | 'student';
 }
 
 interface LoginRequestBody {
@@ -46,12 +39,6 @@ interface EmailRequestBody {
 
 interface ResetPasswordRequestBody {
     password: string;
-}
-
-interface JwtPayload {
-    userId: number;
-    email: string;
-    role: string;
 }
 
 // Login route - Updated to check verification status
@@ -128,12 +115,12 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
         connection = await pool.getConnection();
         await connection.beginTransaction();
 
-        const { email, password, name, role = 'student' } = req.body;
+        const { email, password, name, role } = req.body;
 
         // Input validation
-        if (!email || !password || !name) {
+        if (!email || !password || !name || !role) {
             return res.status(400).json({
-                message: 'Email, password, and name are required'
+                message: 'Email, password, name and role are required'
             });
         }
 
@@ -229,7 +216,7 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
 
         // Send verification email
         try {
-            await emailService.sendVerificationEmail({ email, name }, verificationToken);
+            await emailService.sendVerificationEmail(email, name, verificationToken);
 
             res.status(201).json({
                 message: 'Registration successful. Please check your email to verify your account.',
@@ -346,9 +333,8 @@ router.post('/resend-verification', async (req: Request<{}, {}, EmailRequestBody
         );
 
         if (users.length === 0) {
-            // For security reasons, don't reveal whether the email exists
             return res.json({
-                message: 'If your email is registered, a verification link will be sent.'
+                message: 'No user with such an email is registered.'
             });
         }
 
@@ -375,7 +361,7 @@ router.post('/resend-verification', async (req: Request<{}, {}, EmailRequestBody
         );
 
         // Send verification email
-        await emailService.sendVerificationEmail({ email: user.email, name: user.name }, verificationToken);
+        await emailService.sendVerificationEmail(user.email, user.name, verificationToken);
 
         res.json({
             message: 'A new verification email has been sent. Please check your inbox.'
@@ -428,7 +414,7 @@ router.post('/forgot-password', async (req: Request<{}, {}, EmailRequestBody>, r
         );
 
         // Send password reset email
-        await emailService.sendPasswordResetEmail({ email: user.email, name: user.name }, resetToken);
+        await emailService.sendPasswordResetEmail(user, resetToken);
 
         res.json({
             message: 'If your email is registered, a password reset link will be sent.'

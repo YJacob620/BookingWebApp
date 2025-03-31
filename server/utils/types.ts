@@ -1,6 +1,8 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 
 // ===== Auth & User Types =====
+export type UserRole = 'admin' | 'faculty' | 'student' | 'guest' | 'manager';
+
 export interface User extends RowDataPacket {
     id: number;
     email: string;
@@ -17,8 +19,6 @@ export interface User extends RowDataPacket {
     created_at?: Date;
     updated_at?: Date;
 }
-
-export type UserRole = 'admin' | 'faculty' | 'student' | 'guest' | 'manager';
 
 export interface JwtPayload {
     userId: number;
@@ -120,42 +120,9 @@ export interface EmailActionToken extends RowDataPacket {
     metadata: string | null;
 }
 
-export interface Manager {
-    id: number;
-    name?: string;
-    email: string;
-    email_notifications: boolean;
-}
-
 // ===== File Upload Types =====
 export interface FileUploadFile extends Express.Multer.File {
     originalFilename?: string;
-}
-
-// ===== Booking Request Types =====
-export interface QuestionAnswer {
-    type: 'text' | 'file';
-    value?: string;
-    filePath?: string;
-    originalName?: string;
-}
-
-export interface BookingRequestParams {
-    email: string;
-    timeslotId: number | string;
-    purpose?: string;
-    answers?: Record<string, QuestionAnswer>;
-    skipAnswerValidation?: boolean;
-}
-
-export interface BookingRequestResult {
-    success: boolean;
-    message?: string;
-    booking?: BookingTimeslot;
-    infrastructure?: Infrastructure;
-    managers?: Manager[];
-    actionToken?: string;
-    missingAnswers?: number[];
 }
 
 // ===== Database Helper Types =====

@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import './config/env'; // Validate environment variables
-import pool from './config/db'; // Create database connection pool
+import './configuration/env'; // Validate environment variables
+import pool from './configuration/db'; // Create database connection pool
 import authenticationRoutes from './routes/authenticationRoutes';
 import infrastructuresRoutes_Admin from './routes/infrastructures_Admin';
 import infrastructuresRoutes_User_Guest from './routes/infrastructures_User_Guest';

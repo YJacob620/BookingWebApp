@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import pool from '../config/db';
-import { JWT_SECRET } from '../config/env';
+import pool from '../configuration/db';
+import { JWT_SECRET } from '../configuration/env';
 import { Pool, PoolConnection } from 'mysql2/promise';
 import { JwtPayload, User } from '../utils/types';
 
@@ -16,12 +16,14 @@ declare global {
 }
 
 // Middleware to verify JWT token
-const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+// Change the return type to just Promise<void>
+const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({ message: 'Authentication required' });
+        res.status(401).json({ message: 'Authentication required' });
+        return; // Just return, don't return the response
     }
 
     try {
@@ -34,17 +36,20 @@ const authenticateToken = async (req: Request, res: Response, next: NextFunction
         );
 
         if (users.length === 0) {
-            return res.status(403).json({ message: 'User not found' });
+            res.status(403).json({ message: 'User not found' });
+            return; // Just return, don't return the response
         }
 
-        if (users[0].is_blacklisted === 1 || users[0].is_blacklisted === true) {
-            return res.status(403).json({ message: 'This account has been blacklisted. Please contact support.' });
+        if (users[0].is_blacklisted === true) {
+            res.status(403).json({ message: 'This account has been blacklisted. Please contact support.' });
+            return; // Just return, don't return the response
         }
 
         req.user = user;
         next();
     } catch (err) {
-        return res.status(403).json({ message: 'Invalid or expired token' });
+        res.status(403).json({ message: 'Invalid or expired token' });
+        return; // Just return, don't return the response
     }
 };
 

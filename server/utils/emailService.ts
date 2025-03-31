@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
-import pool from '../config/db';
+import pool from '../configuration/db';
 import ical, { ICalEventStatus } from 'ical-generator';
-import { User, Booking, Infrastructure, Manager } from './types'
+import { User, Booking, Infrastructure } from './types'
 
 
 // Create a reusable transporter object using SMTP transport
@@ -26,21 +26,22 @@ const generateToken = (): string => {
 
 /**
  * Send verification email to user
- * @param user - User object with email and name
+ * @param email - The email of the user
+ * @param name - The name of the user
  * @param token - Verification token
  * @returns Nodemailer response
  */
-const sendVerificationEmail = async (user: User, token: string): Promise<any> => {
+const sendVerificationEmail = async (email: string, name: string, token: string): Promise<any> => {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
 
     const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
-        to: user.email,
+        to: email,
         subject: 'Verify Your Email Address',
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #333;">Email Verification</h2>
-                <p>Hello ${user.name || 'there'},</p>
+                <p>Hello ${name || 'there'},</p>
                 <p>Thank you for registering with the Scientific Infrastructure Booking System. Please verify your email address by clicking the button below:</p>
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Verify Email</a>

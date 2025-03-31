@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { Pool } from 'mysql2/promise';
 
 const router = express.Router();
-import pool from '../config/db';
+import pool from '../configuration/db';
 
 // Get active infrastructures (user, guest)
 router.get('/active', async (req: Request, res: Response): Promise<void> => {

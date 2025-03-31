@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import { processBookingRequest } from '../utils/bookingRequestUtil';
 
 const router = express.Router();
-import pool from '../config/db';
+import pool from '../configuration/db';
 
 // Handle guest booking request initiation
 router.post('/request', async (req: Request, res: Response): Promise<void> => {
