@@ -1,51 +1,41 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const crypto = require('crypto');
+import multer, { FileFilterCallback, StorageEngine } from 'multer';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+import { Request } from 'express';
+
+// Define interfaces for file handling
+interface FileUploadFile extends Express.Multer.File {
+    originalFilename?: string;
+}
 
 // Create uploads directory if it doesn't exist
-const uploadDir = path.join(__dirname, '..', 'uploads');
+const uploadDir: string = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // Generate a secure filename hash based on original filename
-const generateSecureFilename = (originalname) => {
-    const timestamp = Date.now();
-    const randomString = crypto.randomBytes(8).toString('hex');
-    const fileExtension = path.extname(originalname);
+const generateSecureFilename = (originalname: string): string => {
+    const timestamp: number = Date.now();
+    const randomString: string = crypto.randomBytes(8).toString('hex');
+    const fileExtension: string = path.extname(originalname);
     // Encode the original filename in the database only, not in the filesystem
-    const safeName = `${timestamp}-${randomString}${fileExtension}`;
+    const safeName: string = `${timestamp}-${randomString}${fileExtension}`;
     return safeName;
 };
 
 // Configure storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
+const storage: StorageEngine = multer.diskStorage({
+    destination: function (req: Request, file: FileUploadFile, cb: (error: Error | null, destination: string) => void) {
         cb(null, uploadDir);
     },
-    filename: function (req, file, cb) {
+    filename: function (req: Request, file: FileUploadFile, cb: (error: Error | null, filename: string) => void) {
         // Generate a secure filename that will be later associated with the booking
-        const secureFilename = generateSecureFilename(file.originalname);
+        const secureFilename: string = generateSecureFilename(file.originalname);
         cb(null, secureFilename);
     }
 });
-
-// // Configure storage. When storing a file, ensure the original name is properly preserved
-// const storage = multer.diskStorage({
-//     destination: function (req, file, cb) {
-//         cb(null, uploadDir);
-//     },
-//     filename: function (req, file, cb) {
-//         // Generate a secure filename that will be later associated with the booking
-//         const secureFilename = generateSecureFilename(file.originalname);
-
-//         // Store the original filename in the file object for later use
-//         file.originalFilename = Buffer.from(file.originalname).toString('utf8');
-
-//         cb(null, secureFilename);
-//     }
-// });
 
 // Create the upload middleware
 const upload = multer({
@@ -53,9 +43,9 @@ const upload = multer({
     limits: {
         fileSize: 5 * 1024 * 1024, // 5MB file size limit
     },
-    fileFilter: (req, file, cb) => {
+    fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
         // Accept common document types
-        const allowedTypes = [
+        const allowedTypes: string[] = [
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -77,22 +67,22 @@ const upload = multer({
 });
 
 // Helper method to get file URL from saved path
-const getFileUrl = (filePath) => {
+const getFileUrl = (filePath: string | null): string | null => {
     if (!filePath) return null;
     // Convert file system path to URL path
-    const relativePath = path.relative(uploadDir, filePath);
+    const relativePath: string = path.relative(uploadDir, filePath);
     return `/uploads/${relativePath.replace(/\\/g, '/')}`;
 };
 
 // Helper to get the full file path from a filename
-const getFilePath = (filename) => {
+const getFilePath = (filename: string): string => {
     return path.join(uploadDir, filename);
 };
 
 // Get mimetype based on filename
-const getMimeType = (filename) => {
-    const ext = path.extname(filename).toLowerCase();
-    const mimeTypes = {
+const getMimeType = (filename: string): string => {
+    const ext: string = path.extname(filename).toLowerCase();
+    const mimeTypes: Record<string, string> = {
         '.pdf': 'application/pdf',
         '.doc': 'application/msword',
         '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -107,7 +97,7 @@ const getMimeType = (filename) => {
     return mimeTypes[ext] || 'application/octet-stream';
 };
 
-module.exports = {
+export {
     upload,
     getFileUrl,
     getFilePath,

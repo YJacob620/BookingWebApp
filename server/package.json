@@ -5,8 +5,8 @@
   "main": "server.ts",
   "scripts": {
     "build": "tsc",
-    "start": "node --experimental-specifier-resolution=node dist/server.js",
-    "dev": "nodemon --watch '**/*.ts' --exec 'node --loader ts-node/esm' server.ts"
+    "start": "node dist/server.js",
+    "dev": "nodemon --exec tsx server.ts"
   },
   "keywords": [],
   "author": "",

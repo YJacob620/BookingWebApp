@@ -1,24 +1,81 @@
-const path = require('path');
-const emailService = require('../utils/emailService');
+import path from 'path';
+import { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
+import emailService from './emailService';
+
+// Define interfaces for type safety
+interface BookingTimeslot extends RowDataPacket {
+    id: number;
+    infrastructure_id: number;
+    booking_type: string;
+    status: string;
+    booking_date: string;
+    start_time: string;
+    end_time: string;
+    user_email: string | null;
+    purpose?: string;
+}
+
+interface Infrastructure extends RowDataPacket {
+    id: number;
+    name: string;
+    location?: string;
+    [key: string]: any;
+}
+
+interface Manager {
+    id: number;
+    name?: string;
+    email: string;
+    email_notifications: boolean;
+}
+
+interface QuestionAnswer {
+    type: 'text' | 'file';
+    value?: string;
+    filePath?: string;
+    originalName?: string;
+}
+
+interface BookingRequestParams {
+    email: string;
+    timeslotId: number | string;
+    purpose?: string;
+    answers?: Record<string, QuestionAnswer>;
+    skipAnswerValidation?: boolean;
+}
+
+interface BookingRequestResult {
+    success: boolean;
+    message?: string;
+    booking?: BookingTimeslot;
+    infrastructure?: Infrastructure;
+    managers?: Manager[];
+    actionToken?: string;
+    missingAnswers?: number[];
+}
 
 /**
  * Process a booking request for either a logged-in user or a guest
  * 
- * @param {Object} connection - Database connection with transaction already begun
- * @param {Object} params - Booking parameters
- * @param {string} params.email - User/guest email
- * @param {number} params.timeslotId - ID of the timeslot to book
- * @param {string} params.purpose - Purpose of booking (optional)
- * @param {Object} params.answers - Answers to infrastructure questions (optional)
- * @param {boolean} params.skipAnswerValidation - Whether to skip answer validation (e.g., for guest flow where answers are already validated)
- * @returns {Promise<Object>} - Booking result with success status and related data
+ * @param connection - Database connection with transaction already begun
+ * @param params - Booking parameters
+ * @returns - Booking result with success status and related data
  */
-const processBookingRequest = async (connection, params) => {
-    const { email, timeslotId, purpose = '', answers = {}, skipAnswerValidation = false } = params;
+const processBookingRequest = async (
+    connection: PoolConnection | Pool,
+    params: BookingRequestParams
+): Promise<BookingRequestResult> => {
+    const {
+        email,
+        timeslotId,
+        purpose = '',
+        answers = {},
+        skipAnswerValidation = false
+    } = params;
 
     try {
         // Check if the timeslot exists and is available
-        const [timeslots] = await connection.execute(
+        const [timeslots] = await connection.execute < BookingTimeslot[] > (
             `SELECT * FROM bookings 
              WHERE id = ? 
              AND booking_type = 'timeslot' 
@@ -35,7 +92,7 @@ const processBookingRequest = async (connection, params) => {
 
         // Validate required questions (unless skipped)
         if (!skipAnswerValidation) {
-            const [requiredQuestions] = await connection.execute(
+            const [requiredQuestions] = await connection.execute < RowDataPacket[] > (
                 `SELECT id FROM infrastructure_questions WHERE infrastructure_id = ? AND is_required = 1`,
                 [infrastructure_id]
             );
@@ -45,7 +102,11 @@ const processBookingRequest = async (connection, params) => {
                 .filter(qId => !answers[qId] || !answers[qId].value?.trim());
 
             if (missingAnswers.length > 0) {
-                return { success: false, message: 'All required questions must be answered', missingAnswers };
+                return {
+                    success: false,
+                    message: 'All required questions must be answered',
+                    missingAnswers
+                };
             }
         }
 
@@ -55,7 +116,10 @@ const processBookingRequest = async (connection, params) => {
             [email, purpose, timeslotId]
         );
 
-        const [bookings] = await connection.execute(`SELECT * FROM bookings WHERE id = ?`, [timeslotId]);
+        const [bookings] = await connection.execute < BookingTimeslot[] > (
+            `SELECT * FROM bookings WHERE id = ?`,
+            [timeslotId]
+        );
         const booking = bookings[0];
 
         // Save answers if provided
@@ -70,8 +134,12 @@ const processBookingRequest = async (connection, params) => {
         }
 
         // Fetch additional details
-        const [infrastructures] = await connection.execute('SELECT * FROM infrastructures WHERE id = ?', [infrastructure_id]);
-        const [managers] = await connection.execute(
+        const [infrastructures] = await connection.execute < Infrastructure[] > (
+            'SELECT * FROM infrastructures WHERE id = ?',
+            [infrastructure_id]
+        );
+
+        const [managers] = await connection.execute < Manager[] > (
             `SELECT u.id, u.name, u.email, u.email_notifications 
              FROM users u JOIN infrastructure_managers im ON u.id = im.user_id 
              WHERE im.infrastructure_id = ?`,
@@ -79,7 +147,7 @@ const processBookingRequest = async (connection, params) => {
         );
 
         // Generate token for email actions
-        let actionToken = null;
+        let actionToken: string | null = null;
         try {
             actionToken = await emailService.generateSecureActionToken(booking, connection);
         } catch (tokenError) {
@@ -95,13 +163,25 @@ const processBookingRequest = async (connection, params) => {
             }
         }
 
-        return { success: true, booking, infrastructure: infrastructures[0] || null, managers, actionToken };
+        return {
+            success: true,
+            booking,
+            infrastructure: infrastructures[0] || null,
+            managers,
+            actionToken: actionToken || undefined
+        };
     } catch (error) {
         console.error('Error in processBookingRequest:', error);
         throw error;
     }
 };
 
-module.exports = {
-    processBookingRequest
+export {
+    processBookingRequest,
+    type BookingRequestParams,
+    type BookingRequestResult,
+    type BookingTimeslot,
+    type Infrastructure,
+    type Manager,
+    type QuestionAnswer
 };
