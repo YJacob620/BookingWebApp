@@ -1,16 +1,15 @@
 import express, { Request, Response } from 'express';
-import { Pool } from 'mysql2/promise';
-import path from 'path';
 import fs from 'fs';
+
 import { authenticateToken, hasInfrastructureAccess } from '../middleware/authMiddleware';
 import { getMimeType } from '../middleware/fileUploadMiddleware';
-
-const router = express.Router();
 import pool from '../configuration/db';
+const router = express.Router();
 
 router.get('/download-file/:bookingId/:questionId', authenticateToken, async (req: Request, res: Response): Promise<void> => {
-    const { bookingId, questionId }: { bookingId: string; questionId: string } = req.params;
-    const userEmail: string = req.user.email;
+    const bookingId = req.params.bookingId;
+    const questionId = req.params.questionId;
+    const userEmail = req.user!.email;
 
     try {
         const [bookings]: any[] = await pool.execute(
@@ -65,10 +64,8 @@ router.get('/download-file/:bookingId/:questionId', authenticateToken, async (re
 
 router.get('/:id/details', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id }: { id: string } = req.params;
-
-        // Assuming user role and email are stored in the request object
-        const userEmail: string = req.user.email;
+        const userEmail = req.user!.email;
+        const id = req.user!.userId;
 
         // Get the booking with its infrastructure ID
         const [bookings]: any[] = await pool.execute(`

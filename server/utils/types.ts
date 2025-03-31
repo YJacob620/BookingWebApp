@@ -26,27 +26,6 @@ export interface JwtPayload {
     role: string;
 }
 
-// ===== Request Body Types =====
-export interface RegisterRequestBody {
-    email: string;
-    password: string;
-    name: string;
-    role?: UserRole;
-}
-
-export interface LoginRequestBody {
-    email: string;
-    password: string;
-}
-
-export interface EmailRequestBody {
-    email: string;
-}
-
-export interface ResetPasswordRequestBody {
-    password: string;
-}
-
 // ===== Infrastructure Types =====
 export interface Infrastructure extends RowDataPacket {
     id: number;
@@ -74,6 +53,8 @@ export interface QuestionReorderItem {
 }
 
 // ===== Booking Types =====
+export type BookingStatus = 'available' | 'pending' | 'approved' | 'rejected' | 'canceled' | 'completed';
+
 export interface Booking extends RowDataPacket {
     id: number;
     infrastructure_id: number;
@@ -84,12 +65,6 @@ export interface Booking extends RowDataPacket {
     booking_type: 'booking' | 'timeslot';
     user_email: string | null;
     purpose?: string;
-}
-
-export type BookingStatus = 'available' | 'pending' | 'approved' | 'rejected' | 'canceled' | 'completed';
-
-export interface BookingTimeslot extends Booking {
-    // Extends Booking with any timeslot-specific fields
 }
 
 export interface BookingRequestBody {

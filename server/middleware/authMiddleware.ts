@@ -10,20 +10,20 @@ declare global {
     namespace Express {
         interface Request {
             user?: JwtPayload;
-            userRole?: string;
         }
     }
 }
 
-// Middleware to verify JWT token
-// Change the return type to just Promise<void>
+/**
+ * Middleware to verify JWT token. A successful verification means a user is logged in.
+ * On success will create req.user.userId, req.user.email, req.user.role
+ */
 const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = req.headers['authorizationToken'];
 
     if (!token) {
         res.status(401).json({ message: 'Authentication required' });
-        return; // Just return, don't return the response
+        return;
     }
 
     try {
@@ -37,19 +37,19 @@ const authenticateToken = async (req: Request, res: Response, next: NextFunction
 
         if (users.length === 0) {
             res.status(403).json({ message: 'User not found' });
-            return; // Just return, don't return the response
+            return;
         }
 
         if (users[0].is_blacklisted === true) {
             res.status(403).json({ message: 'This account has been blacklisted. Please contact support.' });
-            return; // Just return, don't return the response
+            return;
         }
 
         req.user = user;
         next();
     } catch (err) {
         res.status(403).json({ message: 'Invalid or expired token' });
-        return; // Just return, don't return the response
+        return;
     }
 };
 

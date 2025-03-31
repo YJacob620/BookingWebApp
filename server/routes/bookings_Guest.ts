@@ -1,12 +1,14 @@
 import express, { Request, Response } from 'express';
-import { Pool } from 'mysql2/promise';
-import emailService from '../utils/emailService';
 import argon2 from 'argon2';
 import crypto from 'crypto';
-import { processBookingRequest } from '../utils/bookingRequestUtil';
 
-const router = express.Router();
+import emailService from '../utils/emailService';
 import pool from '../configuration/db';
+import {
+    processBookingRequest,
+    Booking as BookingEntry
+} from '../utils';
+const router = express.Router();
 
 // Handle guest booking request initiation
 router.post('/request', async (req: Request, res: Response): Promise<void> => {
@@ -14,7 +16,14 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
     try {
         await connection.beginTransaction();
         const { email, name, infrastructureId, timeslotId, purpose = '', answers = {} }:
-            { email: string; name: string; infrastructureId: number; timeslotId: number; purpose?: string; answers?: Record<string, any>; } = req.body;
+            {
+                email: string;
+                name: string;
+                infrastructureId: number;
+                timeslotId: number;
+                purpose?: string;
+                answers?: Record<string, any>;
+            } = req.body;
 
         if (!email || !name || !infrastructureId || !timeslotId) {
             res.status(400).json({
@@ -33,7 +42,7 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const [timeslots]: [Array<any>] = await connection.execute(
+        const [timeslots]: BookingEntry[] = await connection.execute(
             'SELECT * FROM bookings WHERE id = ? AND booking_type = "timeslot" AND status = "available"',
             [timeslotId]
         );
