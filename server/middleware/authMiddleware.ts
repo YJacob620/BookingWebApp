@@ -19,7 +19,7 @@ declare global {
  * On success will create req.user.userId, req.user.email, req.user.role.
  */
 const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const token = req.headers['authorizationToken'];
+    const token = req.headers['authorization_token'];
 
     if (!token) {
         res.status(401).json({ message: 'Authentication required' });

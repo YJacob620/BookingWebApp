@@ -21,7 +21,7 @@ const authApiRequest = async (endpoint: string, options: RequestInit = {}) => {
     };
 
     if (token) {
-        headers['authorizationToken'] = token;
+        headers['authorization_token'] = token;
     }
 
     // Only set Content-Type to application/json if not using FormData

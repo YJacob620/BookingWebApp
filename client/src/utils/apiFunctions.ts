@@ -27,7 +27,7 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
   const headers: Record<string, string> = { ...(options.headers as Record<string, string> || {}) };
 
   if (token) {
-    headers['authorizationToken'] = token;
+    headers['authorization_token'] = token;
   }
 
   // Important: Only set Content-Type to application/json if not using FormData
@@ -133,7 +133,7 @@ export const bookTimeslotWithAnswers = async (formData: FormData) => {
   const headers: Record<string, string> = {};
 
   if (token) {
-    headers['authorizationToken'] = token;
+    headers['authorization_token'] = token;
   }
 
   // Do NOT set Content-Type for FormData
