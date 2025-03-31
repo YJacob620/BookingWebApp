@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express from 'express';
 import cors from 'cors';
 import './config/env'; // Validate environment variables
 import pool from './config/db'; // Create database connection pool
@@ -16,7 +16,7 @@ import emailActionsRoutes from './routes/emailActions_Manager';
 import bookingRoutes_All from './routes/bookings_All';
 import guestRoutes from './routes/bookings_Guest';
 
-const app: Express = express();
+const app = express();
 const PORT: number | string = process.env.PORT || 3001;
 
 if (pool) {
@@ -90,3 +90,5 @@ async function shutdown(): Promise<void> {
     await pool.end();
     process.exit(0);
 }
+
+export default app;

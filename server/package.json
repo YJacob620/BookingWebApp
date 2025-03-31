@@ -4,16 +4,15 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server",
-    "dev": "nodemon server"
+    "build": "tsc",
+    "start": "node --experimental-specifier-resolution=node dist/server.js",
+    "dev": "nodemon --watch '**/*.ts' --exec 'node --loader ts-node/esm' server.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
-    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "argon2": "^0.41.1",
     "cors": "^2.8.5",
@@ -29,6 +28,7 @@
     "typescript": "^5.8.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "tsx": "^4.19.3"
   }
 }
