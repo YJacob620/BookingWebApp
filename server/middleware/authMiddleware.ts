@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/db';
 import { JWT_SECRET } from '../config/env';
 import { Pool, PoolConnection } from 'mysql2/promise';
+import { JwtPayload, User } from '../utils/types';
 
 // Extend Request interface to include user property
 declare global {
@@ -12,12 +13,6 @@ declare global {
             userRole?: string;
         }
     }
-}
-
-interface JwtPayload {
-    userId: number;
-    email: string;
-    role: string;
 }
 
 // Middleware to verify JWT token
@@ -33,7 +28,7 @@ const authenticateToken = async (req: Request, res: Response, next: NextFunction
         const user = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
         // Check if user is blacklisted
-        const [users] = await pool.execute<any[]>(
+        const [users] = await pool.execute<User[]>(
             'SELECT is_blacklisted FROM users WHERE id = ?',
             [user.userId]
         );
