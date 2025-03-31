@@ -1,9 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { Pool } from 'mysql2/promise';
 import { authenticateToken } from '../middleware/authMiddleware';
-
+import pool from '../config/db';
 const router = express.Router();
-const pool: Pool = require('../config/db');
+
 
 /**
  * Get current user's email notification preferences

@@ -3,8 +3,8 @@
 import express, { Request, Response } from 'express';
 import { Pool, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 const router = express.Router();
-const pool: Pool = require('../config/db');
-const { authenticateAdminOrManager, hasInfrastructureAccess } = require('../middleware/authMiddleware');
+import pool from '../config/db';
+import { authenticateAdminOrManager, hasInfrastructureAccess } from '../middleware/authMiddleware';
 
 // Define types
 interface InfrastructureQuestion {
@@ -31,7 +31,7 @@ router.get('/:infrastructureId/questions', authenticateAdminOrManager, async (re
         if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
         // If we get here, the user has permission to view the questions
-        const [rows] = await pool.execute < RowDataPacket[] > (
+        const [rows] = await pool.execute<RowDataPacket[]>(
             'SELECT * FROM infrastructure_questions WHERE infrastructure_id = ? ORDER BY display_order',
             [infrastructureId]
         );
@@ -62,7 +62,7 @@ router.post('/:infrastructureId/questions', authenticateAdminOrManager, async (r
     }
 
     try {
-        const [result] = await pool.execute < ResultSetHeader > (
+        const [result] = await pool.execute<ResultSetHeader>(
             `INSERT INTO infrastructure_questions 
                 (infrastructure_id, question_text, question_type, is_required, options, display_order)
                 VALUES (?, ?, ?, ?, ?, ?)`,
@@ -106,7 +106,7 @@ router.put('/:infrastructureId/questions/:questionId', authenticateAdminOrManage
     }
 
     try {
-        const [result] = await pool.execute < ResultSetHeader > (
+        const [result] = await pool.execute<ResultSetHeader>(
             `UPDATE infrastructure_questions
                 SET question_text = ?, question_type = ?, is_required = ?, options = ?
                 WHERE id = ? AND infrastructure_id = ?`,
@@ -142,7 +142,7 @@ router.delete('/:infrastructureId/questions/:questionId',
         if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
         try {
-            const [result] = await pool.execute < ResultSetHeader > (
+            const [result] = await pool.execute<ResultSetHeader>(
                 'DELETE FROM infrastructure_questions WHERE id = ? AND infrastructure_id = ?',
                 [questionId, infrastructureId]
             );

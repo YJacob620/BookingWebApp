@@ -3,13 +3,12 @@
 import express, { Request, Response } from 'express';
 import { Pool, PoolConnection, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 const router = express.Router();
-const pool: Pool = require('../config/db');
-const {
+import pool from '../config/db';
+import {
     authenticateAdminOrManager,
     hasInfrastructureAccess
-} = require('../middleware/authMiddleware');
-const emailService = require('../utils/emailService');
-const path = require('path');
+} from '../middleware/authMiddleware';
+import emailService from '../utils/emailService';
 
 interface BookingRequestBody {
     infrastructureID: number;

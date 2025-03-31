@@ -6,7 +6,7 @@ import { authenticateToken, hasInfrastructureAccess } from '../middleware/authMi
 import { getMimeType } from '../middleware/fileUploadMiddleware';
 
 const router = express.Router();
-const pool: Pool = require('../config/db');
+import pool from '../config/db';
 
 router.get('/download-file/:bookingId/:questionId', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     const { bookingId, questionId }: { bookingId: string; questionId: string } = req.params;

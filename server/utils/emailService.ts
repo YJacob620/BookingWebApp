@@ -173,8 +173,4 @@ export default {
     verifyEmailConfig,
     sendBookingNotifications,
     sendBookingNotificationToManagers,
-    sendBookingNotificationToUser,
-    sendBookingStatusUpdate,
-    generateSecureActionToken,
-    sendGuestBookingVerificationEmail
 };

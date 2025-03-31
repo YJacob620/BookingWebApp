@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import { Pool, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 const router = express.Router();
-const pool: Pool = require('../config/db');
-const { authenticateAdmin } = require('../middleware/authMiddleware');
+import pool from '../config/db';
+import { authenticateAdmin } from '../middleware/authMiddleware';
 
 interface User extends RowDataPacket {
     id: number;

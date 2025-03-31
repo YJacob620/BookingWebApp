@@ -3,7 +3,7 @@ import { Pool } from 'mysql2/promise';
 import { authenticateManager } from '../middleware/authMiddleware';
 
 const router = express.Router();
-const pool: Pool = require('../config/db');
+import pool from '../config/db';
 
 // Get infrastructures managed by the current manager (infers manager from token)
 router.get('/', authenticateManager, async (req: Request, res: Response): Promise<void> => {

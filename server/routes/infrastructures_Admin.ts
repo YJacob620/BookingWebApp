@@ -3,7 +3,7 @@ import { Pool } from 'mysql2/promise';
 import { authenticateAdmin } from '../middleware/authMiddleware';
 
 const router = express.Router();
-const pool: Pool = require('../config/db');
+import pool from '../config/db';
 
 // Get all infrastructures (admin only)
 router.get('/', authenticateAdmin, async (req: Request, res: Response): Promise<void> => {
