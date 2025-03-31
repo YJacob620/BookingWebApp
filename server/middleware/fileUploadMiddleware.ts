@@ -48,14 +48,29 @@ const upload = multer({
     fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
         // Accept common document types
         const allowedTypes: string[] = [
+            // Document types
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+
+            // Image types
             'image/jpeg',
             'image/png',
+
+            // Text file types
             'text/plain',
+            'text/rtf',
+            'application/rtf',
+            'text/markdown',
+            'text/csv',
+            'text/xml',
+            'application/xml',
+            'application/json',
+            'text/html',
+
+            // Archive types
             'application/zip',
             'application/x-zip-compressed'
         ];
@@ -63,7 +78,7 @@ const upload = multer({
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Invalid file type. Only PDF, Word, Excel, images, and common file types are allowed.'));
+            cb(new Error('Invalid file type. Only PDF, Word, Excel, images, text files, and common file types are allowed.'));
         }
     }
 });
@@ -94,6 +109,14 @@ const getMimeType = (filename: string): string => {
         '.jpeg': 'image/jpeg',
         '.png': 'image/png',
         '.txt': 'text/plain',
+        '.rtf': 'application/rtf',
+        '.md': 'text/markdown',
+        '.markdown': 'text/markdown',
+        '.csv': 'text/csv',
+        '.xml': 'text/xml',
+        '.json': 'application/json',
+        '.html': 'text/html',
+        '.htm': 'text/html',
         '.zip': 'application/zip'
     };
     return mimeTypes[ext] || 'application/octet-stream';

@@ -368,15 +368,14 @@ export const removeInfrastructureFromManager = (userId: number, infrastructureId
  */
 export const fetchInfrastructureQuestions = (infrastructureId: number): Promise<FilterQuestionData[]> => {
   const user = getLocalUser();
-  if (!user) {
-    return apiRequest(`/infrastructures/user-guest/${infrastructureId}/questions`);
-  }
+  if (user) {
 
-  const role = user.role;
-  if (role === "admin" || role === "manager") {
-    return apiRequest(`/infrastructures/manager-admin/${infrastructureId}/questions`);
+    const role = user.role;
+    if (role === "admin" || role === "manager") {
+      return apiRequest(`/infrastructures/manager-admin/${infrastructureId}/questions`);
+    }
   }
-  throw new Error("Unexpected error when fetching infrastructures filter-questions");
+  return apiRequest(`/infrastructures/user-guest/${infrastructureId}/questions`);
 };
 
 /**

@@ -19,7 +19,7 @@ import AuthenticationGuard from '@/components/_AuthenticationGuard.tsx';
 import EmailActionHandler from '@/_Manager/EmailActionHandler.tsx';
 import EmailUnsubscribePage from '@/_User_Manager/EmailUnsubscribePage.tsx';
 import FileDownloadHandler from '@/_All/FileDownloadHandler.tsx';
-import GuestConfirmationPage from '@/_Guest/GuestConfirmationPage';
+import GuestConfirmationPage from '@/_User/GuestConfirmationPage';
 
 function App() {
   return (

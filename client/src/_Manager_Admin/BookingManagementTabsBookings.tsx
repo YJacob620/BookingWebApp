@@ -157,7 +157,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
   const handleRejectBooking = async (bookingId: number) => {
     try {
-      if (!confirm('Are you sure you want to reject this booking?'
+      if (!confirm('Are you sure you want to reject this booking? '
         + 'This will automatically create a new available timeslot at the same time.')) {
         return;
       }

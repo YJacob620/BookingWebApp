@@ -39,6 +39,7 @@ import BasePageLayout from '@/components/_BasePageLayout';
 import InfrastructureSelector from '@/components/_InfrastructureSelector';
 
 type UserAnswersMap = Record<number, FilterQuestionsAnswersType>;
+const ALERT_MESSAGE_TIME: number = 4000;
 
 const BookTimeslot = () => {
   const navigate = useNavigate();
@@ -246,11 +247,12 @@ const BookTimeslot = () => {
         });
 
         resetForm();
+        setSelectedInfrastructure(null);
 
         // Redirect to login page after a delay
         setTimeout(() => {
           navigate(LOGIN);
-        }, 5000);
+        }, ALERT_MESSAGE_TIME);
       } else {
         setMessage({
           type: 'error',
@@ -337,11 +339,10 @@ const BookTimeslot = () => {
       });
 
       resetForm();
-
-      // Redirect to booking history after a delay
-      // setTimeout(() => {
-      //   navigate('/booking-history');
-      // }, 3000);
+      setSelectedInfrastructure(null);
+      setTimeout(() => {
+        window.location.reload();
+      }, ALERT_MESSAGE_TIME);
 
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -464,6 +465,7 @@ const BookTimeslot = () => {
         : "Fill and submit the form to request a booking"}
       showDashboardButton={!isGuestMode}
       alertMessage={message}
+      alertMessageTimer={ALERT_MESSAGE_TIME}
     >
       {showGuestEmailForm ? (
         <Card className="card1 max-w-md mx-auto">
@@ -632,18 +634,13 @@ const BookTimeslot = () => {
                 disabled={!isFormValid || isLoading}
                 className="w-full"
               >
-                {isLoading ? (
-                  <span className="mr-2">Loading...</span>
-                ) : (
-                  isGuestMode ? (
-                    <>
-                      Continue to Verification
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  ) : (
-                    'Submit Booking Request'
-                  )
-                )}
+                {isGuestMode ? (
+                  <>
+                    Continue to Verification
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                ) : ('Submit Booking Request')
+                }
               </Button>
             </form>
           </CardContent>
