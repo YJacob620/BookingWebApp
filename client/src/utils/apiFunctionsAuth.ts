@@ -6,7 +6,7 @@ import {
 
 import {
     API_BASE_URL
-} from '@/_utils'
+} from '@/utils'
 
 /**
  * Authentication API request function that works independently

@@ -2,7 +2,7 @@ import React, { ReactNode, useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import BackToDashboardButton from '@/components/_BackToDashboardButton';
 import LogoutButton from '@/components/_LogoutButton';
-import { Message } from '@/_utils';
+import { Message } from '@/utils';
 import AlertManager from './_AlertManager';
 
 interface BasePageLayoutProps {

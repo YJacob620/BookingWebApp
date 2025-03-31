@@ -2,9 +2,9 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner';
 import { LOGIN } from '@/RoutePaths';
-import { UserRole } from '@/_utils';
-import { getDashboardPath } from '@/_utils/localAuthUtils';
-import { verifyAdmin, verifyManager, verifyUser } from '@/_utils';
+import { UserRole } from '@/utils';
+import { getDashboardPath } from '@/utils/localAuthUtils';
+import { verifyAdmin, verifyManager, verifyUser } from '@/utils';
 import { CREATE_BOOKING } from '@/RoutePaths';
 
 

@@ -13,7 +13,7 @@ import {
     getLocalUser,
     Infrastructure,
     SortConfig
-} from '@/_utils';
+} from '@/utils';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 

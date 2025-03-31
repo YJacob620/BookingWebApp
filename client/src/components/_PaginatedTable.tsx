@@ -24,7 +24,7 @@ import {
   ArrowDown,
   ArrowUp,
 } from "lucide-react";
-import { SortConfig } from '@/_utils';
+import { SortConfig } from '@/utils';
 
 /**
  * Defines the structure of a column in the paginated table

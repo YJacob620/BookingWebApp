@@ -16,7 +16,7 @@ import {
   createTimeslots,
   BatchCreationPayload,
   Infrastructure
-} from "@/_utils";
+} from "@/utils";
 
 interface BookingManagementTabsCreateProps {
   selectedInfrastructure: Infrastructure;

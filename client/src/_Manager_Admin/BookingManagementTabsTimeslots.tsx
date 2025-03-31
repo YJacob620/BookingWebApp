@@ -22,7 +22,7 @@ import {
   DATE_FILTER_OPTIONS,
   TIMESLOT_STATUSES,
   TimeslotStatus
-} from '@/_utils';
+} from '@/utils';
 import { FilterSortState } from './BookingManagement';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';

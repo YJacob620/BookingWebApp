@@ -16,7 +16,7 @@ import {
     SortConfig,
     BookingStatus,
     TimeslotStatus
-} from '@/_utils';
+} from '@/utils';
 
 /**
  * Interface for concentrating all of the information about the current filtering 

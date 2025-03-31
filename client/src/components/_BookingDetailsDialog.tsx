@@ -25,7 +25,7 @@ import {
     formatDate,
     formatTimeString,
     calculateDuration
-} from '@/_utils';
+} from '@/utils';
 import TruncatedText from '@/components/_TruncatedText';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { Link } from 'react-router-dom';

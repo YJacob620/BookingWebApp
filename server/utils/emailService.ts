@@ -1,8 +1,12 @@
 import nodemailer from 'nodemailer';
-import crypto from 'crypto';
 import pool from '../configuration/db';
 import ical, { ICalEventStatus } from 'ical-generator';
-import { User, Booking, Infrastructure } from './types'
+import {
+    User,
+    BookingEntry,
+    Infrastructure,
+    generateToken
+} from './'
 
 
 // Create a reusable transporter object using SMTP transport
@@ -16,13 +20,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-/**
- * Generate a random token for email verification or password reset
- * @returns Random token
- */
-const generateToken = (): string => {
-    return crypto.randomBytes(32).toString('hex');
-};
 
 /**
  * Send verification email to user
@@ -114,9 +111,9 @@ const verifyEmailConfig = async (): Promise<boolean> => {
  * @returns Resolves immediately, processes notifications in background
  */
 const sendBookingNotifications = async (
-    booking: Booking,
+    booking: BookingEntry,
     infrastructure: Infrastructure,
-    managers: Manager[],
+    managers: User[],
     secureToken: string
 ): Promise<boolean> => {
     // Immediately return a promise that resolves
@@ -147,9 +144,9 @@ const sendBookingNotifications = async (
  * @returns Nodemailer response
  */
 const sendBookingNotificationToManagers = async (
-    booking: Booking,
+    booking: BookingEntry,
     infrastructure: Infrastructure,
-    managers: Manager[],
+    managers: User[],
     actionToken: string
 ): Promise<any[] | undefined> => {
     // Get user details
@@ -226,7 +223,7 @@ const sendBookingNotificationToManagers = async (
  * @returns Nodemailer response
  */
 const sendBookingNotificationToUser = async (
-    booking: Booking,
+    booking: BookingEntry,
     infrastructure: Infrastructure
 ): Promise<any | undefined> => {
     // Get user details
@@ -279,7 +276,7 @@ const sendBookingNotificationToUser = async (
  * @returns Promise that resolves immediately
  */
 const sendBookingStatusUpdate = async (
-    booking: Booking,
+    booking: BookingEntry,
     infrastructure: Infrastructure,
     status: string
 ): Promise<boolean> => {
@@ -390,7 +387,7 @@ const sendBookingStatusUpdate = async (
  * @returns ICS file content as string
  */
 const generateICSFile = (
-    booking: Booking,
+    booking: BookingEntry,
     infrastructure: Infrastructure,
     user: User | null = null
 ): string => {
@@ -433,10 +430,10 @@ const generateICSFile = (
  * @returns The generated token or null on error
  */
 const generateSecureActionToken = async (
-    booking: Booking,
+    booking: BookingEntry,
     connection: any
 ): Promise<string | null> => {
-    const token = crypto.randomBytes(32).toString('hex');
+    const token = generateToken();
     const expires = new Date();
     expires.setHours(expires.getHours() + 168); // 1 week (168-hours) expiry
 

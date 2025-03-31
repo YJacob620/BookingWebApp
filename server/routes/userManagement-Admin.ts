@@ -44,19 +44,22 @@ router.put('/users/:id/role', authenticateAdmin, async (req: Request, res: Respo
     const { role } = req.body;
 
     if (!role) {
-        return res.status(400).json({ message: 'Role is required' });
+        res.status(400).json({ message: 'Role is required' });
+        return;
     }
 
     const validRoles: string[] = ['admin', 'manager', 'faculty', 'student', 'guest'];
     if (!validRoles.includes(role)) {
-        return res.status(400).json({ message: 'Invalid role' });
+        res.status(400).json({ message: 'Invalid role' });
+        return;
     }
 
     try {
         // Check if user exists
         const [users] = await pool.execute<User[]>('SELECT * FROM users WHERE id = ?', [id]);
         if (users.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'User not found' });
+            return;
         }
 
         const user = users[0];
@@ -89,14 +92,16 @@ router.put('/users/:id/blacklist', authenticateAdmin, async (req: Request, res: 
     const { blacklist } = req.body;
 
     if (typeof blacklist !== 'boolean') {
-        return res.status(400).json({ message: 'Blacklist status must be a boolean' });
+        res.status(400).json({ message: 'Blacklist status must be a boolean' });
+        return;
     }
 
     try {
         // Check if user exists
         const [users] = await pool.execute<User[]>('SELECT * FROM users WHERE id = ?', [id]);
         if (users.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'User not found' });
+            return;
         }
 
         // Update blacklist status
@@ -138,7 +143,8 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req: Request
     const { infrastructureId } = req.body;
 
     if (!infrastructureId) {
-        return res.status(400).json({ message: 'Infrastructure ID is required' });
+        res.status(400).json({ message: 'Infrastructure ID is required' });
+        return;
     }
 
     try {
@@ -149,7 +155,8 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req: Request
         );
 
         if (users.length === 0) {
-            return res.status(404).json({ message: 'User not found or not an infrastructure manager' });
+            res.status(404).json({ message: 'User not found or not an infrastructure manager' });
+            return;
         }
 
         // Check if infrastructure exists
@@ -159,7 +166,8 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req: Request
         );
 
         if (infrastructures.length === 0) {
-            return res.status(404).json({ message: 'Infrastructure not found' });
+            res.status(404).json({ message: 'Infrastructure not found' });
+            return;
         }
 
         // Check if assignment already exists
@@ -169,7 +177,8 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req: Request
         );
 
         if (existing.length > 0) {
-            return res.status(409).json({ message: 'Infrastructure already assigned to this manager' });
+            res.status(409).json({ message: 'Infrastructure already assigned to this manager' });
+            return;
         }
 
         // Create assignment
@@ -197,7 +206,8 @@ router.delete('/users/:id/infrastructures/:infrastructureId', authenticateAdmin,
         );
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Assignment not found' });
+            res.status(404).json({ message: 'Assignment not found' });
+            return;
         }
 
         res.json({ message: 'Infrastructure removed from manager successfully' });

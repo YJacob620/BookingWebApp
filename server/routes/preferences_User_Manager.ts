@@ -10,7 +10,7 @@ const router = express.Router();
  */
 router.get('/email', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId: number = req.user.userId;
+    const userId: number = req.user!.userId;
 
     const [rows]: any = await pool.execute(
       'SELECT email_notifications FROM users WHERE id = ?',
@@ -53,7 +53,7 @@ router.put('/email', authenticateToken, async (req: Request, res: Response): Pro
   }
 
   try {
-    const userId: number = req.user.userId;
+    const userId: number = req.user!.userId;
 
     const [result]: any = await pool.execute(
       'UPDATE users SET email_notifications = ? WHERE id = ?',

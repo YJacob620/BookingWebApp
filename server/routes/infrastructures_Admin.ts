@@ -24,7 +24,8 @@ router.post('/', authenticateAdmin, async (req: Request, res: Response): Promise
 
     // Validate required fields
     if (!name || !description) {
-        return res.status(400).json({ message: 'Name and description are required' });
+        res.status(400).json({ message: 'Name and description are required' });
+        return;
     }
 
     try {
@@ -59,7 +60,7 @@ router.post('/', authenticateAdmin, async (req: Request, res: Response): Promise
 
 // Toggle infrastructure status (admin only)
 router.post('/:id/toggle-status', authenticateAdmin, async (req: Request, res: Response): Promise<void> => {
-    const { id }: { id: string } = req.params;
+    const { id } = req.params;
 
     try {
         // First check if the infrastructure exists
@@ -69,7 +70,8 @@ router.post('/:id/toggle-status', authenticateAdmin, async (req: Request, res: R
         );
 
         if (rows.length === 0) {
-            return res.status(404).json({ message: 'Infrastructure not found' });
+            res.status(404).json({ message: 'Infrastructure not found' });
+            return;
         }
 
         const [result]: [any, any] = await pool.execute(
@@ -90,12 +92,14 @@ router.post('/:id/toggle-status', authenticateAdmin, async (req: Request, res: R
 
 // Edit infrastructure (admin only)
 router.put('/:id', authenticateAdmin, async (req: Request, res: Response): Promise<void> => {
-    const { id }: { id: string } = req.params;
-    const { name, description, location, is_active }: { name: string; description: string; location?: string | null; is_active?: boolean } = req.body;
+    const { id } = req.params;
+    const { name, description, location, is_active }:
+        { name: string; description: string; location?: string | null; is_active?: boolean } = req.body;
 
     // Validate required fields
     if (!name || !description) {
-        return res.status(400).json({ message: 'Name and description are required' });
+        res.status(400).json({ message: 'Name and description are required' });
+        return;
     }
 
     try {

@@ -13,7 +13,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import { Message, register, RegistrationFormData } from '@/_utils';
+import { Message, register, RegistrationFormData } from '@/utils';
 import { LOGIN, VERIFICATION_PENDING } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 

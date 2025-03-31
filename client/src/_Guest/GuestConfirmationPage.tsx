@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
-import { processGuestConfirmation } from '@/_utils';
+import { processGuestConfirmation } from '@/utils';
 import { LOGIN, REGISTER } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 

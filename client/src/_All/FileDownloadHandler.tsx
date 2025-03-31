@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '@/_utils';
+import { API_BASE_URL } from '@/utils';
 
 const FileDownloadHandler: React.FC = () => {
     const { bookingId, questionId } = useParams<{ bookingId: string; questionId: string }>();

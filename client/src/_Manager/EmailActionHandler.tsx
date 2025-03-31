@@ -2,10 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, AlertTriangle, Loader } from 'lucide-react';
-import { getDashboardPath, getLocalUser } from '@/_utils/localAuthUtils';
+import { getDashboardPath, getLocalUser, processEmailAction } from '@/utils';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
-import { processEmailAction } from '@/_utils/apiFunctions';
 
 /**
  * Single component that handles both the processing and display of email action results.

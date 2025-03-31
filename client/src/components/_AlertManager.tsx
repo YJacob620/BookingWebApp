@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Message } from '@/_utils';
+import { Message } from '@/utils';
 import { Alert } from "@/components/ui/alert";
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 

@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Loader } from 'lucide-react';
 
-import { requestPasswordReset } from '@/_utils';
+import { requestPasswordReset } from '@/utils';
 import BasePageLayout from '@/components/_BasePageLayout';
 import { LOGIN } from '@/RoutePaths';
 

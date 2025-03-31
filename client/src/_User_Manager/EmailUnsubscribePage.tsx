@@ -2,10 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
-import { unsubscribeEmailAction } from '@/_utils/apiFunctions';
+import { unsubscribeEmailAction } from '@/utils/apiFunctions';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
-import { getDashboardPath, getLocalUser, Message } from '@/_utils';
+import { getDashboardPath, getLocalUser, Message } from '@/utils';
 
 const EmailUnsubscribePage: React.FC = () => {
     const { email } = useParams<{ email: string }>();

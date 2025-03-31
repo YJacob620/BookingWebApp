@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 
 import {
     FilterOption,
-} from '@/_utils';
+} from '@/utils';
 
 interface MultiSelectFilterProps {
     options: FilterOption<string>[];

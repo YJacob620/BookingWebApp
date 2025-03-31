@@ -8,7 +8,7 @@ import { Calendar, List } from "lucide-react";
 
 import {
   BookingEntry,
-} from '@/_utils';
+} from '@/utils';
 
 import BookingManagementViewsCalendar from './BookingManagementViewsCalendar';
 import BookingManagementViewsList from './BookingManagementViewsList';

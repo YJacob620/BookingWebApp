@@ -6,14 +6,15 @@ import emailService from '../utils/emailService';
 const router = express.Router();
 
 // Process email approval/rejection links
-router.get('/:action/:token', async (req: Request, res: Response): Promise<Response> => {
-    const { action, token }: { action: string; token: string } = req.params;
+router.get('/:action/:token', async (req: Request, res: Response): Promise<void> => {
+    const { action, token } = req.params;
 
     if (action !== 'approve' && action !== 'reject') {
-        return res.status(400).json({
+        res.status(400).json({
             success: false,
             message: 'Invalid action'
         });
+        return;
     }
 
     const connection: PoolConnection = await pool.getConnection();
@@ -28,10 +29,11 @@ router.get('/:action/:token', async (req: Request, res: Response): Promise<Respo
         );
 
         if (tokens.length === 0) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: 'Invalid or expired email-action token'
             });
+            return;
         }
 
         const tokenRecord: any = tokens[0];
@@ -43,10 +45,11 @@ router.get('/:action/:token', async (req: Request, res: Response): Promise<Respo
         );
 
         if (bookings.length === 0) {
-            return res.status(404).json({
+            res.status(404).json({
                 success: false,
                 message: 'Booking not found'
             });
+            return;
         }
 
         const booking: any = bookings[0];
@@ -61,11 +64,12 @@ router.get('/:action/:token', async (req: Request, res: Response): Promise<Respo
 
             await connection.commit();
 
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: `This booking has already been processed. Its current status is: ${booking.status}`,
                 currentStatus: booking.status
             });
+            return;
         }
 
         // Process the action
@@ -107,7 +111,7 @@ router.get('/:action/:token', async (req: Request, res: Response): Promise<Respo
         await connection.commit();
 
         // Return success response
-        return res.json({
+        res.json({
             success: true,
             message: `Booking ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
             action
@@ -115,7 +119,7 @@ router.get('/:action/:token', async (req: Request, res: Response): Promise<Respo
     } catch (error) {
         await connection.rollback();
         console.error('Error processing email action:', error);
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
             message: 'Error processing the action'
         });

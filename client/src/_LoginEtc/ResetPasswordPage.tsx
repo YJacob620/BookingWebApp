@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Info, Loader } from 'lucide-react';
 
-import { resetPassword } from '@/_utils';
+import { resetPassword } from '@/utils';
 import { LOGIN, FORGOT_PASSWORD } from '@/RoutePaths';
 
 

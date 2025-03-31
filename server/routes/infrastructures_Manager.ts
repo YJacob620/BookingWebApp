@@ -14,7 +14,7 @@ router.get('/', authenticateManager, async (req: Request, res: Response): Promis
              JOIN infrastructure_managers im ON i.id = im.infrastructure_id
              WHERE im.user_id = ?
              ORDER BY i.name`,
-            [req.user.userId] // Use the userId from the JWT token
+            [req.user!.userId] // Use the userId from the JWT token
         );
         res.json(rows);
     } catch (error) {

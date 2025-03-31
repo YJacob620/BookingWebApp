@@ -2,7 +2,7 @@
 
 import { NavigateFunction } from 'react-router-dom';
 import { LOGIN, ADMIN_DASHBOARD, MANAGER_DASHBOARD, USER_DASHBOARD } from '@/RoutePaths';
-import { User, USER_ROLES, UserRole } from '@/_utils/types';
+import { User, USER_ROLES, UserRole } from '@/utils/types';
 
 /**
  * Shared logout function that clears user data and optionally redirects
@@ -29,7 +29,9 @@ export const getDashboardPath = (
   if (userRole === 'admin') return ADMIN_DASHBOARD;
   if (userRole === 'manager') return MANAGER_DASHBOARD;
   if (userRole === 'student' || userRole === 'faculty') return USER_DASHBOARD;
-  if (USER_ROLES.includes(userRole)) throw new Error(`"${userRole}" dashboard-redirection not implemented!`);
+  if (USER_ROLES.includes(userRole)) {
+    throw new Error(`"${userRole}" dashboard-redirection not implemented for this role!`);
+  }
   throw new Error(`Invalid user role "${userRole}"`);
 };
 

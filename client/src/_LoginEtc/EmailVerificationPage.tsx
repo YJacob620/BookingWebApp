@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 
-import { verifyEmailWithToken } from '@/_utils';
+import { verifyEmailWithToken } from '@/utils';
 import { ADMIN_DASHBOARD, LOGIN, USER_DASHBOARD } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 

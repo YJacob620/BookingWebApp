@@ -15,7 +15,7 @@ import {
     Message,
     InfrastFormData,
     getLocalUser
-} from '@/_utils';
+} from '@/utils';
 import BasePageLayout from '@/components/_BasePageLayout';
 
 

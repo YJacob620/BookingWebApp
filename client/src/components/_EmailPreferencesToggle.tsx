@@ -4,7 +4,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { fetchEmailPreferences, updateEmailPreferences } from '@/_utils';
+import { fetchEmailPreferences, updateEmailPreferences } from '@/utils';
 
 interface EmailPreferencesToggleProps {
     className?: string;

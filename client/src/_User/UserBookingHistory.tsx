@@ -20,8 +20,8 @@ import {
   BookingEntry,
   Message,
   BOOKING_STATUSES,
-} from '@/_utils';
-import { applyDateFilters, applyStatusFilters, createFilterOptions, DATE_FILTER_OPTIONS } from '@/_utils/filterUtils';
+} from '@/utils';
+import { applyDateFilters, applyStatusFilters, createFilterOptions, DATE_FILTER_OPTIONS } from '@/utils/filterUtils';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import BasePageLayout from '@/components/_BasePageLayout';
 

@@ -53,12 +53,14 @@ router.post('/:infrastructureId/questions', authenticateAdminOrManager, async (r
 
     // Validate input
     if (!question_text || !question_type) {
-        return res.status(400).json({ message: 'Question text and type are required' });
+        res.status(400).json({ message: 'Question text and type are required' });
+        return;
     }
 
     const validTypes = ['text', 'number', 'dropdown', 'document'];
     if (!validTypes.includes(question_type)) {
-        return res.status(400).json({ message: 'Invalid question type' });
+        res.status(400).json({ message: 'Invalid question type' });
+        return;
     }
 
     try {
@@ -97,12 +99,14 @@ router.put('/:infrastructureId/questions/:questionId', authenticateAdminOrManage
 
     // Validation
     if (!question_text || !question_type) {
-        return res.status(400).json({ message: 'Question text and type are required' });
+        res.status(400).json({ message: 'Question text and type are required' });
+        return;
     }
 
     const validTypes = ['text', 'number', 'dropdown', 'document'];
     if (!validTypes.includes(question_type)) {
-        return res.status(400).json({ message: 'Invalid question type' });
+        res.status(400).json({ message: 'Invalid question type' });
+        return;
     }
 
     try {
@@ -121,7 +125,8 @@ router.put('/:infrastructureId/questions/:questionId', authenticateAdminOrManage
         );
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Question not found' });
+            res.status(404).json({ message: 'Question not found' });
+            return;
         }
 
         res.json({ message: 'Question updated successfully' });
@@ -148,7 +153,8 @@ router.delete('/:infrastructureId/questions/:questionId',
             );
 
             if (result.affectedRows === 0) {
-                return res.status(404).json({ message: 'Question not found' });
+                res.status(404).json({ message: 'Question not found' });
+                return;
             }
 
             res.json({ message: 'Question deleted successfully' });
@@ -167,7 +173,8 @@ router.put('/:infrastructureId/questions/reorder',
         const { questions } = req.body as { questions: QuestionReorderItem[] };
 
         if (!Array.isArray(questions)) {
-            return res.status(400).json({ message: 'Invalid questions data' });
+            res.status(400).json({ message: 'Invalid questions data' });
+            return;
         }
 
         // Check if the user has access to this infrastructure

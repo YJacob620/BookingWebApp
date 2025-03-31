@@ -1,20 +1,24 @@
 import express, { Request, Response } from 'express';
 import argon2 from 'argon2';
-import crypto from 'crypto';
 
 import emailService from '../utils/emailService';
 import pool from '../configuration/db';
 import {
     processBookingRequest,
-    Booking as BookingEntry
+    BookingEntry,
+    User,
+    generateToken
 } from '../utils';
+import { ResultSetHeader, RowDataPacket } from 'mysql2';
 const router = express.Router();
 
+let GUEST_MAX_BOOKINGS_PER_DAY = 1;
 // Handle guest booking request initiation
 router.post('/request', async (req: Request, res: Response): Promise<void> => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
+        // Verify parameters
         const { email, name, infrastructureId, timeslotId, purpose = '', answers = {} }:
             {
                 email: string;
@@ -24,7 +28,6 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
                 purpose?: string;
                 answers?: Record<string, any>;
             } = req.body;
-
         if (!email || !name || !infrastructureId || !timeslotId) {
             res.status(400).json({
                 success: false,
@@ -32,7 +35,6 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             });
             return;
         }
-
         const emailRegex: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             res.status(400).json({
@@ -42,11 +44,11 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const [timeslots]: BookingEntry[] = await connection.execute(
+        // Check existance of requested timeslot
+        const [timeslots] = await connection.execute<BookingEntry[]>(
             'SELECT * FROM bookings WHERE id = ? AND booking_type = "timeslot" AND status = "available"',
             [timeslotId]
         );
-
         if (timeslots.length === 0) {
             await connection.rollback();
             res.status(404).json({
@@ -56,44 +58,23 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const today: string = new Date().toISOString().split('T')[0];
-        const [existingBookings]: [Array<{ count: number }>] = await connection.execute(
-            `SELECT COUNT(*) as count FROM bookings 
-             WHERE user_email = ? AND booking_date = ? 
-             AND booking_type = 'booking' AND status != 'canceled'`,
-            [email, today]
-        );
-
-        if (existingBookings[0].count > 0) {
-            await connection.rollback();
-            res.status(429).json({
-                success: false,
-                message: 'You have already made a booking today. Please try again tomorrow.'
-            });
-            return;
-        }
-
-        const [users]: [Array<any>] = await connection.execute(
+        // Check if there's an existing user, register (as a guest) if not
+        const [users] = await connection.execute<User[]>(
             'SELECT * FROM users WHERE email = ?',
             [email]
         );
-
         let userId: number;
-
         if (users.length === 0) {
-            const tempPassword: string = crypto.randomBytes(16).toString('hex');
+            const tempPassword = generateToken();
             const passwordHash: string = await argon2.hash(tempPassword);
-
-            const [result]: [{ insertId: number }] = await connection.execute(
+            const [result] = await connection.execute<ResultSetHeader>(
                 `INSERT INTO users (email, password_hash, name, role, is_verified) 
                  VALUES (?, ?, ?, 'guest', 0)`,
                 [email, passwordHash, name]
             );
-
             userId = result.insertId;
         } else {
             userId = users[0].id;
-
             if (users[0].role !== 'guest') {
                 await connection.rollback();
                 res.status(400).json({
@@ -102,22 +83,37 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
                 });
                 return;
             }
-
             await connection.execute(
                 'UPDATE users SET is_verified = 0 WHERE id = ?',
                 [userId]
             );
-
             await connection.execute(
                 'UPDATE users SET name = ? WHERE id = ?',
                 [name, userId]
             );
         }
 
-        const bookingToken: string = crypto.randomBytes(32).toString('hex');
+        // Check if guest has already made bookings today
+        const today: string = new Date().toISOString().split('T')[0];
+        const [existingBookings] = await connection.execute<BookingEntry[]>(
+            `SELECT COUNT(*) as count FROM bookings 
+             WHERE user_email = ? AND booking_date = ? 
+             AND booking_type = 'booking' AND status != 'canceled'`,
+            [email, today]
+        );
+        if (existingBookings[0].count >= GUEST_MAX_BOOKINGS_PER_DAY) {
+            await connection.rollback();
+            res.status(429).json({
+                success: false,
+                message: 'You have already made a booking today. Try again tomorrow.'
+            });
+            return;
+        }
+
+        // Save the booking request into a token that will be sent via email for verification 
+        const bookingToken = generateToken();
         const expires: Date = new Date();
         expires.setHours(expires.getHours() + 24);
-
         await connection.execute(
             `INSERT INTO email_action_tokens 
 			 (token, booking_id, expires, metadata) 
@@ -135,19 +131,15 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
                 })
             ]
         );
-
         const verificationUrl: string = `${process.env.FRONTEND_URL}/guest-confirm/${bookingToken}`;
-
         await emailService.sendGuestBookingVerificationEmail(name, email, verificationUrl);
 
         await connection.commit();
-
         res.json({
             success: true,
             message: 'Booking verification email sent. Please check your inbox to confirm your booking.',
             email
         });
-
     } catch (error) {
         await connection.rollback();
         console.error('Error initiating guest booking:', error);
@@ -167,15 +159,13 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
     try {
         await connection.beginTransaction();
 
-        const { token }: { token: string } = req.params;
-
-        const [tokens]: [Array<any>] =
-            await connection.execute(
-                `SELECT * FROM email_action_tokens 
+        // Verify token
+        const token = req.params;
+        const [tokens] = await connection.execute<RowDataPacket[]>(
+            `SELECT * FROM email_action_tokens 
 	 		   WHERE token=? AND used=0 AND expires > NOW()`,
-                [token]
-            );
-
+            [token]
+        );
         if (tokens.length === 0) {
             await connection.rollback();
             res.status(400).json({
@@ -184,10 +174,8 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
             });
             return;
         }
-
         const tokenData: any = tokens[0];
         const metadata: any = JSON.parse(tokenData.metadata || '{}');
-
         if (metadata.type !== 'guest_booking') {
             await connection.rollback();
             res.status(400).json({
@@ -197,32 +185,30 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
             return;
         }
 
+        // Check if guest has already made bookings today
         const today: string = new Date().toISOString().split('T')[0];
-        const [existingBookings]: [Array<{ count: number }>] = await connection.execute(
+        const [existingBookings] = await connection.execute(
             `SELECT COUNT(*) as count FROM bookings 
            WHERE user_email=? AND booking_date=? 
            AND booking_type='booking' AND status!='canceled'`,
             [metadata.email, today]
         );
-
-        if (existingBookings[0].count > 0) {
+        if (existingBookings[0].count >= GUEST_MAX_BOOKINGS_PER_DAY) {
             await connection.rollback();
             res.status(429).json({
                 success: false,
-                message: 'You have already made a booking today. Please try again tomorrow.'
+                message: 'You have already made a booking today. Try again tomorrow.'
             });
             return;
         }
 
-        // Use the shared utility function to process the booking
+        // Process the booking request
         const bookingResult = await processBookingRequest(connection, {
             email: metadata.email,
             timeslotId: tokenData.booking_id,
             purpose: metadata.purpose || '',
             answers: metadata.answers || {},
-            skipAnswerValidation: true
         });
-
         if (!bookingResult.success) {
             await connection.rollback();
             res.status(400).json({
@@ -231,9 +217,18 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
             });
             return;
         }
+        if (!bookingResult.booking) {
+            await connection.rollback();
+            res.status(400).json({
+                success: false,
+                message: 'Internal server error'
+            });
+            return;
+        }
 
         // Mark token as used   
-        await connection.execute(`UPDATE	email_action_tokens	SET used=1 ,used_at=NOW()	WHERE	id=?`,
+        await connection.execute(
+            `UPDATE email_action_tokens SET used=1 ,used_at=NOW() WHERE id=?`,
             [tokenData.id]);
 
         await connection.commit();

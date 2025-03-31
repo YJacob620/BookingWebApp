@@ -27,7 +27,7 @@ import {
   BOOKING_STATUSES,
   DATE_FILTER_OPTIONS,
   BookingStatus,
-} from '@/_utils';
+} from '@/utils';
 import BookingDetailsDialog from '@/components/_BookingDetailsDialog';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';

@@ -20,7 +20,7 @@ router.get('/active', async (req: Request, res: Response): Promise<void> => {
 // Get available timeslots for an infrastructure with optional date filter (user, guest)
 router.get('/:infrastructureId/available-timeslots', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { infrastructureId }: { infrastructureId: string } = req.params;
+        const { infrastructureId } = req.params;
         const { date }: { date?: string } = req.query;
 
         let query: string = `
@@ -51,7 +51,7 @@ router.get('/:infrastructureId/available-timeslots', async (req: Request, res: R
 
 // Get all questions for an infrastructure - only if it's active (user, guest)
 router.get('/:infrastructureId/questions', async (req: Request, res: Response): Promise<void> => {
-    const { infrastructureId }: { infrastructureId: string } = req.params;
+    const { infrastructureId } = req.params;
 
     try {
         const [rows]: [any[], any] = await pool.execute(

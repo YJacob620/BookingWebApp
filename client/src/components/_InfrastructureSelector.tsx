@@ -14,7 +14,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 
-import { Infrastructure, fetchInfrastructures } from '@/_utils';
+import { Infrastructure, fetchInfrastructures } from '@/utils';
 
 interface InfrastructureSelectorProps {
   onSelectInfrastructure: (infrastructure: Infrastructure) => void;

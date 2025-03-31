@@ -35,7 +35,7 @@ import {
     deleteInfrastructureQuestion,
     updateQuestionsOrder,
     FilterQuestionData
-} from '@/_utils';
+} from '@/utils';
 
 // Define question types
 const QuestionTypes = [

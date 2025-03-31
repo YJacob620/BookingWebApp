@@ -55,7 +55,7 @@ export interface QuestionReorderItem {
 // ===== Booking Types =====
 export type BookingStatus = 'available' | 'pending' | 'approved' | 'rejected' | 'canceled' | 'completed';
 
-export interface Booking extends RowDataPacket {
+export interface BookingEntry extends RowDataPacket {
     id: number;
     infrastructure_id: number;
     booking_date: string;

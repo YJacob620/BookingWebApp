@@ -7,10 +7,15 @@ import { processBookingRequest } from '../utils/bookingRequestUtil';
 const router = express.Router();
 import pool from '../configuration/db';
 
+interface MulterRequest extends Request {
+    files?: Express.Multer.File[];
+}
+
+
 // Get recent bookings for the current user
 router.get('/recent', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     try {
-        const userEmail: string = req.user.email;
+        const userEmail = req.user!.email;
 
         const [bookings]: any[] = await pool.execute(
             `SELECT b.*, i.name as infrastructure_name, i.location as infrastructure_location
@@ -33,7 +38,7 @@ router.get('/recent', authenticateToken, async (req: Request, res: Response): Pr
 // Get all bookings for the current user
 router.get('/all', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     try {
-        const userEmail: string = req.user.email;
+        const userEmail = req.user!.email;
 
         const [bookings]: any[] = await pool.execute(
             `SELECT b.*, i.name as infrastructure_name, i.location as infrastructure_location
@@ -55,8 +60,8 @@ router.get('/all', authenticateToken, async (req: Request, res: Response): Promi
 // Cancel a booking (user)
 router.post('/:id/cancel', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id }: { id: string } = req.params;
-        const userEmail: string = req.user.email;
+        const { id } = req.params;
+        const userEmail = req.user!.email;
 
         const [bookings]: any[] = await pool.execute(
             `SELECT * FROM bookings 
@@ -67,15 +72,15 @@ router.post('/:id/cancel', authenticateToken, async (req: Request, res: Response
         );
 
         if (bookings.length === 0) {
-            return res.status(404).json({ message: 'Booking not found' });
+            res.status(404).json({ message: 'Booking not found' });
+            return;
         }
 
         const booking: any = bookings[0];
 
         if (booking.status !== 'pending' && booking.status !== 'approved') {
-            return res.status(400).json({
-                message: 'Only pending or approved bookings can be canceled by the user'
-            });
+            res.status(400).json({ message: 'Only pending or approved bookings can be canceled by the user' });
+            return;
         }
 
         const bookingDateTime: Date = new Date(`${booking.booking_date}T${booking.start_time}`);
@@ -83,18 +88,22 @@ router.post('/:id/cancel', authenticateToken, async (req: Request, res: Response
         const differenceInHours: number = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
 
         if (differenceInHours <= 24) {
-            return res.status(400).json({
-                message: 'Bookings within 24 hours cannot be canceled'
-            });
+            res.status(400).json({ message: 'Bookings within 24 hours cannot be canceled' });
+            return;
         }
 
-        const [results]: any[] = await pool.execute(
+        // Execute the stored procedure for booking cancelation
+        await pool.execute(
             'CALL UserCancelBooking(?, ?, @success, @message)',
             [id, userEmail]
         );
-
-        res.json({ message: 'Booking canceled successfully' });
-
+        const [resultSet]: any[] = await pool.execute('SELECT @success as success, @message as message');
+        const result = resultSet[0];
+        if (!result.success) {
+            res.status(400).json({ message: result.message || 'Failed to cancel booking' });
+            return;
+        }
+        res.json({ message: result.message || 'Booking canceled successfully' });
     } catch (err) {
         console.error('Database error:', err);
         res.status(500).json({ message: 'Error canceling booking' });
@@ -107,15 +116,16 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
     try {
         await connection.beginTransaction();
 
-        const userEmail: string = req.user.email;
+        const userEmail: string = req.user!.email;
         const timeslot_id: string = req.body.timeslot_id;
         const purpose: string = req.body.purpose || '';
 
         if (!userEmail || !timeslot_id) {
-            return res.status(400).json({
+            res.status(400).json({
                 message: 'Missing required parameters for request',
                 receivedBody: JSON.stringify(req.body)
             });
+            return;
         }
 
         let answersObj: { [key: string]: any } = {};
@@ -138,21 +148,26 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
                 }
             }
 
-            if (req.files && req.files.length > 0) {
-                for (const file of req.files) {
-                    const fieldName: string = file.fieldname;
+            if (Array.isArray(req.files)) {
+                if (req.files && req.files.length > 0) {
+                    for (const file of req.files) {
+                        const fieldName: string = file.fieldname;
 
-                    if (fieldName.startsWith('file_')) {
-                        const questionId: string = fieldName.replace('file_', '');
+                        if (fieldName.startsWith('file_')) {
+                            const questionId: string = fieldName.replace('file_', '');
 
-                        answersObj[questionId] = {
-                            type: 'file',
-                            filePath: file.path,
-                            originalName: file.originalname
-                        };
+                            answersObj[questionId] = {
+                                type: 'file',
+                                filePath: file.path,
+                                originalName: file.originalname
+                            };
 
-                        console.log(`File uploaded:${file.originalname} -> ${file.path}`);
+                            console.log(`File uploaded:${file.originalname} -> ${file.path}`);
+                        }
                     }
+                }
+                else {
+                    console.error("req.files IS NOT AN ARRAY");
                 }
             }
         }
@@ -166,10 +181,11 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
 
         if (!bookingResult.success) {
             await connection.rollback();
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: bookingResult.message
             });
+            return;
         }
 
         res.status(201).json({

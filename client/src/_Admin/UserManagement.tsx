@@ -34,7 +34,7 @@ import {
     UserRole,
     Message,
     SortConfig
-} from '@/_utils';
+} from '@/utils';
 import BasePageLayout from '@/components/_BasePageLayout';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 

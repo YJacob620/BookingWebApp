@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Loader } from 'lucide-react';
 
-import { resendVerification, login, User, getDashboardPath, Message } from '@/_utils';
+import { resendVerification, login, User, getDashboardPath, Message } from '@/utils';
 import BasePageLayout from '../components/_BasePageLayout';
 import { FORGOT_PASSWORD, REGISTER, CREATE_BOOKING } from '@/RoutePaths';
 

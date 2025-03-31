@@ -12,7 +12,7 @@ import { FilterSortState } from './BookingManagement';
 import {
   BookingEntry,
   Infrastructure,
-} from '@/_utils';
+} from '@/utils';
 
 
 interface BookingManagementTabsProps {

@@ -16,7 +16,7 @@ declare global {
 
 /**
  * Middleware to verify JWT token. A successful verification means a user is logged in.
- * On success will create req.user.userId, req.user.email, req.user.role
+ * On success will create req.user.userId, req.user.email, req.user.role.
  */
 const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const token = req.headers['authorizationToken'];
@@ -53,6 +53,10 @@ const authenticateToken = async (req: Request, res: Response, next: NextFunction
     }
 };
 
+/**
+ * Middleware to verify the token belongs to an admin. 
+ * Also calls authenticateToken so req.user is created.
+ */
 const authenticateAdmin = (req: Request, res: Response, next: NextFunction): void => {
     authenticateToken(req, res, () => {
         if (req.user?.role !== 'admin') {
@@ -63,6 +67,10 @@ const authenticateAdmin = (req: Request, res: Response, next: NextFunction): voi
     });
 };
 
+/**
+ * Middleware to verify the token belongs to an infrastructure manager. 
+ * Also calls authenticateToken so req.user is created.
+ */
 const authenticateManager = (req: Request, res: Response, next: NextFunction): void => {
     authenticateToken(req, res, () => {
         if (req.user?.role !== 'manager') {
@@ -73,6 +81,10 @@ const authenticateManager = (req: Request, res: Response, next: NextFunction): v
     });
 };
 
+/**
+ * Middleware to verify the token belongs to an infrastructure manager or an admin. 
+ * Also calls authenticateToken so req.user is created.
+ */
 const authenticateAdminOrManager = (req: Request, res: Response, next: NextFunction): void => {
     authenticateToken(req, res, () => {
         if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {

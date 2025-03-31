@@ -1,6 +1,6 @@
 /* General-purpose API functions to be used by the client for communicating with the server */
 
-import { getLocalUser } from '@/_utils';
+import { getLocalUser } from '@/utils';
 import {
   InfrastFormData,
   BatchCreationPayload,
@@ -24,12 +24,10 @@ export const API_BASE_URL = 'http://localhost:3001/api';
  */
 const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
   const token = localStorage.getItem('token');
-  const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string> || {})
-  };
+  const headers: Record<string, string> = { ...(options.headers as Record<string, string> || {}) };
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers['authorizationToken'] = token;
   }
 
   // Important: Only set Content-Type to application/json if not using FormData
@@ -38,10 +36,7 @@ const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promi
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers, });
 
   // Clone the response to allow multiple reads if needed
   const responseClone = response.clone();

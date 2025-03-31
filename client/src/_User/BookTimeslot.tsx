@@ -33,7 +33,7 @@ import {
   FilterQuestionsAnswersType,
   Message,
   requestGuestBooking
-} from '@/_utils';
+} from '@/utils';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 import InfrastructureSelector from '@/components/_InfrastructureSelector';

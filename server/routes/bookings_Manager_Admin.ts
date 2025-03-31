@@ -9,6 +9,7 @@ import {
     hasInfrastructureAccess
 } from '../middleware/authMiddleware';
 import emailService from '../utils/emailService';
+import { BookingEntry, Infrastructure } from '../utils';
 
 interface BookingRequestBody {
     infrastructureID: number;
@@ -27,23 +28,6 @@ interface BookingStatusBody {
     status: 'rejected' | 'canceled';
 }
 
-interface Booking extends RowDataPacket {
-    id: number;
-    infrastructure_id: number;
-    booking_date: string;
-    start_time: string;
-    end_time: string;
-    status: string;
-    booking_type: string;
-    user_email: string | null;
-}
-
-interface Infrastructure extends RowDataPacket {
-    id: number;
-    name: string;
-    location: string;
-}
-
 interface TimeslotOverlap extends RowDataPacket {
     count: number;
 }
@@ -54,6 +38,7 @@ router.post('/create-timeslots', authenticateAdminOrManager, async (req: Request
     try {
         await connection.beginTransaction();
 
+        // Validate input
         const {
             infrastructureID,
             startDate,
@@ -62,63 +47,29 @@ router.post('/create-timeslots', authenticateAdminOrManager, async (req: Request
             slotDuration,
             slotsPerDay
         }: BookingRequestBody = req.body;
-
-        // Validate input
-        if (!infrastructureID) {
-            return res.status(400).json({
-                message: 'Infrastructure ID is required',
-            });
+        if (!infrastructureID || !startDate || !endDate || !dailyStartTime || !slotDuration || !slotsPerDay) {
+            res.status(400).json({ message: 'Missing parameters in request body', });
+            return;
         }
         if (!await hasInfrastructureAccess(req, res, infrastructureID, connection, true)) return;
-
-
-        if (!startDate) {
-            return res.status(400).json({
-                message: 'Start date is required',
-            });
-        }
-
-        if (!endDate) {
-            return res.status(400).json({
-                message: 'End date is required',
-            });
-        }
-
-        if (!dailyStartTime) {
-            return res.status(400).json({
-                message: 'Daily start time is required',
-            });
-        }
-
-        if (!slotDuration) {
-            return res.status(400).json({
-                message: 'Slot duration is required',
-            });
-        }
-
-        if (!slotsPerDay) {
-            return res.status(400).json({
-                message: 'Number of slots per day is required',
-            });
-        }
 
         // Validate dates
         const start = new Date(startDate);
         const end = new Date(endDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
         if (start < today) {
-            return res.status(400).json({ message: 'Start date cannot be in the past' });
+            res.status(400).json({ message: 'Start date cannot be in the past' });
+            return;
         }
         if (end < start) {
-            return res.status(400).json({ message: 'End date must be after start date' });
+            res.status(400).json({ message: 'End date must be after start date' });
+            return;
         }
 
+        // Process each day
         let created = 0;
         let skipped = 0;
-
-        // Process each day
         for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
             const currentDate = date.toISOString().split('T')[0];
             let currentTime = new Date(`${currentDate}T${dailyStartTime}`);
@@ -171,18 +122,19 @@ router.post('/create-timeslots', authenticateAdminOrManager, async (req: Request
     }
 });
 
-// Cancel timeslots (admin or manager for their infrastructures)
+// Cancel timeslots (admin, or manager for their infrastructures)
 router.delete('/timeslots', authenticateAdminOrManager, async (req: Request, res: Response) => {
     try {
         const { ids }: BookingCancelBody = req.body;
 
         if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({ message: 'No timeslots specified for cancellation' });
+            res.status(400).json({ message: 'No timeslots specified for cancellation' });
+            return;
         }
 
         // Get the infrastructure IDs for the timeslots
         const placeholders = ids.map(() => '?').join(',');
-        const [timeslots] = await pool.execute<Booking[]>(
+        const [timeslots] = await pool.execute<BookingEntry[]>(
             `SELECT id, infrastructure_id FROM bookings WHERE id IN (${placeholders})`,
             ids
         );
@@ -217,10 +169,11 @@ router.put('/:id/approve', authenticateAdminOrManager, async (req: Request, res:
         const { id } = req.params;
 
         // Get booking details
-        const [bookings] = await pool.execute<Booking[]>('SELECT * FROM bookings WHERE id = ?', [id]);
+        const [bookings] = await pool.execute<BookingEntry[]>('SELECT * FROM bookings WHERE id = ?', [id]);
 
         if (bookings.length === 0) {
-            return res.status(404).json({ message: 'Booking not found' });
+            res.status(404).json({ message: 'Booking not found' });
+            return;
         }
 
         const booking = bookings[0];
@@ -270,17 +223,19 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req: Requ
 
         // Validate status
         if (status !== 'rejected' && status !== 'canceled') {
-            return res.status(400).json({ message: 'Invalid status. Must be "rejected" or "canceled"' });
+            res.status(400).json({ message: 'Invalid status. Must be "rejected" or "canceled"' });
+            return;
         }
 
         // Get booking details
-        const [bookings] = await connection.execute<Booking[]>(
+        const [bookings] = await connection.execute<BookingEntry[]>(
             'SELECT * FROM bookings WHERE id = ?',
             [id]
         );
 
         if (bookings.length === 0) {
-            return res.status(404).json({ message: 'Booking not found' });
+            res.status(404).json({ message: 'Booking not found' });
+            return;
         }
 
         const booking = bookings[0];

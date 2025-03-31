@@ -20,7 +20,7 @@ import {
   getStatusColor,
   BookingEntry,
   fetchUserBookings
-} from '@/_utils';
+} from '@/utils';
 import { BOOKING_HISTORY, CREATE_BOOKING, LOGIN } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import BasePageLayout from '@/components/_BasePageLayout';

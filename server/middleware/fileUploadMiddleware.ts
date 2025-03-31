@@ -1,10 +1,10 @@
 import multer, { FileFilterCallback, StorageEngine } from 'multer';
-import path from 'path';
+import path, { dirname } from 'path';
 import fs from 'fs';
-import crypto from 'crypto';
 import { Request } from 'express';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+
+import { generateToken } from '../utils'
 
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url);
@@ -24,7 +24,7 @@ if (!fs.existsSync(uploadDir)) {
 // Generate a secure filename hash based on original filename
 const generateSecureFilename = (originalname: string): string => {
     const timestamp: number = Date.now();
-    const randomString: string = crypto.randomBytes(8).toString('hex');
+    const randomString = generateToken(8);
     const fileExtension: string = path.extname(originalname);
     // Encode the original filename in the database only, not in the filesystem
     const safeName: string = `${timestamp}-${randomString}${fileExtension}`;

@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   getStatusColor,
   BookingEntry
-} from "@/_utils"
+} from "@/utils"
 
 interface BookingsCalendarViewProps {
   bookingEntries: BookingEntry[];
