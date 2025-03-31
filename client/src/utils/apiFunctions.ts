@@ -133,7 +133,7 @@ export const bookTimeslotWithAnswers = async (formData: FormData) => {
   const headers: Record<string, string> = {};
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers['authorizationToken'] = token;
   }
 
   // Do NOT set Content-Type for FormData
