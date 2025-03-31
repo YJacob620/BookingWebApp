@@ -8,7 +8,8 @@ import {
   BookingEntry,
   Infrastructure,
   User,
-  BookingDetails
+  BookingDetails,
+  FilterQuestionsAnswersType
 } from './types';
 
 /**
@@ -111,24 +112,48 @@ export const fetchUserBookings = (recent: boolean = false): Promise<BookingEntry
 
 
 /**
- * Request a booking (user)
- * @param data - Object containing timeslot_id and purpose
+ * Request a booking using FormData for all cases (replaces both bookTimeslot and bookTimeslotWithAnswers)
+ * @param timeslotId - ID of the selected timeslot
+ * @param purpose - Purpose of the booking (optional)
+ * @param answers - Map of question IDs to answers (optional)
  * @returns Promise with booking response
  */
-export const bookTimeslot = (data: { timeslot_id: number, purpose: string }) => {
-  return apiRequest('/bookings/user/request', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-};
+export const bookTimeslot = async (
+  timeslotId: number,
+  purpose: string = '',
+  answers: Record<number, FilterQuestionsAnswersType> = {}
+): Promise<any> => {
+  const formData = new FormData();
 
-/**
- * Request a booking with additional form data (for questions and file uploads)
- * @param formData - FormData object containing timeslot_id, purpose, and answers
- * @returns Promise with booking response
- */
-export const bookTimeslotWithAnswers = async (formData: FormData) => {
-  // When using FormData, we need a special apiRequest call that doesn't set the Content-Type header
+  // Add basic booking data
+  formData.append('timeslot_id', timeslotId.toString());
+  formData.append('purpose', purpose || '');
+
+  // Process answers if any
+  const hasAnswers = Object.keys(answers).length > 0;
+
+  if (hasAnswers) {
+    // Create a clean object for JSON serialization
+    const answersForJson: Record<string, any> = {};
+
+    Object.entries(answers).forEach(([questionId, answer]) => {
+      if (answer instanceof File) {
+        // Handle file upload
+        const fieldName = `file_${questionId}`;
+        formData.append(fieldName, answer);
+        answersForJson[questionId] = { type: 'file', fieldName };
+      } else if (answer !== null && answer !== undefined) {
+        // Handle text answers
+        formData.append(`answer_${questionId}`, answer.toString());
+        answersForJson[questionId] = { type: 'text', value: answer.toString() };
+      }
+    });
+
+    // Add structured answers as JSON for easier processing on server
+    formData.append('answersJSON', JSON.stringify(answersForJson));
+  }
+
+  // Make API request with token but without Content-Type header (browser sets it for FormData)
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = {};
 
@@ -136,33 +161,27 @@ export const bookTimeslotWithAnswers = async (formData: FormData) => {
     headers['authorization_token'] = token;
   }
 
-  // Do NOT set Content-Type for FormData
-  // The browser will set it automatically with the correct boundary
-
   const response = await fetch(`${API_BASE_URL}/bookings/user/request`, {
     method: 'POST',
     headers,
     body: formData
   });
 
-  // Clone the response before reading its body to avoid consuming the stream
+  // Clone response for multiple reads if needed
   const responseClone = response.clone();
 
   if (!response.ok) {
     let errorMessage = `API request failed with status ${response.status}`;
     try {
-      // Try to read as JSON first
       const errorData = await responseClone.json();
       errorMessage = errorData.message || errorMessage;
     } catch (e) {
-      // If not JSON, try to read as text
       try {
         const errorText = await response.text();
         if (errorText) {
           errorMessage = errorText;
         }
       } catch (textError) {
-        // If both fail, use the status text
         errorMessage = response.statusText || errorMessage;
       }
     }
@@ -170,10 +189,8 @@ export const bookTimeslotWithAnswers = async (formData: FormData) => {
   }
 
   try {
-    // Try to parse as JSON
     return await response.json();
   } catch (e) {
-    // If parsing as JSON fails, return the raw text
     return { message: await responseClone.text() };
   }
 };

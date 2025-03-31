@@ -26,7 +26,6 @@ import {
   BookingEntry,
   bookTimeslot,
   fetchInfrastAvailTimeslots,
-  bookTimeslotWithAnswers,
   fetchInfrastructureQuestions,
   FilterQuestionData,
   FilterQuestionsAnswersType,
@@ -291,46 +290,8 @@ const BookTimeslot = () => {
     try {
       setIsLoading(true);
 
-      // Check if we have any file uploads
-      const hasFileUploads = Object.values(answers).some(answer => answer instanceof File);
-
-      if (!hasFileUploads && questions.length === 0) {
-        // Simple case: No file uploads and no questions - use the simpler JSON API
-        await bookTimeslot({
-          timeslot_id: selectedTimeslotId,
-          purpose: purpose || ''
-        });
-      } else {
-        // We have questions or file uploads - use FormData
-        const formData = new FormData();
-
-        // Add timeslot_id as a string - CRITICAL FOR SERVER
-        formData.append('timeslot_id', selectedTimeslotId.toString());
-        formData.append('purpose', purpose || '');
-
-        // Process answers
-        if (questions.length > 0) {
-          // Create a clean object for JSON serialization
-          const answersForJson: Record<string, any> = {};
-
-          Object.entries(answers).forEach(([questionId, answer]) => {
-            if (answer instanceof File) {
-              // Handle file upload
-              const fieldName = `file_${questionId}`;
-              formData.append(fieldName, answer);
-              answersForJson[questionId] = { type: 'file', fieldName };
-            } else if (answer !== null && answer !== undefined) {
-              // Handle text answers
-              formData.append(`answer_${questionId}`, answer.toString());
-              answersForJson[questionId] = { type: 'text', value: answer.toString() };
-            }
-          });
-
-          // Add structured answers as JSON
-          formData.append('answersJSON', JSON.stringify(answersForJson));
-        }
-        await bookTimeslotWithAnswers(formData);
-      }
+      // Use the consolidated bookTimeslot function which always uses FormData
+      await bookTimeslot(selectedTimeslotId, purpose, answers);
 
       // Success message
       setMessage({
@@ -354,7 +315,6 @@ const BookTimeslot = () => {
       setIsLoading(false);
     }
   };
-
 
   // Check if a date should be disabled in the calendar
   const isDateDisabled = (date: Date) => {

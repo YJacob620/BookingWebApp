@@ -1,15 +1,9 @@
 import express, { Request, Response } from 'express';
-import { Pool } from 'mysql2/promise';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { upload } from '../middleware/fileUploadMiddleware';
-import { processBookingRequest } from '../utils/bookingRequestUtil';
-
-const router = express.Router();
+import { processBookingRequest } from '../utils';
 import pool from '../configuration/db';
-
-interface MulterRequest extends Request {
-    files?: Express.Multer.File[];
-}
+const router = express.Router();
 
 
 // Get recent bookings for the current user
