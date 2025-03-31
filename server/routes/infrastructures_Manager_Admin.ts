@@ -1,20 +1,37 @@
 /* Router functions regarding infrastructures for both admins and infrastructure managers */
 
-const express = require('express');
+import express, { Request, Response } from 'express';
+import { Pool, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 const router = express.Router();
-const pool = require('../config/db');
+const pool: Pool = require('../config/db');
 const { authenticateAdminOrManager, hasInfrastructureAccess } = require('../middleware/authMiddleware');
 
+// Define types
+interface InfrastructureQuestion {
+    id?: number;
+    infrastructure_id: number;
+    question_text: string;
+    question_type: 'text' | 'number' | 'dropdown' | 'document';
+    is_required: boolean | number;
+    options: string | null;
+    display_order: number;
+}
+
+interface QuestionReorderItem {
+    id: number;
+    display_order: number;
+}
+
 // Get all questions for an infrastructure (admin or manager of this infrastructure)
-router.get('/:infrastructureId/questions', authenticateAdminOrManager, async (req, res) => {
-    const { infrastructureId } = req.params;
+router.get('/:infrastructureId/questions', authenticateAdminOrManager, async (req: Request, res: Response) => {
+    const infrastructureId = parseInt(req.params.infrastructureId, 10);
 
     try {
         // Check if the user has access to this infrastructure
         if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
         // If we get here, the user has permission to view the questions
-        const [rows] = await pool.execute(
+        const [rows] = await pool.execute < RowDataPacket[] > (
             'SELECT * FROM infrastructure_questions WHERE infrastructure_id = ? ORDER BY display_order',
             [infrastructureId]
         );
@@ -24,13 +41,12 @@ router.get('/:infrastructureId/questions', authenticateAdminOrManager, async (re
         console.error('Error fetching questions:', error);
         res.status(500).json({ message: 'Error fetching questions' });
     }
-}
-);
+});
 
 // Add a new question (admin or manager of this infrastructure)
-router.post('/:infrastructureId/questions', authenticateAdminOrManager, async (req, res) => {
-    const { infrastructureId } = req.params;
-    const { question_text, question_type, is_required, options, display_order } = req.body;
+router.post('/:infrastructureId/questions', authenticateAdminOrManager, async (req: Request, res: Response) => {
+    const infrastructureId = parseInt(req.params.infrastructureId, 10);
+    const { question_text, question_type, is_required, options, display_order } = req.body as InfrastructureQuestion;
 
     // Check if the user has access to this infrastructure
     if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
@@ -46,7 +62,7 @@ router.post('/:infrastructureId/questions', authenticateAdminOrManager, async (r
     }
 
     try {
-        const [result] = await pool.execute(
+        const [result] = await pool.execute < ResultSetHeader > (
             `INSERT INTO infrastructure_questions 
                 (infrastructure_id, question_text, question_type, is_required, options, display_order)
                 VALUES (?, ?, ?, ?, ?, ?)`,
@@ -68,13 +84,13 @@ router.post('/:infrastructureId/questions', authenticateAdminOrManager, async (r
         console.error('Error adding question:', error);
         res.status(500).json({ message: 'Error adding question' });
     }
-}
-);
+});
 
 // Update a question (admin or manager of this infrastructure)
-router.put('/:infrastructureId/questions/:questionId', authenticateAdminOrManager, async (req, res) => {
-    const { infrastructureId, questionId } = req.params;
-    const { question_text, question_type, is_required, options } = req.body;
+router.put('/:infrastructureId/questions/:questionId', authenticateAdminOrManager, async (req: Request, res: Response) => {
+    const infrastructureId = parseInt(req.params.infrastructureId, 10);
+    const questionId = parseInt(req.params.questionId, 10);
+    const { question_text, question_type, is_required, options } = req.body as InfrastructureQuestion;
 
     // Check if the user has access to this infrastructure
     if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
@@ -90,7 +106,7 @@ router.put('/:infrastructureId/questions/:questionId', authenticateAdminOrManage
     }
 
     try {
-        const [result] = await pool.execute(
+        const [result] = await pool.execute < ResultSetHeader > (
             `UPDATE infrastructure_questions
                 SET question_text = ?, question_type = ?, is_required = ?, options = ?
                 WHERE id = ? AND infrastructure_id = ?`,
@@ -113,20 +129,20 @@ router.put('/:infrastructureId/questions/:questionId', authenticateAdminOrManage
         console.error('Error updating question:', error);
         res.status(500).json({ message: 'Error updating question' });
     }
-}
-);
+});
 
 // Delete a question (admin or manager of this infrastructure)
 router.delete('/:infrastructureId/questions/:questionId',
     authenticateAdminOrManager,
-    async (req, res) => {
-        const { infrastructureId, questionId } = req.params;
+    async (req: Request, res: Response) => {
+        const infrastructureId = parseInt(req.params.infrastructureId, 10);
+        const questionId = parseInt(req.params.questionId, 10);
 
         // Check if the user has access to this infrastructure
         if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
         try {
-            const [result] = await pool.execute(
+            const [result] = await pool.execute < ResultSetHeader > (
                 'DELETE FROM infrastructure_questions WHERE id = ? AND infrastructure_id = ?',
                 [questionId, infrastructureId]
             );
@@ -146,9 +162,9 @@ router.delete('/:infrastructureId/questions/:questionId',
 // Update question order (admin or manager of this infrastructure)
 router.put('/:infrastructureId/questions/reorder',
     authenticateAdminOrManager,
-    async (req, res) => {
-        const { infrastructureId } = req.params;
-        const { questions } = req.body;
+    async (req: Request, res: Response) => {
+        const infrastructureId = parseInt(req.params.infrastructureId, 10);
+        const { questions } = req.body as { questions: QuestionReorderItem[] };
 
         if (!Array.isArray(questions)) {
             return res.status(400).json({ message: 'Invalid questions data' });
@@ -181,4 +197,4 @@ router.put('/:infrastructureId/questions/reorder',
     }
 );
 
-module.exports = router;
+export default router;

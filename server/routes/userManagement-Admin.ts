@@ -1,12 +1,30 @@
-const express = require('express');
+import express, { Request, Response } from 'express';
+import { Pool, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 const router = express.Router();
-const pool = require('../config/db');
+const pool: Pool = require('../config/db');
 const { authenticateAdmin } = require('../middleware/authMiddleware');
 
+interface User extends RowDataPacket {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    is_verified: boolean;
+    is_blacklisted: boolean;
+    created_at: Date;
+    updated_at: Date;
+}
+
+interface Infrastructure extends RowDataPacket {
+    id: number;
+    name: string;
+    // Add other infrastructure properties as needed
+}
+
 // Get all users (admin only)
-router.get('/users', authenticateAdmin, async (req, res) => {
+router.get('/users', authenticateAdmin, async (req: Request, res: Response) => {
     try {
-        const [rows] = await pool.execute(
+        const [rows] = await pool.execute<User[]>(
             `SELECT 
                 id, name, email, role, is_verified, is_blacklisted,
                 created_at, updated_at
@@ -21,7 +39,7 @@ router.get('/users', authenticateAdmin, async (req, res) => {
 });
 
 // Update user role (admin only)
-router.put('/users/:id/role', authenticateAdmin, async (req, res) => {
+router.put('/users/:id/role', authenticateAdmin, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { role } = req.body;
 
@@ -29,14 +47,14 @@ router.put('/users/:id/role', authenticateAdmin, async (req, res) => {
         return res.status(400).json({ message: 'Role is required' });
     }
 
-    const validRoles = ['admin', 'manager', 'faculty', 'student', 'guest'];
+    const validRoles: string[] = ['admin', 'manager', 'faculty', 'student', 'guest'];
     if (!validRoles.includes(role)) {
         return res.status(400).json({ message: 'Invalid role' });
     }
 
     try {
         // Check if user exists
-        const [users] = await pool.execute('SELECT * FROM users WHERE id = ?', [id]);
+        const [users] = await pool.execute<User[]>('SELECT * FROM users WHERE id = ?', [id]);
         if (users.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -66,7 +84,7 @@ router.put('/users/:id/role', authenticateAdmin, async (req, res) => {
 });
 
 // Update user blacklist status (admin only)
-router.put('/users/:id/blacklist', authenticateAdmin, async (req, res) => {
+router.put('/users/:id/blacklist', authenticateAdmin, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { blacklist } = req.body;
 
@@ -76,7 +94,7 @@ router.put('/users/:id/blacklist', authenticateAdmin, async (req, res) => {
 
     try {
         // Check if user exists
-        const [users] = await pool.execute('SELECT * FROM users WHERE id = ?', [id]);
+        const [users] = await pool.execute<User[]>('SELECT * FROM users WHERE id = ?', [id]);
         if (users.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -95,11 +113,11 @@ router.put('/users/:id/blacklist', authenticateAdmin, async (req, res) => {
 });
 
 // Get infrastructures assigned to a manager (admin only)
-router.get('/users/:id/infrastructures', authenticateAdmin, async (req, res) => {
+router.get('/users/:id/infrastructures', authenticateAdmin, async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        const [rows] = await pool.execute(
+        const [rows] = await pool.execute<Infrastructure[]>(
             `SELECT i.* 
              FROM infrastructures i
              JOIN infrastructure_managers im ON i.id = im.infrastructure_id
@@ -115,7 +133,7 @@ router.get('/users/:id/infrastructures', authenticateAdmin, async (req, res) => 
 });
 
 // Assign infrastructure to a manager (admin only)
-router.post('/users/:id/infrastructures', authenticateAdmin, async (req, res) => {
+router.post('/users/:id/infrastructures', authenticateAdmin, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { infrastructureId } = req.body;
 
@@ -125,7 +143,7 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req, res) =>
 
     try {
         // Check if user exists and is a manager
-        const [users] = await pool.execute(
+        const [users] = await pool.execute<User[]>(
             'SELECT * FROM users WHERE id = ? AND role = "infrastructure_manager"',
             [id]
         );
@@ -135,7 +153,7 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req, res) =>
         }
 
         // Check if infrastructure exists
-        const [infrastructures] = await pool.execute(
+        const [infrastructures] = await pool.execute<Infrastructure[]>(
             'SELECT * FROM infrastructures WHERE id = ?',
             [infrastructureId]
         );
@@ -145,7 +163,7 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req, res) =>
         }
 
         // Check if assignment already exists
-        const [existing] = await pool.execute(
+        const [existing] = await pool.execute<RowDataPacket[]>(
             'SELECT * FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
             [id, infrastructureId]
         );
@@ -168,12 +186,12 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req, res) =>
 });
 
 // Remove infrastructure from a manager (admin only)
-router.delete('/users/:id/infrastructures/:infrastructureId', authenticateAdmin, async (req, res) => {
+router.delete('/users/:id/infrastructures/:infrastructureId', authenticateAdmin, async (req: Request, res: Response) => {
     const { id, infrastructureId } = req.params;
 
     try {
         // Delete the assignment
-        const [result] = await pool.execute(
+        const [result] = await pool.execute<ResultSetHeader>(
             'DELETE FROM infrastructure_managers WHERE user_id = ? AND infrastructure_id = ?',
             [id, infrastructureId]
         );
@@ -189,4 +207,4 @@ router.delete('/users/:id/infrastructures/:infrastructureId', authenticateAdmin,
     }
 });
 
-module.exports = router;
+export default router;

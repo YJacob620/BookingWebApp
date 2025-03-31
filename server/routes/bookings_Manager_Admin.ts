@@ -1,8 +1,9 @@
 /* Router functions regarding bookings for both admins and infrastructure managers */
 
-const express = require('express');
+import express, { Request, Response } from 'express';
+import { Pool, PoolConnection, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 const router = express.Router();
-const pool = require('../config/db');
+const pool: Pool = require('../config/db');
 const {
     authenticateAdminOrManager,
     hasInfrastructureAccess
@@ -10,10 +11,47 @@ const {
 const emailService = require('../utils/emailService');
 const path = require('path');
 
+interface BookingRequestBody {
+    infrastructureID: number;
+    startDate: string;
+    endDate: string;
+    dailyStartTime: string;
+    slotDuration: number;
+    slotsPerDay: number;
+}
+
+interface BookingCancelBody {
+    ids: number[];
+}
+
+interface BookingStatusBody {
+    status: 'rejected' | 'canceled';
+}
+
+interface Booking extends RowDataPacket {
+    id: number;
+    infrastructure_id: number;
+    booking_date: string;
+    start_time: string;
+    end_time: string;
+    status: string;
+    booking_type: string;
+    user_email: string | null;
+}
+
+interface Infrastructure extends RowDataPacket {
+    id: number;
+    name: string;
+    location: string;
+}
+
+interface TimeslotOverlap extends RowDataPacket {
+    count: number;
+}
 
 // Create timeslots (admin or manager for their infrastructures)
-router.post('/create-timeslots', authenticateAdminOrManager, async (req, res) => {
-    const connection = await pool.getConnection();
+router.post('/create-timeslots', authenticateAdminOrManager, async (req: Request, res: Response) => {
+    const connection: PoolConnection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
@@ -24,7 +62,7 @@ router.post('/create-timeslots', authenticateAdminOrManager, async (req, res) =>
             dailyStartTime,
             slotDuration,
             slotsPerDay
-        } = req.body;
+        }: BookingRequestBody = req.body;
 
         // Validate input
         if (!infrastructureID) {
@@ -93,7 +131,7 @@ router.post('/create-timeslots', authenticateAdminOrManager, async (req, res) =>
                 const endTime = currentTime.toTimeString().slice(0, 5);
 
                 // Check for overlaps
-                const [overlapping] = await connection.execute(
+                const [overlapping] = await connection.execute<TimeslotOverlap[]>(
                     `SELECT COUNT(*) as count FROM bookings 
                      WHERE infrastructure_id = ? 
                      AND booking_date = ?
@@ -135,9 +173,9 @@ router.post('/create-timeslots', authenticateAdminOrManager, async (req, res) =>
 });
 
 // Cancel timeslots (admin or manager for their infrastructures)
-router.delete('/timeslots', authenticateAdminOrManager, async (req, res) => {
+router.delete('/timeslots', authenticateAdminOrManager, async (req: Request, res: Response) => {
     try {
-        const { ids } = req.body;
+        const { ids }: BookingCancelBody = req.body;
 
         if (!ids || !Array.isArray(ids) || ids.length === 0) {
             return res.status(400).json({ message: 'No timeslots specified for cancellation' });
@@ -145,7 +183,7 @@ router.delete('/timeslots', authenticateAdminOrManager, async (req, res) => {
 
         // Get the infrastructure IDs for the timeslots
         const placeholders = ids.map(() => '?').join(',');
-        const [timeslots] = await pool.execute(
+        const [timeslots] = await pool.execute<Booking[]>(
             `SELECT id, infrastructure_id FROM bookings WHERE id IN (${placeholders})`,
             ids
         );
@@ -156,7 +194,7 @@ router.delete('/timeslots', authenticateAdminOrManager, async (req, res) => {
         }
 
         // Update status to 'canceled' 
-        const [result] = await pool.execute(
+        const [result] = await pool.execute<ResultSetHeader>(
             `UPDATE bookings 
              SET status = 'canceled'
              WHERE id IN (${placeholders}) AND booking_type = 'timeslot'`,
@@ -175,12 +213,12 @@ router.delete('/timeslots', authenticateAdminOrManager, async (req, res) => {
 });
 
 // Approve a booking request (admin or responsible manager)
-router.put('/:id/approve', authenticateAdminOrManager, async (req, res) => {
+router.put('/:id/approve', authenticateAdminOrManager, async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
         // Get booking details
-        const [bookings] = await pool.execute('SELECT * FROM bookings WHERE id = ?', [id]);
+        const [bookings] = await pool.execute<Booking[]>('SELECT * FROM bookings WHERE id = ?', [id]);
 
         if (bookings.length === 0) {
             return res.status(404).json({ message: 'Booking not found' });
@@ -195,7 +233,7 @@ router.put('/:id/approve', authenticateAdminOrManager, async (req, res) => {
         await pool.execute('UPDATE bookings SET status = ? WHERE id = ?', ['approved', id]);
 
         // Get infrastructure details for email notification
-        const [infrastructures] = await pool.execute(
+        const [infrastructures] = await pool.execute<Infrastructure[]>(
             'SELECT * FROM infrastructures WHERE id = ?',
             [booking.infrastructure_id]
         );
@@ -223,13 +261,13 @@ router.put('/:id/approve', authenticateAdminOrManager, async (req, res) => {
 
 // Reject or cancel a booking request / approved booking (admin or responsible manager) 
 // This will also create a new available timeslot at the time of the old booking.
-router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res) => {
-    const connection = await pool.getConnection();
+router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req: Request, res: Response) => {
+    const connection: PoolConnection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
         const { id } = req.params;
-        const { status } = req.body;
+        const { status }: BookingStatusBody = req.body;
 
         // Validate status
         if (status !== 'rejected' && status !== 'canceled') {
@@ -237,7 +275,7 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res)
         }
 
         // Get booking details
-        const [bookings] = await connection.execute(
+        const [bookings] = await connection.execute<Booking[]>(
             'SELECT * FROM bookings WHERE id = ?',
             [id]
         );
@@ -250,7 +288,7 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res)
         if (!await hasInfrastructureAccess(req, res, booking.infrastructure_id, connection, true)) return;
 
         // Get infrastructure details for email notification (before we execute the procedure)
-        const [infrastructures] = await connection.execute(
+        const [infrastructures] = await connection.execute<Infrastructure[]>(
             'SELECT * FROM infrastructures WHERE id = ?',
             [booking.infrastructure_id]
         );
@@ -291,7 +329,7 @@ router.put('/:id/reject-or-cancel', authenticateAdminOrManager, async (req, res)
 });
 
 // Force update of all booking and timeslot statuses (admin only)
-router.post('/force-bookings-status-update', authenticateAdminOrManager, async (req, res) => {
+router.post('/force-bookings-status-update', authenticateAdminOrManager, async (req: Request, res: Response) => {
     try {
         // Call the stored procedure directly
         await pool.execute('CALL update_past_statuses()');
@@ -306,13 +344,19 @@ router.post('/force-bookings-status-update', authenticateAdminOrManager, async (
     }
 });
 
+interface QueryParams {
+    startDate?: string;
+    endDate?: string;
+    limit?: string;
+}
+
 // Get all entries (both bookings and timeslots) for an infrastructure
-router.get('/:infrastructureId/all-entries', authenticateAdminOrManager, async (req, res) => {
+router.get('/:infrastructureId/all-entries', authenticateAdminOrManager, async (req: Request, res: Response) => {
     try {
         const { infrastructureId } = req.params;
         if (!await hasInfrastructureAccess(req, res, infrastructureId)) return;
 
-        const { startDate, endDate, limit } = req.query;
+        const { startDate, endDate, limit } = req.query as QueryParams;
 
         // Join with users table to get user roles for bookings and infrastructure info
         let query = `
@@ -326,7 +370,7 @@ router.get('/:infrastructureId/all-entries', authenticateAdminOrManager, async (
             WHERE b.infrastructure_id = ?
         `;
 
-        const params = [infrastructureId];
+        const params: any[] = [infrastructureId];
 
         // Add date range filter if provided (keep minimal server-side filtering)
         if (startDate && endDate) {
@@ -357,4 +401,4 @@ router.get('/:infrastructureId/all-entries', authenticateAdminOrManager, async (
     }
 });
 
-module.exports = router;
+export default router;

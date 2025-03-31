@@ -1,15 +1,14 @@
-/* Router functions regarding infrastructures for infrastructure managers */
+import express, { Request, Response } from 'express';
+import { Pool } from 'mysql2/promise';
+import { authenticateManager } from '../middleware/authMiddleware';
 
-const express = require('express');
 const router = express.Router();
-const pool = require('../config/db');
-const { authenticateManager } = require('../middleware/authMiddleware');
-
+const pool: Pool = require('../config/db');
 
 // Get infrastructures managed by the current manager (infers manager from token)
-router.get('/', authenticateManager, async (req, res) => {
+router.get('/', authenticateManager, async (req: Request, res: Response): Promise<void> => {
     try {
-        const [rows] = await pool.execute(
+        const [rows]: [any[], any] = await pool.execute(
             `SELECT i.*
              FROM infrastructures i
              JOIN infrastructure_managers im ON i.id = im.infrastructure_id
@@ -24,4 +23,4 @@ router.get('/', authenticateManager, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

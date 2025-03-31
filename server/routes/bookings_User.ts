@@ -1,17 +1,18 @@
-const express = require('express');
+import express, { Request, Response } from 'express';
+import { Pool } from 'mysql2/promise';
+import { authenticateToken } from '../middleware/authMiddleware';
+import { upload } from '../middleware/fileUploadMiddleware';
+import { processBookingRequest } from '../utils/bookingRequestUtil';
+
 const router = express.Router();
-const pool = require('../config/db');
-const { authenticateToken } = require('../middleware/authMiddleware');
-const { upload } = require('../middleware/fileUploadMiddleware');
-const { processBookingRequest } = require('../utils/bookingRequestUtil');
+const pool: Pool = require('../config/db');
 
 // Get recent bookings for the current user
-router.get('/recent', authenticateToken, async (req, res) => {
+router.get('/recent', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     try {
-        const userEmail = req.user.email;
+        const userEmail: string = req.user.email;
 
-        // Get recent bookings with infrastructure details
-        const [bookings] = await pool.execute(
+        const [bookings]: any[] = await pool.execute(
             `SELECT b.*, i.name as infrastructure_name, i.location as infrastructure_location
              FROM bookings b
              JOIN infrastructures i ON b.infrastructure_id = i.id
@@ -30,12 +31,11 @@ router.get('/recent', authenticateToken, async (req, res) => {
 });
 
 // Get all bookings for the current user
-router.get('/all', authenticateToken, async (req, res) => {
+router.get('/all', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     try {
-        const userEmail = req.user.email;
+        const userEmail: string = req.user.email;
 
-        // Get all bookings with infrastructure details
-        const [bookings] = await pool.execute(
+        const [bookings]: any[] = await pool.execute(
             `SELECT b.*, i.name as infrastructure_name, i.location as infrastructure_location
              FROM bookings b
              JOIN infrastructures i ON b.infrastructure_id = i.id
@@ -53,14 +53,12 @@ router.get('/all', authenticateToken, async (req, res) => {
 });
 
 // Cancel a booking (user)
-// Users can cancel their own pending or approved bookings as long as the bookings aren't within 24 hours
-router.post('/:id/cancel', authenticateToken, async (req, res) => {
+router.post('/:id/cancel', authenticateToken, async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id } = req.params;
-        const userEmail = req.user.email;
+        const { id }: { id: string } = req.params;
+        const userEmail: string = req.user.email;
 
-        // Check if the booking exists and belongs to the user
-        const [bookings] = await pool.execute(
+        const [bookings]: any[] = await pool.execute(
             `SELECT * FROM bookings 
              WHERE id = ? 
              AND user_email = ? 
@@ -72,19 +70,17 @@ router.post('/:id/cancel', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        const booking = bookings[0];
+        const booking: any = bookings[0];
 
-        // Verify booking can be canceled
         if (booking.status !== 'pending' && booking.status !== 'approved') {
             return res.status(400).json({
                 message: 'Only pending or approved bookings can be canceled by the user'
             });
         }
 
-        // Check if within 24 hours
-        const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
-        const now = new Date();
-        const differenceInHours = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+        const bookingDateTime: Date = new Date(`${booking.booking_date}T${booking.start_time}`);
+        const now: Date = new Date();
+        const differenceInHours: number = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
 
         if (differenceInHours <= 24) {
             return res.status(400).json({
@@ -92,8 +88,7 @@ router.post('/:id/cancel', authenticateToken, async (req, res) => {
             });
         }
 
-        // Call the stored procedure instead of executing multiple queries
-        const [results] = await pool.execute(
+        const [results]: any[] = await pool.execute(
             'CALL UserCancelBooking(?, ?, @success, @message)',
             [id, userEmail]
         );
@@ -107,37 +102,24 @@ router.post('/:id/cancel', authenticateToken, async (req, res) => {
 });
 
 // Request a booking (user)
-router.post('/request', authenticateToken, upload.any(), async (req, res) => {
-    const connection = await pool.getConnection();
+router.post('/request', authenticateToken, upload.any(), async (req: Request, res: Response): Promise<void> => {
+    const connection: any = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
-        const userEmail = req.user.email;
-        let timeslot_id, purpose;
+        const userEmail: string = req.user.email;
+        const timeslot_id: string = req.body.timeslot_id;
+        const purpose: string = req.body.purpose || '';
 
-        // Handle both JSON and FormData requests
-        if (req.is('multipart/form-data')) {
-            // FormData request (with potential file uploads and answers)
-            timeslot_id = req.body.timeslot_id;
-            purpose = req.body.purpose || '';
-        } else {
-            // JSON request
-            ({ timeslot_id, purpose = '' } = req.body);
-        }
-
-        if (!timeslot_id) {
+        if (!userEmail || !timeslot_id) {
             return res.status(400).json({
-                message: 'Timeslot ID is required',
+                message: 'Missing required parameters for request',
                 receivedBody: JSON.stringify(req.body)
             });
         }
 
-        // Process answers from the request
-        let answersObj = {};
-
-        // Process FormData case (with file uploads)
+        let answersObj: { [key: string]: any } = {};
         if (req.is('multipart/form-data')) {
-            // Try to parse answers from different possible formats
             if (req.body.answersJSON) {
                 try {
                     answersObj = JSON.parse(req.body.answersJSON);
@@ -146,10 +128,9 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
                 }
             }
 
-            // Handle individual answer fields
             for (const key in req.body) {
                 if (key.startsWith('answer_')) {
-                    const questionId = key.replace('answer_', '');
+                    const questionId: string = key.replace('answer_', '');
                     answersObj[questionId] = {
                         type: 'text',
                         value: req.body[key]
@@ -157,30 +138,26 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
                 }
             }
 
-            // Process files from multer
             if (req.files && req.files.length > 0) {
                 for (const file of req.files) {
-                    const fieldName = file.fieldname;
+                    const fieldName: string = file.fieldname;
 
-                    // Extract question ID from field name (format: file_123)
                     if (fieldName.startsWith('file_')) {
-                        const questionId = fieldName.replace('file_', '');
+                        const questionId: string = fieldName.replace('file_', '');
 
-                        // Store information about the uploaded file
                         answersObj[questionId] = {
                             type: 'file',
                             filePath: file.path,
                             originalName: file.originalname
                         };
 
-                        console.log(`File uploaded: ${file.originalname} -> ${file.path}`);
+                        console.log(`File uploaded:${file.originalname} -> ${file.path}`);
                     }
                 }
             }
         }
 
-        // Use the shared booking utility function
-        const bookingResult = await processBookingRequest(connection, {
+        const bookingResult: any = await processBookingRequest(connection, {
             email: userEmail,
             timeslotId: timeslot_id,
             purpose,
@@ -217,4 +194,4 @@ router.post('/request', authenticateToken, upload.any(), async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

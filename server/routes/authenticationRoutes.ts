@@ -1,24 +1,66 @@
-const express = require('express');
-const router = express.Router();
-const argon2 = require('argon2');
-const jwt = require('jsonwebtoken');
+import express, { Request, Response } from 'express';
+import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+import { PoolConnection, ResultSetHeader } from 'mysql2/promise';
 
-const pool = require('../config/db');
-const { JWT_SECRET, VERIFICATION_TOKEN_EXPIRY, PASSWORD_RESET_EXPIRY } = require('../config/env');
-const emailService = require('../utils/emailService');
-const { authenticateToken,
+import pool from '../config/db';
+import { JWT_SECRET, VERIFICATION_TOKEN_EXPIRY, PASSWORD_RESET_EXPIRY } from '../config/env';
+import emailService from '../utils/emailService';
+import {
+    authenticateToken,
     authenticateAdmin,
-    authenticateManager,
-} = require('../middleware/authMiddleware');
+    authenticateManager
+} from '../middleware/authMiddleware';
 
+const router = express.Router();
+
+// Define interfaces
+interface User {
+    id: number;
+    email: string;
+    password_hash: string;
+    name: string;
+    role: 'admin' | 'faculty' | 'student' | 'guest';
+    is_verified: boolean;
+    verification_token: string | null;
+    verification_token_expires: Date | null;
+    password_reset_token: string | null;
+    password_reset_expires: Date | null;
+}
+
+interface RegisterRequestBody {
+    email: string;
+    password: string;
+    name: string;
+    role?: 'admin' | 'faculty' | 'student' | 'guest';
+}
+
+interface LoginRequestBody {
+    email: string;
+    password: string;
+}
+
+interface EmailRequestBody {
+    email: string;
+}
+
+interface ResetPasswordRequestBody {
+    password: string;
+}
+
+interface JwtPayload {
+    userId: number;
+    email: string;
+    role: string;
+}
 
 // Login route - Updated to check verification status
-router.post('/login', async (req, res) => {
+router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Response) => {
     const { email, password } = req.body;
 
     try {
         // Find user by email
-        const [users] = await pool.execute(
+        const [users] = await pool.execute<User[]>(
             'SELECT * FROM users WHERE email = ?',
             [email]
         );
@@ -80,9 +122,10 @@ router.post('/login', async (req, res) => {
 });
 
 // Registration route
-router.post('/register', async (req, res) => {
-    const connection = await pool.getConnection();
+router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: Response) => {
+    let connection: PoolConnection | null = null;
     try {
+        connection = await pool.getConnection();
         await connection.beginTransaction();
 
         const { email, password, name, role = 'student' } = req.body;
@@ -110,7 +153,7 @@ router.post('/register', async (req, res) => {
         }
 
         // Check if user already exists
-        const [existingUsers] = await connection.execute(
+        const [existingUsers] = await connection.execute<User[]>(
             'SELECT * FROM users WHERE email = ?',
             [email]
         );
@@ -143,8 +186,10 @@ router.post('/register', async (req, res) => {
         const now = new Date();
         const expiryDate = new Date(now.getTime() + VERIFICATION_TOKEN_EXPIRY);
 
-        let query;
-        let params;
+        let query: string;
+        let params: any[];
+        let userId: number;
+
         if (wasGuest) {
             query = `UPDATE users 
              SET password_hash = ?, 
@@ -154,20 +199,30 @@ router.post('/register', async (req, res) => {
                  verification_token_expires = ?
              WHERE email = ?`;
             params = [passwordHash, name, role, verificationToken, expiryDate, email];
+
+            const [result] = await connection.execute<ResultSetHeader>(query, params);
+
+            if (result.affectedRows !== 1) {
+                throw new Error('Failed to update user');
+            }
+
+            // Get the existing user ID
+            userId = existingUsers[0].id;
         } else {
             query = `INSERT INTO users 
             (email, password_hash, name, role, verification_token, verification_token_expires) 
             VALUES (?, ?, ?, ?, ?, ?)`;
             params = [email, passwordHash, name, role, verificationToken, expiryDate];
-        }
-        const [result] = await connection.execute(query, params);
 
-        if (result.affectedRows !== 1) {
-            throw new Error('Failed to create or update user');
-        }
+            const [result] = await connection.execute<ResultSetHeader>(query, params);
 
-        // Get the inserted user ID
-        const userId = result.insertId;
+            if (result.affectedRows !== 1) {
+                throw new Error('Failed to create user');
+            }
+
+            // Get the inserted user ID
+            userId = result.insertId;
+        }
 
         // Commit transaction
         await connection.commit();
@@ -189,18 +244,22 @@ router.post('/register', async (req, res) => {
             });
         }
     } catch (err) {
-        await connection.rollback();
+        if (connection) {
+            await connection.rollback();
+        }
         console.error('Registration error:', err);
         res.status(500).json({
             message: 'Internal server error'
         });
     } finally {
-        connection.release();
+        if (connection) {
+            connection.release();
+        }
     }
 });
 
 // Email verification route
-router.get('/verify-email/:token', async (req, res) => {
+router.get('/verify-email/:token', async (req: Request<{ token: string }>, res: Response) => {
     const { token } = req.params;
 
     if (!token) {
@@ -211,7 +270,7 @@ router.get('/verify-email/:token', async (req, res) => {
 
     try {
         // Find user with this verification token
-        const [users] = await pool.execute(
+        const [users] = await pool.execute<User[]>(
             'SELECT * FROM users WHERE verification_token = ?',
             [token]
         );
@@ -226,7 +285,7 @@ router.get('/verify-email/:token', async (req, res) => {
 
         // Check if token is expired
         const now = new Date();
-        const tokenExpiry = new Date(user.verification_token_expires);
+        const tokenExpiry = new Date(user.verification_token_expires as Date);
 
         if (now > tokenExpiry) {
             return res.status(400).json({
@@ -235,12 +294,12 @@ router.get('/verify-email/:token', async (req, res) => {
         }
 
         // Update user to verified status
-        await pool.execute(
+        await pool.execute<ResultSetHeader>(
             'UPDATE users SET is_verified = 1, verification_token = NULL, verification_token_expires = NULL WHERE id = ?',
             [user.id]
         );
 
-        // Create JWT token for automatic login - FIXED: renamed to jwtToken
+        // Create JWT token for automatic login
         const jwtToken = jwt.sign(
             {
                 userId: user.id,
@@ -259,7 +318,7 @@ router.get('/verify-email/:token', async (req, res) => {
                 role: user.role,
                 name: user.name
             },
-            token: jwtToken // Return the JWT token with a different variable name
+            token: jwtToken
         });
     } catch (err) {
         console.error('Email verification error:', err);
@@ -270,7 +329,7 @@ router.get('/verify-email/:token', async (req, res) => {
 });
 
 // Resend verification email
-router.post('/resend-verification', async (req, res) => {
+router.post('/resend-verification', async (req: Request<{}, {}, EmailRequestBody>, res: Response) => {
     const { email } = req.body;
 
     if (!email) {
@@ -281,7 +340,7 @@ router.post('/resend-verification', async (req, res) => {
 
     try {
         // Find user by email
-        const [users] = await pool.execute(
+        const [users] = await pool.execute<User[]>(
             'SELECT * FROM users WHERE email = ?',
             [email]
         );
@@ -310,7 +369,7 @@ router.post('/resend-verification', async (req, res) => {
         const expiryDate = new Date(now.getTime() + VERIFICATION_TOKEN_EXPIRY);
 
         // Update user with new verification token
-        await pool.execute(
+        await pool.execute<ResultSetHeader>(
             'UPDATE users SET verification_token = ?, verification_token_expires = ? WHERE id = ?',
             [verificationToken, expiryDate, user.id]
         );
@@ -330,7 +389,7 @@ router.post('/resend-verification', async (req, res) => {
 });
 
 // Request password reset
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', async (req: Request<{}, {}, EmailRequestBody>, res: Response) => {
     const { email } = req.body;
 
     if (!email) {
@@ -341,7 +400,7 @@ router.post('/forgot-password', async (req, res) => {
 
     try {
         // Find user by email
-        const [users] = await pool.execute(
+        const [users] = await pool.execute<User[]>(
             'SELECT * FROM users WHERE email = ?',
             [email]
         );
@@ -363,7 +422,7 @@ router.post('/forgot-password', async (req, res) => {
         const expiryDate = new Date(now.getTime() + PASSWORD_RESET_EXPIRY);
 
         // Update user with reset token
-        await pool.execute(
+        await pool.execute<ResultSetHeader>(
             'UPDATE users SET password_reset_token = ?, password_reset_expires = ? WHERE id = ?',
             [resetToken, expiryDate, user.id]
         );
@@ -383,7 +442,7 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 // Reset password with token
-router.post('/reset-password/:token', async (req, res) => {
+router.post('/reset-password/:token', async (req: Request<{ token: string }, {}, ResetPasswordRequestBody>, res: Response) => {
     const { token } = req.params;
     const { password } = req.body;
 
@@ -402,7 +461,7 @@ router.post('/reset-password/:token', async (req, res) => {
 
     try {
         // Find user with this reset token
-        const [users] = await pool.execute(
+        const [users] = await pool.execute<User[]>(
             'SELECT * FROM users WHERE password_reset_token = ?',
             [token]
         );
@@ -417,7 +476,7 @@ router.post('/reset-password/:token', async (req, res) => {
 
         // Check if token is expired
         const now = new Date();
-        const tokenExpiry = new Date(user.password_reset_expires);
+        const tokenExpiry = new Date(user.password_reset_expires as Date);
 
         if (now > tokenExpiry) {
             return res.status(400).json({
@@ -429,7 +488,7 @@ router.post('/reset-password/:token', async (req, res) => {
         const passwordHash = await argon2.hash(password);
 
         // Update password and clear reset token
-        await pool.execute(
+        await pool.execute<ResultSetHeader>(
             `UPDATE users 
              SET password_hash = ?, 
                  password_reset_token = NULL, 
@@ -451,18 +510,18 @@ router.post('/reset-password/:token', async (req, res) => {
 });
 
 // Admin verification endpoint
-router.get('/verify-admin', authenticateAdmin, (req, res) => {
+router.get('/verify-admin', authenticateAdmin, (req: Request, res: Response) => {
     res.json({ message: 'Admin verified' });
 });
 
 // Infrastructure-manager verification endpoint
-router.get('/verify-manager', authenticateManager, (req, res) => {
+router.get('/verify-manager', authenticateManager, (req: Request, res: Response) => {
     res.json({ message: 'Infrastructure manager verified' });
 });
 
-// Infrastructure-manager verification endpoint
-router.get('/verify-user', authenticateToken, (req, res) => {
+// User verification endpoint
+router.get('/verify-user', authenticateToken, (req: Request, res: Response) => {
     res.json({ message: 'Regular user verified' });
 });
 
-module.exports = router;
+export default router;

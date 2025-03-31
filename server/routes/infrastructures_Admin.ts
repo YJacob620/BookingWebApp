@@ -1,14 +1,14 @@
-/* Router functions regarding infrastructures for admins */
+import express, { Request, Response } from 'express';
+import { Pool } from 'mysql2/promise';
+import { authenticateAdmin } from '../middleware/authMiddleware';
 
-const express = require('express');
 const router = express.Router();
-const pool = require('../config/db');
-const { authenticateAdmin } = require('../middleware/authMiddleware');
+const pool: Pool = require('../config/db');
 
 // Get all infrastructures (admin only)
-router.get('/', authenticateAdmin, async (req, res) => {
+router.get('/', authenticateAdmin, async (req: Request, res: Response): Promise<void> => {
     try {
-        const [rows] = await pool.execute(
+        const [rows]: [any[], any] = await pool.execute(
             'SELECT * FROM infrastructures ORDER BY name'
         );
         res.json(rows);
@@ -19,8 +19,8 @@ router.get('/', authenticateAdmin, async (req, res) => {
 });
 
 // Create infrastructure (admin only)
-router.post('/', authenticateAdmin, async (req, res) => {
-    const { name, description, location, is_active } = req.body;
+router.post('/', authenticateAdmin, async (req: Request, res: Response): Promise<void> => {
+    const { name, description, location, is_active }: { name: string; description: string; location?: string | null; is_active?: boolean } = req.body;
 
     // Validate required fields
     if (!name || !description) {
@@ -28,7 +28,7 @@ router.post('/', authenticateAdmin, async (req, res) => {
     }
 
     try {
-        const [result] = await pool.execute(
+        const [result]: [any, any] = await pool.execute(
             `INSERT INTO infrastructures (name, description, location, is_active)
              VALUES (?, ?, ?, ?)`,
             [
@@ -58,12 +58,12 @@ router.post('/', authenticateAdmin, async (req, res) => {
 });
 
 // Toggle infrastructure status (admin only)
-router.post('/:id/toggle-status', authenticateAdmin, async (req, res) => {
-    const { id } = req.params;
+router.post('/:id/toggle-status', authenticateAdmin, async (req: Request, res: Response): Promise<void> => {
+    const { id }: { id: string } = req.params;
 
     try {
         // First check if the infrastructure exists
-        const [rows] = await pool.execute(
+        const [rows]: [any[], any] = await pool.execute(
             'SELECT is_active FROM infrastructures WHERE id = ?',
             [id]
         );
@@ -72,7 +72,7 @@ router.post('/:id/toggle-status', authenticateAdmin, async (req, res) => {
             return res.status(404).json({ message: 'Infrastructure not found' });
         }
 
-        const [result] = await pool.execute(
+        const [result]: [any, any] = await pool.execute(
             'UPDATE infrastructures SET is_active = NOT is_active WHERE id = ?',
             [id]
         );
@@ -89,9 +89,9 @@ router.post('/:id/toggle-status', authenticateAdmin, async (req, res) => {
 });
 
 // Edit infrastructure (admin only)
-router.put('/:id', authenticateAdmin, async (req, res) => {
-    const { id } = req.params;
-    const { name, description, location, is_active } = req.body;
+router.put('/:id', authenticateAdmin, async (req: Request, res: Response): Promise<void> => {
+    const { id }: { id: string } = req.params;
+    const { name, description, location, is_active }: { name: string; description: string; location?: string | null; is_active?: boolean } = req.body;
 
     // Validate required fields
     if (!name || !description) {
@@ -99,11 +99,11 @@ router.put('/:id', authenticateAdmin, async (req, res) => {
     }
 
     try {
-        const [result] = await pool.execute(
+        const [result]: [any, any] = await pool.execute(
             `UPDATE infrastructures 
-             SET name = ?, description = ?, location = ?, 
-                 is_active = ?
-             WHERE id = ?`,
+           SET name=?,description=?,location=?, 
+           is_active=?
+           WHERE id=?`,
             [
                 name,
                 description,
@@ -128,4 +128,4 @@ router.put('/:id', authenticateAdmin, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

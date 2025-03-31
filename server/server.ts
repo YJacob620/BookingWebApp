@@ -1,23 +1,23 @@
-const express = require('express');
-const cors = require('cors');
-require('./config/env'); // Validate environment variables
-const pool = require('./config/db'); // Create database connection pool
-const authenticationRoutes = require('./routes/authenticationRoutes');
-const infrastructuresRoutes_Admin = require('./routes/infrastructures_Admin');
-const infrastructuresRoutes_User_Guest = require('./routes/infrastructures_User_Guest');
-const infrastructuresRoutes_Manager_Admin = require('./routes/infrastructures_Manager_Admin');
-const infrastructuresRoutes_Manager = require('./routes/infrastructures_Manager');
-const bookingRoutes_Manager_Admin = require('./routes/bookings_Manager_Admin');
-const bookingRoutes_User = require('./routes/bookings_User');
-const userManagementRoutes_Admin = require('./routes/userManagement-Admin');
-const preferencesRoutes_User_Manager = require('./routes/preferences_User_Manager');
-const emailService = require('./utils/emailService');
-const emailActionsRoutes = require('./routes/emailActions_Manager');
-const bookingRoutes_All = require('./routes/bookings_All');
-const guestRoutes = require('./routes/bookings_Guest');
+import express, { Express } from 'express';
+import cors from 'cors';
+import './config/env'; // Validate environment variables
+import pool from './config/db'; // Create database connection pool
+import authenticationRoutes from './routes/authenticationRoutes';
+import infrastructuresRoutes_Admin from './routes/infrastructures_Admin';
+import infrastructuresRoutes_User_Guest from './routes/infrastructures_User_Guest';
+import infrastructuresRoutes_Manager_Admin from './routes/infrastructures_Manager_Admin';
+import infrastructuresRoutes_Manager from './routes/infrastructures_Manager';
+import bookingRoutes_Manager_Admin from './routes/bookings_Manager_Admin';
+import bookingRoutes_User from './routes/bookings_User';
+import userManagementRoutes_Admin from './routes/userManagement-Admin';
+import preferencesRoutes_User_Manager from './routes/preferences_User_Manager';
+import emailService from './utils/emailService';
+import emailActionsRoutes from './routes/emailActions_Manager';
+import bookingRoutes_All from './routes/bookings_All';
+import guestRoutes from './routes/bookings_Guest';
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+const app: Express = express();
+const PORT: number | string = process.env.PORT || 3001;
 
 if (pool) {
     console.log("Database connection pool created successfully.");
@@ -26,7 +26,7 @@ if (pool) {
 }
 
 // Enable event scheduler
-(async () => {
+(async (): Promise<void> => {
     try {
         await pool.query("SET GLOBAL event_scheduler = ON;");
         console.log("Event scheduler enabled successfully.");
@@ -36,9 +36,9 @@ if (pool) {
 })();
 
 // Verify email service configuration
-(async () => {
+(async (): Promise<void> => {
     try {
-        const emailConfigValid = await emailService.verifyEmailConfig();
+        const emailConfigValid: boolean = await emailService.verifyEmailConfig();
         if (emailConfigValid) {
             console.log('Email service initialized successfully.');
         } else {
@@ -68,7 +68,7 @@ app.use('/api/email-action', emailActionsRoutes);
 app.use('/api/guest', guestRoutes);
 
 // Start the server only after async operations complete
-app.listen(PORT, () => {
+app.listen(PORT, (): void => {
     console.log(`Server running on port ${PORT}`);
 });
 
@@ -76,7 +76,7 @@ app.listen(PORT, () => {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-async function shutdown() {
+async function shutdown(): Promise<void> {
     console.log('Shutting down server...');
 
     try {

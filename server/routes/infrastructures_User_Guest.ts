@@ -1,13 +1,13 @@
-/* Router functions regarding infrastructures for regular users and guests */
+import express, { Request, Response } from 'express';
+import { Pool } from 'mysql2/promise';
 
-const express = require('express');
 const router = express.Router();
-const pool = require('../config/db');
+const pool: Pool = require('../config/db');
 
 // Get active infrastructures (user, guest)
-router.get('/active', async (req, res) => {
+router.get('/active', async (req: Request, res: Response): Promise<void> => {
     try {
-        const [rows] = await pool.execute(
+        const [rows]: [any[], any] = await pool.execute(
             'SELECT * FROM infrastructures WHERE is_active = 1 ORDER BY name'
         );
         res.json(rows);
@@ -18,12 +18,12 @@ router.get('/active', async (req, res) => {
 });
 
 // Get available timeslots for an infrastructure with optional date filter (user, guest)
-router.get('/:infrastructureId/available-timeslots', async (req, res) => {
+router.get('/:infrastructureId/available-timeslots', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { infrastructureId } = req.params;
-        const { date } = req.query;
+        const { infrastructureId }: { infrastructureId: string } = req.params;
+        const { date }: { date?: string } = req.query;
 
-        let query = `
+        let query: string = `
             SELECT * FROM bookings 
             WHERE infrastructure_id = ? 
             AND booking_type = 'timeslot'
@@ -31,7 +31,7 @@ router.get('/:infrastructureId/available-timeslots', async (req, res) => {
             AND booking_date >= CURDATE()
         `;
 
-        const params = [infrastructureId];
+        const params: Array<string | undefined> = [infrastructureId];
 
         // Add date filter if provided
         if (date) {
@@ -41,7 +41,7 @@ router.get('/:infrastructureId/available-timeslots', async (req, res) => {
 
         query += ' ORDER BY booking_date ASC, start_time ASC';
 
-        const [timeslots] = await pool.execute(query, params);
+        const [timeslots]: [any[], any] = await pool.execute(query, params);
         res.json(timeslots);
     } catch (err) {
         console.error('Database error:', err);
@@ -50,11 +50,11 @@ router.get('/:infrastructureId/available-timeslots', async (req, res) => {
 });
 
 // Get all questions for an infrastructure - only if it's active (user, guest)
-router.get('/:infrastructureId/questions', async (req, res) => {
-    const { infrastructureId } = req.params;
+router.get('/:infrastructureId/questions', async (req: Request, res: Response): Promise<void> => {
+    const { infrastructureId }: { infrastructureId: string } = req.params;
 
     try {
-        const [rows] = await pool.execute(
+        const [rows]: [any[], any] = await pool.execute(
             'SELECT q.* '
             + 'FROM infrastructure_questions q '
             + 'JOIN infrastructures i ON q.infrastructure_id = i.id '
@@ -68,7 +68,6 @@ router.get('/:infrastructureId/questions', async (req, res) => {
         console.error('Error fetching questions:', error);
         res.status(500).json({ message: 'Error fetching questions' });
     }
-}
-);
+});
 
-module.exports = router;
+export default router;

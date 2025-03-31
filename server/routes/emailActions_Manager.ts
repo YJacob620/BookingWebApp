@@ -1,26 +1,32 @@
-const express = require('express');
+import express, { Request, Response } from 'express';
+import { PoolConnection } from 'mysql2/promise';
+import pool from '../config/db';
+import emailService from '../utils/emailService';
+
 const router = express.Router();
-const pool = require('../config/db');
-const emailService = require('../utils/emailService');
 
 // Process email approval/rejection links
-router.get('/:action/:token', async (req, res) => {
-    const { action, token } = req.params;
+router.get('/:action/:token', async (req: Request, res: Response): Promise<Response> => {
+    const { action, token }: { action: string; token: string } = req.params;
+
     if (action !== 'approve' && action !== 'reject') {
         return res.status(400).json({
             success: false,
             message: 'Invalid action'
         });
     }
-    const connection = await pool.getConnection();
+
+    const connection: PoolConnection = await pool.getConnection();
+
     try {
         await connection.beginTransaction();
 
         // Find and validate the token
-        const [tokens] = await connection.execute(
+        const [tokens]: any[] = await connection.execute(
             "SELECT * FROM email_action_tokens WHERE token = ? AND used = 0 AND expires > NOW()",
             [token]
         );
+
         if (tokens.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -28,13 +34,14 @@ router.get('/:action/:token', async (req, res) => {
             });
         }
 
-        const tokenRecord = tokens[0];
+        const tokenRecord: any = tokens[0];
 
         // Get booking details
-        const [bookings] = await connection.execute(
+        const [bookings]: any[] = await connection.execute(
             'SELECT * FROM bookings WHERE id = ?',
             [tokenRecord.booking_id]
         );
+
         if (bookings.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -42,7 +49,7 @@ router.get('/:action/:token', async (req, res) => {
             });
         }
 
-        const booking = bookings[0];
+        const booking: any = bookings[0];
 
         // Check if booking status is still pending (hasn't been already processed)
         if (booking.status !== 'pending') {
@@ -51,7 +58,9 @@ router.get('/:action/:token', async (req, res) => {
                 'UPDATE email_action_tokens SET used = 1, used_at = NOW() WHERE id = ?',
                 [tokenRecord.id]
             );
+
             await connection.commit();
+
             return res.status(400).json({
                 success: false,
                 message: `This booking has already been processed. Its current status is: ${booking.status}`,
@@ -81,7 +90,7 @@ router.get('/:action/:token', async (req, res) => {
         );
 
         // Get infrastructure details
-        const [infrastructures] = await connection.execute(
+        const [infrastructures]: any[] = await connection.execute(
             'SELECT * FROM infrastructures WHERE id = ?',
             [booking.infrastructure_id]
         );
@@ -115,4 +124,4 @@ router.get('/:action/:token', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
