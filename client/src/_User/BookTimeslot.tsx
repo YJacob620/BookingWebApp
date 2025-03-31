@@ -24,7 +24,6 @@ import { Input } from '@/components/ui/input';
 import {
   Infrastructure,
   BookingEntry,
-  // fetchInfrastructures,
   bookTimeslot,
   fetchInfrastAvailTimeslots,
   bookTimeslotWithAnswers,
@@ -32,7 +31,8 @@ import {
   FilterQuestionData,
   FilterQuestionsAnswersType,
   Message,
-  requestGuestBooking
+  requestGuestBooking,
+  formatTimeString
 } from '@/utils';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
@@ -354,14 +354,6 @@ const BookTimeslot = () => {
     }
   };
 
-  // Format time for display
-  const formatTime = (timeString: string): string => {
-    const time = new Date(`1970-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-UK', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  };
 
   // Check if a date should be disabled in the calendar
   const isDateDisabled = (date: Date) => {
@@ -597,7 +589,7 @@ const BookTimeslot = () => {
                   <SelectContent className="card1">
                     {selectedDateTimeslots.map((slot) => (
                       <SelectItem key={slot.id} value={slot.id.toString()}>
-                        {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                        {formatTimeString(slot.start_time)} - {formatTimeString(slot.end_time)}
                       </SelectItem>
                     ))}
                   </SelectContent>

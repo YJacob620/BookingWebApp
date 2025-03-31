@@ -1,4 +1,13 @@
-import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
+
+// Extend Request interface to include user property
+declare global {
+    namespace Express {
+        interface Request {
+            user?: JwtPayload;
+        }
+    }
+}
 
 // ===== Auth & User Types =====
 export type UserRole = 'admin' | 'faculty' | 'student' | 'guest' | 'manager';
@@ -93,24 +102,4 @@ export interface EmailActionToken extends RowDataPacket {
     used: boolean;
     used_at: Date | null;
     metadata: string | null;
-}
-
-// ===== File Upload Types =====
-export interface FileUploadFile extends Express.Multer.File {
-    originalFilename?: string;
-}
-
-// ===== Database Helper Types =====
-export interface TimeslotOverlap extends RowDataPacket {
-    count: number;
-}
-
-// Declare global namespace augmentations here so they're centralized
-declare global {
-    namespace Express {
-        interface Request {
-            user?: JwtPayload;
-            userRole?: string;
-        }
-    }
 }

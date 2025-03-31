@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import { Pool } from 'mysql2/promise';
 import { authenticateManager } from '../middleware/authMiddleware';
 
 const router = express.Router();

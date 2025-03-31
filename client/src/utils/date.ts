@@ -94,7 +94,3 @@ export const isEndTimeAfterStartTime = (start: string, end: string): boolean => 
 export const isTimeFormatValid = (time: string): boolean => {
   return /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time);
 };
-
-export const validateDateTimes = () => {
-
-}

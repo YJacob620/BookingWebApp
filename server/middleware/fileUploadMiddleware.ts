@@ -1,14 +1,10 @@
 import multer, { FileFilterCallback, StorageEngine } from 'multer';
-import path, { dirname } from 'path';
+import path from 'path';
 import fs from 'fs';
 import { Request } from 'express';
-import { fileURLToPath } from 'url';
 
 import { generateToken } from '../utils'
 
-// Get the directory name of the current module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // Define interfaces for file handling
 interface FileUploadFile extends Express.Multer.File {

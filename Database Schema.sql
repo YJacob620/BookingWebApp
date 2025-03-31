@@ -334,3 +334,13 @@ ON SCHEDULE EVERY 5 MINUTE
 STARTS CURRENT_TIMESTAMP
 DO
     CALL update_past_statuses();
+    
+
+-- Event to delete email-tokens that have expired every hour
+DROP EVENT IF EXISTS cleanup_expired_email_tokens;
+CREATE EVENT cleanup_expired_email_tokens
+ON SCHEDULE EVERY 1 HOUR
+STARTS CURRENT_TIMESTAMP
+DO
+    DELETE FROM email_action_tokens 
+    WHERE expires < NOW() OR used = 1;

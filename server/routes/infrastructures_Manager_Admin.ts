@@ -1,7 +1,7 @@
 /* Router functions regarding infrastructures for both admins and infrastructure managers */
 
 import express, { Request, Response } from 'express';
-import { Pool, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
+import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 const router = express.Router();
 import pool from '../configuration/db';
 import { authenticateAdminOrManager, hasInfrastructureAccess } from '../middleware/authMiddleware';

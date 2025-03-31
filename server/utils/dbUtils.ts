@@ -1,4 +1,4 @@
-import { Pool, PoolConnection } from 'mysql2/promise';
+import { PoolConnection } from 'mysql2/promise';
 import pool from '../configuration/db';
 
 /**

@@ -5,15 +5,6 @@ import { JWT_SECRET } from '../configuration/env';
 import { Pool, PoolConnection } from 'mysql2/promise';
 import { JwtPayload, User } from '../utils/types';
 
-// Extend Request interface to include user property
-declare global {
-    namespace Express {
-        interface Request {
-            user?: JwtPayload;
-        }
-    }
-}
-
 /**
  * Middleware to verify JWT token. A successful verification means a user is logged in.
  * On success will create req.user.userId, req.user.email, req.user.role.
@@ -91,9 +82,6 @@ const authenticateAdminOrManager = (req: Request, res: Response, next: NextFunct
             res.status(403).json({ message: 'Access denied' });
             return;
         }
-
-        // Store the role for later use
-        req.userRole = req.user.role;
         next();
     });
 };

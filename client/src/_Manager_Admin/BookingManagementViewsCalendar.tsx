@@ -7,7 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 import {
   getStatusColor,
-  BookingEntry
+  BookingEntry,
+  formatTimeString
 } from "@/utils"
 
 interface BookingsCalendarViewProps {
@@ -105,15 +106,6 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
   // Format month
   const formattedMonth = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  // Format time
-  const formatTime = (timeString: string): string => {
-    const time = new Date(`1970-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-UK', {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  };
-
   // Format date for filtering
   const formatDateForFilter = (day: number): string => {
     const year = currentMonth.getFullYear();
@@ -204,7 +196,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
                                     {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                   </Badge>
                                   <span className="text-sm text-gray-400">
-                                    {formatTime(item.start_time)} - {formatTime(item.end_time)}
+                                    {formatTimeString(item.start_time)} - {formatTimeString(item.end_time)}
                                   </span>
                                 </div>
                                 {item.booking_type === 'booking' && (
