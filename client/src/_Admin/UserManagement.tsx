@@ -69,7 +69,7 @@ const UserManagement: React.FC = () => {
     const loadUsers = async () => {
         try {
             setIsLoading(true);
-            const data = await fetchUsers();
+            const data = (await fetchUsers()).filter(user => user.role !== 'guest');
             setUsers(data);
         } catch (error) {
             console.error('Error loading users:', error);
@@ -363,7 +363,7 @@ const UserManagement: React.FC = () => {
             cell: (user: User) => (
                 <TableCell>
                     <Badge className={user.is_blacklisted ? 'bg-red-700' : 'bg-green-700'}>
-                        {user.is_blacklisted ? 'Blacklisted' : 'Active'}
+                        {user.is_blacklisted ? 'Blacklisted' : 'Allowed'}
                     </Badge>
                 </TableCell>
             ),

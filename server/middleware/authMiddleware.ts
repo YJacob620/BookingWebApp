@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../configuration/db';
 import { JWT_SECRET } from '../configuration/env';
 import { Pool, PoolConnection } from 'mysql2/promise';
-import { JwtPayload, User } from '../utils/types';
+import { JwtPayload, User, findUserByIdOrEmail, isAllowedUser } from '../utils';
 
 /**
  * Middleware to verify JWT token. A successful verification means a user is logged in.
@@ -20,21 +20,10 @@ const authenticateToken = async (req: Request, res: Response, next: NextFunction
     try {
         const user = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
-        // Check if user is blacklisted
-        const [users] = await pool.execute<User[]>(
-            'SELECT is_blacklisted FROM users WHERE id = ?',
-            [user.userId]
-        );
+        const retrievedUser = await findUserByIdOrEmail({ id: user.userId, response: res });
+        if (!retrievedUser) return;
 
-        if (users.length === 0) {
-            res.status(403).json({ message: 'User not found' });
-            return;
-        }
-
-        if (users[0].is_blacklisted === true) {
-            res.status(403).json({ message: 'This account has been blacklisted. Please contact support.' });
-            return;
-        }
+        if (!isAllowedUser(retrievedUser, res)) return;
 
         req.user = user;
         next();
@@ -43,6 +32,7 @@ const authenticateToken = async (req: Request, res: Response, next: NextFunction
         return;
     }
 };
+
 
 /**
  * Middleware to verify the token belongs to an admin. 
@@ -141,5 +131,5 @@ export {
     authenticateAdmin,
     authenticateManager,
     authenticateAdminOrManager,
-    hasInfrastructureAccess
+    hasInfrastructureAccess,
 };

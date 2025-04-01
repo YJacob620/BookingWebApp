@@ -12,11 +12,13 @@ import {
 import {
     authenticateToken,
     authenticateAdmin,
-    authenticateManager
+    authenticateManager,
 } from '../middleware/authMiddleware';
 import emailService from '../utils/emailService';
 import {
     User,
+    findUserByIdOrEmail,
+    isAllowedUser
 } from '../utils';
 
 const router = express.Router();
@@ -48,19 +50,11 @@ router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Respon
     const { email, password } = req.body;
 
     try {
-        // Find user by email
-        const [users] = await pool.execute<User[]>(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-        );
-
-        // Early return if user not found
-        if (users.length === 0) {
-            res.status(401).json({ message: 'Invalid email or password' });
+        const user = await findUserByIdOrEmail({ email: email });
+        if (!user) {
+            res.status(401).json({ message: 'Invalid email' });
             return;
         }
-
-        const user = users[0];
         const isValidPassword = await argon2.verify(user.password_hash, password);
 
         // Early return if password is invalid
@@ -69,11 +63,7 @@ router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Respon
             return;
         }
 
-        // Check if account is verified
-        if (!user.is_verified) {
-            res.status(403).json({ message: 'Your account has not been verified through email.' });
-            return;
-        }
+        if (!isAllowedUser(user, res)) return;
 
         // Create JWT token
         const token = jwt.sign(
@@ -131,32 +121,17 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
             return;
         }
 
-        // Check if user already exists
-        const [existingUsers] = await connection.execute<User[]>(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-        );
-
-        let wasGuest = false;
-        if (existingUsers.length > 0) {
-            if (existingUsers[0].role !== 'guest') {
+        // Check if user already exists - if it isn't a guest the registration will fail
+        const existingUser = await findUserByIdOrEmail({ email: email });
+        if (existingUser) {
+            if (existingUser.role !== 'guest') {
                 res.status(409).json({ message: 'Email already registered' });
+                return;
             }
-            wasGuest = true;
-            return;
         }
 
-        // Validate role
-        const validRoles = ['admin', 'faculty', 'student'];
-        if (!validRoles.includes(role)) {
-            res.status(400).json({ message: 'Invalid role' });
-            return;
-        }
-
-        // Hash password
+        // Hash password and generate verification token
         const passwordHash = await argon2.hash(password);
-
-        // Generate verification token
         const verificationToken = emailService.generateToken();
 
         // Calculate expiry (from current time + configured hours)
@@ -166,8 +141,7 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
         let query: string;
         let params: any[];
         let userId: number;
-
-        if (wasGuest) {
+        if (existingUser) {
             query = `UPDATE users 
              SET password_hash = ?, 
                  name = ?, 
@@ -184,7 +158,7 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
             }
 
             // Get the existing user ID
-            userId = existingUsers[0].id;
+            userId = existingUser.id;
         } else {
             query = `INSERT INTO users 
             (email, password_hash, name, role, verification_token, verification_token_expires) 
@@ -253,7 +227,6 @@ router.get('/verify-email/:token', async (req: Request<{ token: string }>, res: 
             res.status(400).json({ message: 'Invalid or expired verification token' });
             return;
         }
-
         const user = users[0];
 
         // Check if token is expired
@@ -308,18 +281,11 @@ router.post('/resend-verification', async (req: Request<{}, {}, EmailRequestBody
     }
 
     try {
-        // Find user by email
-        const [users] = await pool.execute<User[]>(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-        );
-
-        if (users.length === 0) {
+        const user = await findUserByIdOrEmail({ email: email });
+        if (!user) {
             res.json({ message: 'No user with such an email is registered.' });
             return;
         }
-
-        const user = users[0];
 
         // Check if already verified
         if (user.is_verified) {
@@ -360,16 +326,12 @@ router.post('/forgot-password', async (req: Request<{}, {}, EmailRequestBody>, r
     }
 
     try {
-        const [users] = await pool.execute<User[]>(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-        );
-        if (users.length === 0) {
+        const user = await findUserByIdOrEmail({ email: email });
+        if (!user) {
             res.json({ message: 'No user with such an email is registered.' });
             return;
         }
 
-        const user = users[0];
         const resetToken = emailService.generateToken();
         const now = new Date();
         const expiryDate = new Date(now.getTime() + PASSWORD_RESET_EXPIRY);

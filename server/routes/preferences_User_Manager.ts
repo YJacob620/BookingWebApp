@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware';
 import pool from '../configuration/db';
+import { findUserByIdOrEmail } from '../utils';
 const router = express.Router();
 
 
@@ -10,13 +11,8 @@ const router = express.Router();
 router.get('/email', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId: number = req.user!.userId;
-
-    const [rows]: any = await pool.execute(
-      'SELECT email_notifications FROM users WHERE id = ?',
-      [userId]
-    );
-
-    if (rows.length === 0) {
+    const user = await findUserByIdOrEmail({ id: userId });
+    if (!user) {
       res.status(404).json({
         success: false,
         message: 'User not found'
@@ -26,7 +22,7 @@ router.get('/email', authenticateToken, async (req: Request, res: Response): Pro
 
     res.json({
       success: true,
-      email_notifications: !!rows[0].email_notifications
+      email_notifications: user.email_notifications > 0 // 'convert' from TINYINT to boolean
     });
   } catch (error) {
     console.error('Error fetching email preferences:', error);

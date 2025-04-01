@@ -5,7 +5,8 @@ import {
     User,
     BookingEntry,
     Infrastructure,
-    generateToken
+    generateToken,
+    findUserByIdOrEmail
 } from './'
 
 
@@ -148,30 +149,28 @@ const sendBookingNotificationToManagers = async (
     managers: User[],
     actionToken: string
 ): Promise<any[] | undefined> => {
-    // Get user details
-    const [users]: any[] = await pool.execute('SELECT name, email FROM users WHERE email = ?', [booking.user_email]);
-    const user: User = users[0] || { name: 'User', email: booking.user_email };
-
     // Check if all managers have opted out of emails
-    const activeManagers = managers.filter(manager => manager.email_notifications);
+    const activeManagers = managers.filter(manager => manager.email_notifications == 0);
     if (activeManagers.length === 0) {
         return;
     }
 
-    // Create links for approval/rejection via email buttons
-    const approveUrl = `${process.env.FRONTEND_URL}/email-action/approve/${actionToken}`;
-    const rejectUrl = `${process.env.FRONTEND_URL}/email-action/reject/${actionToken}`;
+    try {
+        // Create links for approval/rejection via email buttons
+        const approveUrl = `${process.env.FRONTEND_URL}/email-action/approve/${actionToken}`;
+        const rejectUrl = `${process.env.FRONTEND_URL}/email-action/reject/${actionToken}`;
 
-    // Generate calendar file for the pending booking request
-    const icsAttachment = generateICSFile(booking, infrastructure, user);
+        // Generate calendar file for the pending booking request
+        const user = await findUserByIdOrEmail({ email: booking.user_email });
+        const icsAttachment = generateICSFile(booking, infrastructure, user);
 
-    // Send email to each manager individually
-    return Promise.all(activeManagers.map(manager => {
-        const mailOptions = {
-            from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
-            to: manager.email,
-            subject: `New Booking Request for ${infrastructure.name}`,
-            html: `
+        // Send email to each manager individually
+        return Promise.all(activeManagers.map(manager => {
+            const mailOptions = {
+                from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+                to: manager.email,
+                subject: `New Booking Request for ${infrastructure.name}`,
+                html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #333;">New Booking Request</h2>
                     <p>Hello ${manager.name || 'Infrastructure Manager'},</p>
@@ -201,17 +200,20 @@ const sendBookingNotificationToManagers = async (
                     </p>
                 </div>
             `,
-            attachments: [
-                {
-                    filename: 'pending_booking_request.ics',
-                    content: icsAttachment,
-                    contentType: 'text/calendar'
-                }
-            ]
-        };
+                attachments: [
+                    {
+                        filename: 'pending_booking_request.ics',
+                        content: icsAttachment,
+                        contentType: 'text/calendar'
+                    }
+                ]
+            };
 
-        return transporter.sendMail(mailOptions);
-    }));
+            return transporter.sendMail(mailOptions);
+        }));
+    } catch (error) {
+        console.error('Error sending email to managers:', error);
+    }
 };
 
 /**
@@ -224,23 +226,19 @@ const sendBookingNotificationToUser = async (
     booking: BookingEntry,
     infrastructure: Infrastructure
 ): Promise<any | undefined> => {
-    // Get user details
-    const [users]: any[] = await pool.execute(
-        'SELECT name, email, email_notifications FROM users WHERE email = ?',
-        [booking.user_email]
-    );
-    const user: User = users[0];
+    try {
+        const user = await findUserByIdOrEmail({ email: booking.user_email });
 
-    // Check if user exists and has email notifications enabled
-    if (!user || !user.email_notifications) {
-        return;
-    }
+        // Check if user has email notifications enabled
+        if (user.email_notifications != 1) {
+            return;
+        }
 
-    const mailOptions = {
-        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
-        to: user.email,
-        subject: `Booking Request Received for ${infrastructure.name}`,
-        html: `
+        const mailOptions = {
+            from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+            to: user.email,
+            subject: `Booking Request Received for ${infrastructure.name}`,
+            html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #333;">Booking Request Received</h2>
                 <p>Hello ${user.name},</p>
@@ -261,9 +259,12 @@ const sendBookingNotificationToUser = async (
                 </p>
             </div>
         `
-    };
+        };
 
-    return transporter.sendMail(mailOptions);
+        return transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error('Error sending email to user:', error);
+    }
 };
 
 /**
@@ -283,12 +284,7 @@ const sendBookingStatusUpdate = async (
         // Use process.nextTick to run notifications in the background
         process.nextTick(async () => {
             try {
-                // Get user details from database
-                const [users]: any[] = await pool.execute(
-                    'SELECT name, role, email, email_notifications FROM users WHERE email = ?',
-                    [booking.user_email]
-                );
-                const user: User = users[0];
+                const user = await findUserByIdOrEmail({ email: booking.user_email });
 
                 // Check if user has opted out of emails
                 if (!user || !user.email_notifications) {

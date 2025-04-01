@@ -7,7 +7,8 @@ import {
     processBookingRequest,
     BookingEntry,
     User,
-    generateToken
+    generateToken,
+    findUserByIdOrEmail
 } from '../utils';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 const router = express.Router();
@@ -59,12 +60,9 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Check if there's an existing user, register (as a guest) if not
-        const [users] = await connection.execute<User[]>(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-        );
+        const user = await findUserByIdOrEmail({ email: email });
         let userId: number;
-        if (users.length === 0) {
+        if (!user) {
             const tempPassword = generateToken();
             const passwordHash: string = await argon2.hash(tempPassword);
             const [result] = await connection.execute<ResultSetHeader>(
@@ -74,8 +72,8 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             );
             userId = result.insertId;
         } else {
-            userId = users[0].id;
-            if (users[0].role !== 'guest') {
+            userId = user.id;
+            if (user.role !== 'guest') {
                 await connection.rollback();
                 res.status(400).json({
                     success: false,

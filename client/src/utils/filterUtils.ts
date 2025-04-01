@@ -55,7 +55,6 @@ export const applyDateFilters = (items: BookingEntry[], selectedDateFilters: str
     }
 
     const now = new Date();
-
     return items.filter(item => {
         const bookingDate = new Date(item.booking_date);
         const [hours, minutes, seconds] = item.start_time.split(":").map(Number);

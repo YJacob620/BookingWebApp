@@ -10,7 +10,9 @@ declare global {
 }
 
 // ===== Auth & User Types =====
-export type UserRole = 'admin' | 'faculty' | 'student' | 'guest' | 'manager';
+export const USER_ROLES = ['admin', 'manager', 'faculty', 'student', 'guest'] as const;
+
+export type UserRole = typeof USER_ROLES[number];
 
 export interface User extends RowDataPacket {
     id: number;
@@ -18,13 +20,13 @@ export interface User extends RowDataPacket {
     password_hash: string;
     name: string;
     role: UserRole;
-    is_verified: boolean;
+    is_verified: number;
     verification_token: string | null;
     verification_token_expires: Date | null;
     password_reset_token: string | null;
     password_reset_expires: Date | null;
-    is_blacklisted?: boolean;
-    email_notifications?: boolean;
+    is_blacklisted: number;
+    email_notifications: number;
     created_at?: Date;
     updated_at?: Date;
 }

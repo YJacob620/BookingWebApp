@@ -437,7 +437,7 @@ export const updateQuestionsOrder = (infrastructureId: number, questionsOrder: {
  * @returns Promise with email notification preferences
  */
 export const fetchEmailPreferences = async ():
-  Promise<{ success: boolean, message: string, email_notifications?: boolean }> => {
+  Promise<{ success: boolean, message: string, email_notifications: boolean }> => {
   return apiRequest('/preferences/user-manager/email');
 };
 
@@ -446,8 +446,7 @@ export const fetchEmailPreferences = async ():
  * @param enabled - Boolean indicating if email notifications should be enabled
  * @returns Promise with updated preferences
  */
-export const updateEmailPreferences = async (enabled: boolean):
-  Promise<{ success: boolean, message?: string }> => {
+export const updateEmailPreferences = async (enabled: boolean): Promise<{ success: boolean, message?: string }> => {
   return apiRequest('/preferences/user-manager/email', {
     method: 'PUT',
     body: JSON.stringify({ email_notifications: enabled }),

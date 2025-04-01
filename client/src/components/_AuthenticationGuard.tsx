@@ -54,8 +54,6 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isGuestMode = location.search.includes('guest=true');
-
       // CASE 1: TOKEN-BASED AUTH FLOW
       if (tokenParams) {
         // If no token present, redirect to login
@@ -111,7 +109,8 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
         return;
       }
 
-      // CASE 3: GUEST BOOKING PAGE
+      // CASE 3: GUEST TRIES TO ACCESS BOOKING PAGE
+      const isGuestMode = location.search.includes('guest=true');
       if (isGuestMode && location.pathname === CREATE_BOOKING) {
         // Allow access to booking page in guest mode without authentication
         setIsAuthorized(true);

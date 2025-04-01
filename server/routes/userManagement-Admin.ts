@@ -1,7 +1,8 @@
-import express, { Request, Response } from 'express';
+import express, { Request, response, Response } from 'express';
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import pool from '../configuration/db';
 import { authenticateAdmin } from '../middleware/authMiddleware';
+import { findUserByIdOrEmail, USER_ROLES } from '../utils';
 const router = express.Router();
 
 interface User extends RowDataPacket {
@@ -42,36 +43,30 @@ router.get('/users', authenticateAdmin, async (req: Request, res: Response) => {
 router.put('/users/:id/role', authenticateAdmin, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { role } = req.body;
-
     if (!role) {
         res.status(400).json({ message: 'Role is required' });
         return;
     }
+    const newRole = role; // just for naming convention
 
-    const validRoles: string[] = ['admin', 'manager', 'faculty', 'student', 'guest'];
-    if (!validRoles.includes(role)) {
+    if (!USER_ROLES.includes(newRole)) {
         res.status(400).json({ message: 'Invalid role' });
         return;
     }
 
     try {
         // Check if user exists
-        const [users] = await pool.execute<User[]>('SELECT * FROM users WHERE id = ?', [id]);
-        if (users.length === 0) {
-            res.status(404).json({ message: 'User not found' });
-            return;
-        }
-
-        const user = users[0];
+        const user = await findUserByIdOrEmail({ id: id, response: res });
+        if (!user) return;
 
         // Update role
         await pool.execute(
             'UPDATE users SET role = ? WHERE id = ?',
-            [role, id]
+            [newRole, id]
         );
 
         // If changing to/from infrastructure_manager, handle the manager-infrastructure relationship
-        if (user.role === 'manager' && role !== 'manager') {
+        if (user.role === 'manager' && newRole !== 'manager') {
             // User is no longer a manager, remove all their infrastructure assignments
             await pool.execute(
                 'DELETE FROM infrastructure_managers WHERE user_id = ?',
@@ -98,11 +93,8 @@ router.put('/users/:id/blacklist', authenticateAdmin, async (req: Request, res: 
 
     try {
         // Check if user exists
-        const [users] = await pool.execute<User[]>('SELECT * FROM users WHERE id = ?', [id]);
-        if (users.length === 0) {
-            res.status(404).json({ message: 'User not found' });
-            return;
-        }
+        const user = await findUserByIdOrEmail({ id: id, response: res });
+        if (!user) return;
 
         // Update blacklist status
         await pool.execute(
@@ -149,13 +141,10 @@ router.post('/users/:id/infrastructures', authenticateAdmin, async (req: Request
 
     try {
         // Check if user exists and is a manager
-        const [users] = await pool.execute<User[]>(
-            'SELECT * FROM users WHERE id = ? AND role = "infrastructure_manager"',
-            [id]
-        );
-
-        if (users.length === 0) {
-            res.status(404).json({ message: 'User not found or not an infrastructure manager' });
+        const user = await findUserByIdOrEmail({ id: id, response: res });
+        if (!user) return;
+        if (user.role != 'manager') {
+            res.status(403).json({ message: 'Forbidden access' });
             return;
         }
 
