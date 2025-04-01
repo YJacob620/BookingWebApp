@@ -133,13 +133,21 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
       const data = await createTimeslots(payload);
 
       // Create success message based on created/skipped counts
-      let successMessage = `Successfully created ${data.created} timeslot(s)`;
+      let message = '';
+      let overlaps: string = '';
       if (data.skipped > 0) {
-        successMessage += ` (${data.skipped} skipped due to overlap)`;
+        overlaps = ` (${data.skipped} skipped due to overlap)`;
       }
-      onSuccess(successMessage);
-      resetForms(); // Reset forms
-      onDataChange(); // Refresh the data
+      if (data.created < 1) {
+        message = 'Failed to create timeslot(s)';
+        onError(message + overlaps);
+      } else {
+        message = `Successfully created ${data.created} timeslot(s)`;
+        onSuccess(message + overlaps);
+        resetForms(); // Reset forms
+        onDataChange(); // Refresh the data
+      }
+
     } catch (error) {
       console.error('Error creating timeslots:', error);
       onError(error instanceof Error ? error.message : 'An error occurred');

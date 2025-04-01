@@ -1,3 +1,4 @@
+import { BookingEntry } from "./types";
 
 export const DATE_FILTER_OPTIONS = [
     'today',
@@ -47,31 +48,28 @@ export const createFilterOptions = <T>(
  * @param selectedDateFilters Array of selected date filter values
  * @returns Filtered array of items
  */
-export const applyDateFilters = <T extends { booking_date: string | Date }>(
-    items: T[],
-    selectedDateFilters: string[]
-): T[] => {
+export const applyDateFilters = (items: BookingEntry[], selectedDateFilters: string[]): BookingEntry[] => {
     // If no filters selected, return all items
     if (selectedDateFilters.length === 0) {
         return items;
     }
 
     const now = new Date();
-    const startOfToday = new Date(now);
-    startOfToday.setHours(0, 0, 0, 0);
 
     return items.filter(item => {
         const bookingDate = new Date(item.booking_date);
+        const [hours, minutes, seconds] = item.start_time.split(":").map(Number);
+        bookingDate.setHours(hours, minutes, seconds, 0);
 
         // Check if the item matches any of the selected filters
         return selectedDateFilters.some(filter => {
             switch (filter) {
                 case 'today':
-                    return bookingDate.toISOString().split('T')[0] === now.toISOString().split('T')[0];
+                    return bookingDate.getDate() === now.getDate();
                 case 'upcoming':
-                    return bookingDate >= startOfToday;
+                    return bookingDate >= now;
                 case 'past':
-                    return bookingDate < startOfToday;
+                    return bookingDate < now;
                 default:
                     return false;
             }
