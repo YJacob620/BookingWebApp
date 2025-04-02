@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import {
   Infrastructure,
   BookingEntry,
-  bookTimeslot,
+  requestUserBooking,
   fetchInfrastAvailTimeslots,
   fetchInfrastructureQuestions,
   FilterQuestionData,
@@ -218,25 +218,13 @@ const BookTimeslot = () => {
     setMessage(null);
 
     try {
-      // Prepare answers for API in the desired format
-      const formattedAnswers: Record<string, any> = {};
-      if (questions.length > 0) {
-        Object.entries(answers).forEach(([questionId, value]) => {
-          // For simplicity, we're only handling text answers for guests
-          if (value !== null && typeof value !== 'object') {
-            formattedAnswers[questionId] = value;
-          }
-        });
-      }
-
-      // Call the API function instead of using fetch directly
       const result = await requestGuestBooking(
         guestName,
         guestEmail,
         selectedInfrastructure.id,
         selectedTimeslotId,
         purpose,
-        formattedAnswers
+        answers
       );
 
       if (result.success) {
@@ -289,11 +277,7 @@ const BookTimeslot = () => {
     // Regular booking flow for authenticated users
     try {
       setIsLoading(true);
-
-      // Use the consolidated bookTimeslot function which always uses FormData
-      await bookTimeslot(selectedTimeslotId, purpose, answers);
-
-      // Success message
+      await requestUserBooking(selectedTimeslotId, purpose, answers);
       setMessage({
         type: 'success',
         text: 'Your booking request has been submitted successfully!'

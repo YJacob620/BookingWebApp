@@ -117,7 +117,7 @@ export const fetchUserBookings = (recent: boolean = false): Promise<BookingEntry
  * @param answers - Map of question IDs to answers (optional)
  * @returns Promise with booking response
  */
-export const bookTimeslot = async (
+export const requestUserBooking = async (
   timeslotId: number,
   purpose: string = '',
   answers: Record<number, FilterQuestionsAnswersType> = {}
