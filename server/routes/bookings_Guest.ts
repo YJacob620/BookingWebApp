@@ -1,5 +1,7 @@
 import express, { Request, Response } from 'express';
 import argon2 from 'argon2';
+import fs from 'fs';
+import path from 'path';
 
 import emailService from '../utils/emailService';
 import pool from '../configuration/db';
@@ -11,9 +13,33 @@ import {
     findUserByIdOrEmail
 } from '../utils';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
+import { tempUploadDir, uploadDir } from '../middleware/fileUploadMiddleware';
 const router = express.Router();
 
 let GUEST_MAX_BOOKINGS_PER_DAY = 1;
+
+interface TempFileInfo {
+    originalName: string,
+    tempPath: string
+}
+
+/**
+ * An interface representing a row in the email_action_tokens table.
+ */
+interface EmailActionTokensEntry extends RowDataPacket {
+    id: number,
+    token: string,
+    booking_id: number,
+    /**
+     * Metadata regarding the action token, if not empty then usually an output of JSON.stringify()
+     */
+    metadata: string,
+    expired: string,
+    created_at: string,
+    used: number,
+    used_at: string
+}
+
 // Handle guest booking request initiation
 router.post('/request', async (req: Request, res: Response): Promise<void> => {
     const connection = await pool.getConnection();
@@ -59,7 +85,7 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Check if there's an existing user, register (as a guest) if not
+        // Check if there's an existing user, register as a guest if not
         const user = await findUserByIdOrEmail({ email: email });
         let userId: number;
         if (!user) {
@@ -112,10 +138,34 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
         const bookingToken = generateToken();
         const expires: Date = new Date();
         expires.setHours(expires.getHours() + 24);
+        // Process file uploads for guests
+        const uploadedFiles: Record<string, TempFileInfo> = {};
+        if (req.files && Array.isArray(req.files)) {
+            for (const file of req.files) {
+                // Extract questionId from field name
+                const questionId = file.fieldname.replace('file_', '');
+
+                // Create token-based directory
+                const tokenDir = path.join(tempUploadDir, bookingToken);
+                if (!fs.existsSync(tokenDir)) {
+                    fs.mkdirSync(tokenDir, { recursive: true });
+                }
+
+                // Move file to token directory
+                const tempFilePath = path.join(tokenDir, file.originalname);
+                fs.renameSync(file.path, tempFilePath);
+
+                // Store file reference in uploadedFiles object
+                uploadedFiles[questionId] = {
+                    originalName: file.originalname,
+                    tempPath: tempFilePath
+                };
+            }
+        }
         await connection.execute(
             `INSERT INTO email_action_tokens 
-			 (token, booking_id, expires, metadata) 
-			 VALUES (?, ?, ?, ?)`,
+             (token, booking_id, expires, metadata) 
+             VALUES (?, ?, ?, ?)`,
             [
                 bookingToken,
                 timeslotId,
@@ -125,10 +175,12 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
                     email,
                     purpose,
                     answers,
-                    userId
+                    userId,
+                    uploadedFiles
                 })
             ]
         );
+
         const verificationUrl: string = `${process.env.FRONTEND_URL}/guest-confirm/${bookingToken}`;
         await emailService.sendGuestBookingVerificationEmail(name, email, verificationUrl);
 
@@ -158,8 +210,8 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
         await connection.beginTransaction();
 
         // Verify token
-        const token = req.params;
-        const [tokens] = await connection.execute<RowDataPacket[]>(
+        const token = String(req.params);
+        const [tokens] = await connection.execute<EmailActionTokensEntry[]>(
             `SELECT * FROM email_action_tokens 
 	 		   WHERE token=? AND used=0 AND expires > NOW()`,
             [token]
@@ -172,8 +224,8 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
             });
             return;
         }
-        const tokenData: any = tokens[0];
-        const metadata: any = JSON.parse(tokenData.metadata || '{}');
+        const tokenData = tokens[0];
+        const metadata: Record<string, any> = JSON.parse(tokenData.metadata || '{}');
         if (metadata.type !== 'guest_booking') {
             await connection.rollback();
             res.status(400).json({
@@ -200,6 +252,42 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
             return;
         }
 
+        // Process the stored file references
+        const tempUploadedFiles: Record<number, TempFileInfo> = metadata.uploadedFiles;
+        if (tempUploadedFiles) {
+            const enhancedAnswers = { ...metadata.answers };
+
+            for (const [questionId, fileInfo] of Object.entries(tempUploadedFiles)) {
+                if (fileInfo.tempPath && fs.existsSync(fileInfo.tempPath)) {
+                    // Determine final path for the file
+                    const finalDir = path.join(uploadDir, 'guestBooking_' + tokenData.timeslotId);
+                    if (!fs.existsSync(finalDir)) {
+                        fs.mkdirSync(finalDir, { recursive: true });
+                    }
+
+                    const finalPath = path.join(finalDir, fileInfo.originalName);
+
+                    // Move file from temp to final location
+                    fs.renameSync(fileInfo.tempPath, finalPath);
+
+                    // Update answers with file info
+                    enhancedAnswers[questionId] = {
+                        type: 'file',
+                        filePath: finalPath,
+                        originalName: fileInfo.originalName
+                    };
+                }
+            }
+
+            // Clean up temp directory
+            const tokenDir = path.join(tempUploadDir, token);
+            if (fs.existsSync(tokenDir)) {
+                fs.rmSync(tokenDir, { recursive: true, force: true });
+            }
+
+            // Use enhanced answers that include file paths
+            metadata.answers = enhancedAnswers;
+        }
         // Process the booking request
         const bookingResult = await processBookingRequest(connection, {
             email: metadata.email,
@@ -241,7 +329,6 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
                 time: `${bookingResult.booking.start_time} - ${bookingResult.booking.end_time}`
             }
         });
-
     } catch (error) {
         await connection.rollback();
         console.error('Error confirming guest booking:', error);

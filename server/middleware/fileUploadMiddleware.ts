@@ -11,10 +11,20 @@ interface FileUploadFile extends Express.Multer.File {
 }
 
 
-// Create uploads directory if it doesn't exist
+/**
+ * Directory for file uploads
+ */
 const uploadDir: string = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+/**
+ * Directory for 'temporary' files that were uploaded by guests
+ */
+const tempUploadDir = path.join(__dirname, '..', 'uploads', 'guests');
+if (!fs.existsSync(tempUploadDir)) {
+    fs.mkdirSync(tempUploadDir, { recursive: true });
 }
 
 // Generate a secure filename hash based on original filename
@@ -104,5 +114,6 @@ export {
     getFileUrl,
     getFilePath,
     getMimeType,
-    uploadDir
+    uploadDir,
+    tempUploadDir
 };
