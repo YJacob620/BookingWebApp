@@ -183,15 +183,6 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
             }
         }
 
-        console.log('Metadata being saved:', {
-            type: 'guest_booking',
-            email,
-            purpose,
-            answers: parsedAnswers,
-            userId,
-            uploadedFiles
-        });
-
         // Save token with metadata including answers and uploaded files
         await connection.execute(
             `INSERT INTO email_action_tokens 
