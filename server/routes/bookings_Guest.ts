@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import argon2 from 'argon2';
 import fs from 'fs';
 import path from 'path';
+import { upload } from '../middleware/fileUploadMiddleware';
 
 import emailService from '../utils/emailService';
 import pool from '../configuration/db';
@@ -41,20 +42,30 @@ interface EmailActionTokensEntry extends RowDataPacket {
 }
 
 // Handle guest booking request initiation
-router.post('/request', async (req: Request, res: Response): Promise<void> => {
+router.post('/request', upload.any(), async (req: Request, res: Response): Promise<void> => {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
-        // Verify parameters
-        const { email, name, infrastructureId, timeslotId, purpose = '', answers = {} }:
-            {
-                email: string;
-                name: string;
-                infrastructureId: number;
-                timeslotId: number;
-                purpose?: string;
-                answers?: Record<string, any>;
-            } = req.body;
+
+        // Extract basic parameters from req.body
+        const email = req.body.email;
+        const name = req.body.name;
+        const infrastructureId = parseInt(req.body.infrastructureId, 10);
+        const timeslotId = parseInt(req.body.timeslotId, 10);
+        const purpose = req.body.purpose || '';
+
+        // Handle answers - parse from answersJSON if available
+        let parsedAnswers: Record<string, any> = {};
+        if (req.body.answersJSON) {
+            try {
+                parsedAnswers = JSON.parse(req.body.answersJSON);
+                console.log('Parsed answers from JSON:', parsedAnswers);
+            } catch (e) {
+                console.error('Error parsing answersJSON:', e);
+            }
+        }
+
+        // Validate required parameters
         if (!email || !name || !infrastructureId || !timeslotId) {
             res.status(400).json({
                 success: false,
@@ -62,6 +73,7 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             });
             return;
         }
+
         const emailRegex: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             res.status(400).json({
@@ -71,7 +83,7 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Check existance of requested timeslot
+        // Check existence of requested timeslot
         const [timeslots] = await connection.execute<BookingEntry[]>(
             'SELECT * FROM bookings WHERE id = ? AND booking_type = "timeslot" AND status = "available"',
             [timeslotId]
@@ -119,7 +131,7 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
 
         // Check if guest has already made bookings today
         const today: string = new Date().toISOString().split('T')[0];
-        const [existingBookings] = await connection.execute<BookingEntry[]>(
+        const [existingBookings] = await connection.execute<RowDataPacket[]>(
             `SELECT COUNT(*) as count FROM bookings 
              WHERE user_email = ? AND booking_date = ? 
              AND booking_type = 'booking' AND status != 'canceled'`,
@@ -134,14 +146,20 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Save the booking request into a token that will be sent via email for verification 
+        // Create booking token and prepare for email verification
         const bookingToken = generateToken();
         const expires: Date = new Date();
         expires.setHours(expires.getHours() + 24);
+
         // Process file uploads for guests
         const uploadedFiles: Record<string, TempFileInfo> = {};
+
+        console.log('Files received:', req.files);
+
         if (req.files && Array.isArray(req.files)) {
             for (const file of req.files) {
+                console.log('Processing file:', file.fieldname, file.originalname);
+
                 // Extract questionId from field name
                 const questionId = file.fieldname.replace('file_', '');
 
@@ -160,8 +178,21 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
                     originalName: file.originalname,
                     tempPath: tempFilePath
                 };
+
+                console.log(`File ${file.originalname} stored at ${tempFilePath}`);
             }
         }
+
+        console.log('Metadata being saved:', {
+            type: 'guest_booking',
+            email,
+            purpose,
+            answers: parsedAnswers,
+            userId,
+            uploadedFiles
+        });
+
+        // Save token with metadata including answers and uploaded files
         await connection.execute(
             `INSERT INTO email_action_tokens 
              (token, booking_id, expires, metadata) 
@@ -174,13 +205,14 @@ router.post('/request', async (req: Request, res: Response): Promise<void> => {
                     type: 'guest_booking',
                     email,
                     purpose,
-                    answers,
+                    answers: parsedAnswers,
                     userId,
                     uploadedFiles
                 })
             ]
         );
 
+        // Send verification email
         const verificationUrl: string = `${process.env.FRONTEND_URL}/guest-confirm/${bookingToken}`;
         await emailService.sendGuestBookingVerificationEmail(name, email, verificationUrl);
 

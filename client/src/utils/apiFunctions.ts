@@ -511,8 +511,8 @@ export const downloadBookingDocument = async (bookingId: string, questionId: str
 
 /**
  * Initiate a guest booking request
- * @param email - Guest email address
  * @param name - Guest name
+ * @param email - Guest email address
  * @param infrastructureId - ID of the selected infrastructure
  * @param timeslotId - ID of the selected timeslot
  * @param purpose - Purpose of the booking (optional)
@@ -528,19 +528,45 @@ export const requestGuestBooking = async (
   answers: Record<string, any> = {}
 ): Promise<{ success: boolean, message: string, data?: any }> => {
   try {
+    // Create FormData for file uploads
+    const formData = new FormData();
+
+    // Add basic guest booking data
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('infrastructureId', infrastructureId.toString());
+    formData.append('timeslotId', timeslotId.toString());
+    formData.append('purpose', purpose || '');
+
+    // Process answers if any
+    const hasAnswers = Object.keys(answers).length > 0;
+
+    if (hasAnswers) {
+      // Create a clean object for JSON serialization of non-file answers
+      const answersForJson: Record<string, any> = {};
+
+      Object.entries(answers).forEach(([questionId, answer]) => {
+        if (answer instanceof File) {
+          // Handle file upload
+          console.log('Adding file for guest booking:', answer.name, 'Size:', answer.size, 'bytes');
+          const fieldName = `file_${questionId}`;
+          formData.append(fieldName, answer);
+          answersForJson[questionId] = { type: 'file', fieldName };
+        } else if (answer !== null && answer !== undefined) {
+          // Handle text answers
+          formData.append(`answer_${questionId}`, answer.toString());
+          answersForJson[questionId] = { type: 'text', value: answer.toString() };
+        }
+      });
+
+      // Add structured answers as JSON for easier processing on server
+      formData.append('answersJSON', JSON.stringify(answersForJson));
+    }
+
+    // Send the request without specifying Content-Type
     const response = await fetch(`${API_BASE_URL}/guest/request`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        name,
-        infrastructureId,
-        timeslotId,
-        purpose,
-        answers
-      }),
+      body: formData
     });
 
     const data = await response.json();

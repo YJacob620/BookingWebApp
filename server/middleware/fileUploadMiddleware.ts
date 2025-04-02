@@ -5,11 +5,13 @@ import { Request } from 'express';
 
 import { generateToken } from '../utils'
 
+
 // Define interfaces for file handling
 interface FileUploadFile extends Express.Multer.File {
     originalFilename?: string;
 }
 
+let MAX_UPLOAD_SIZE_MB = 50;
 
 /**
  * Directory for file uploads
@@ -38,16 +40,48 @@ const generateSecureFilename = (originalname: string): string => {
     return safeName;
 };
 
-// Configure storage
+// // Configure storage
+// const userStorage: StorageEngine = multer.diskStorage({
+//     destination: function (req: Request, file: FileUploadFile, cb: (error: Error | null, destination: string) => void) {
+//         file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8'); // CRUCIAL FOR NON-ENGLISH FILE NAMES
+//         cb(null, uploadDir);
+//     },
+//     filename: function (req: Request, file: FileUploadFile, cb: (error: Error | null, filename: string) => void) {
+//         // Generate a secure filename that will be later associated with the booking
+//         const secureFilename: string = generateSecureFilename(file.originalname);
+//         cb(null, secureFilename);
+//     }
+// });
+
 const storage: StorageEngine = multer.diskStorage({
     destination: function (req: Request, file: FileUploadFile, cb: (error: Error | null, destination: string) => void) {
-        file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8'); // CRUCIAL FOR NON-ENGLISH FILE NAMES
-        cb(null, uploadDir);
+        // Check if this is a booking request of a user or guest
+        const isGuestBooking = req.path.includes('/guest/request');
+        const uploadPath = isGuestBooking ? tempUploadDir : uploadDir;
+
+        file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        cb(null, uploadPath);
     },
     filename: function (req: Request, file: FileUploadFile, cb: (error: Error | null, filename: string) => void) {
         // Generate a secure filename that will be later associated with the booking
         const secureFilename: string = generateSecureFilename(file.originalname);
         cb(null, secureFilename);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: MAX_UPLOAD_SIZE_MB * 1024 * 1024,
+    },
+    fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+        const allowedTypes = Object.values(mimeTypes); // Get allowed MIME types from dictionary
+
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only PDF, Word, Excel, images, text files, and common file types are allowed.'));
+        }
     }
 });
 
@@ -86,22 +120,6 @@ const mimeTypes: Record<string, string> = {
     '.x-zip-compressed': 'application/x-zip-compressed'
 };
 
-// Create the upload middleware
-const upload = multer({
-    storage: storage,
-    limits: {
-        fileSize: 50 * 1024 * 1024, // 50MB file size limit
-    },
-    fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-        const allowedTypes = Object.values(mimeTypes); // Get allowed MIME types from dictionary
-
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Invalid file type. Only PDF, Word, Excel, images, text files, and common file types are allowed.'));
-        }
-    }
-});
 
 // Get mimetype based on filename 
 const getMimeType = (filename: string): string => {
@@ -110,7 +128,7 @@ const getMimeType = (filename: string): string => {
 };
 
 export {
-    upload,
+    upload as upload,
     getFileUrl,
     getFilePath,
     getMimeType,
