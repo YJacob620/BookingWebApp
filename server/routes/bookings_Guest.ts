@@ -242,7 +242,7 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
         await connection.beginTransaction();
 
         // Verify token
-        const token = String(req.params);
+        const token = req.params.token;
         const [tokens] = await connection.execute<EmailActionTokensEntry[]>(
             `SELECT * FROM email_action_tokens 
 	 		   WHERE token=? AND used=0 AND expires > NOW()`,
