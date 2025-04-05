@@ -1,9 +1,13 @@
 import express, { Request, Response } from 'express';
-import path from 'path';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { upload, cleanupTempFiles } from '../middleware/fileUploadMiddleware';
-import { processBookingRequest } from '../utils';
 import pool from '../configuration/db';
+import {
+    processBookingRequest,
+    parseBookingRequest,
+    trackTempFiles,
+    ParsedBookingError
+} from '../utils';
 const router = express.Router();
 
 
@@ -106,112 +110,72 @@ router.post('/:id/cancel', authenticateToken, async (req: Request, res: Response
 });
 
 // Request a booking (user)
-router.post('/request', authenticateToken, upload.array('documents'), async (req: Request, res: Response): Promise<void> => {
-    const connection: any = await pool.getConnection();
-    const tempFiles: string[] = []; // Track files for potential cleanup
+router.post('/request', authenticateToken, upload.any(), async (req: Request, res: Response): Promise<void> => {
+    const connection = await pool.getConnection();
+    let tempFiles: string[] = [];
 
     try {
         await connection.beginTransaction();
 
-        const userEmail: string = req.user.email;
-        const timeslot_id: string = req.body.timeslot_id;
-        const purpose: string = req.body.purpose || '';
+        const userEmail = req.user!.email;
 
-        if (!userEmail || !timeslot_id) {
+        // Parse booking request
+        const parsedRequest = parseBookingRequest(req);
+
+        if (!parsedRequest.valid) {
             res.status(400).json({
-                message: 'Missing required parameters for request',
-                receivedBody: JSON.stringify(req.body)
+                success: false,
+                message: parsedRequest.error
             });
             return;
         }
 
-        let answersObj: { [key: string]: any } = {};
-        if (req.is('multipart/form-data')) {
-            if (req.body.answersJSON) {
-                answersObj = JSON.parse(req.body.answersJSON);
-            }
+        // Track uploaded files for potential cleanup
+        tempFiles = trackTempFiles(req);
 
-            for (const key in req.body) {
-                if (key.startsWith('answer_')) {
-                    const questionId: string = key.replace('answer_', '');
-                    answersObj[questionId] = {
-                        type: 'text',
-                        value: req.body[key]
-                    };
-                }
-            }
-
-            if (req.files && Array.isArray(req.files)) {
-                for (const file of req.files) {
-                    const fieldName: string = file.fieldname;
-                    console.log(`Processing file: '${file.originalname}, (${file.size} bytes)`);
-
-                    // Track for potential cleanup
-                    tempFiles.push(file.path);
-
-                    // Get metadata from request
-                    const metadata = req.fileMetadata?.[file.fieldname] || {
-                        originalName: file.originalname,
-                        secureFilename: path.basename(file.path)
-                    };
-
-                    if (fieldName.startsWith('file_')) {
-                        const questionId: string = fieldName.replace('file_', '');
-                        answersObj[questionId] = {
-                            type: 'file',
-                            filePath: file.path,
-                            originalName: metadata.originalName,
-                            secureFilename: metadata.secureFilename
-                        };
-                    }
-                }
-            }
-        }
-
+        // Process booking request
         const bookingResult = await processBookingRequest(connection, {
             email: userEmail,
-            timeslotId: timeslot_id,
-            purpose,
-            answers: answersObj
+            timeslotId: parsedRequest.timeslotId,
+            purpose: parsedRequest.purpose,
+            answers: parsedRequest.answers
         });
 
         if (!bookingResult.success) {
             await connection.rollback();
-            // Clean up any temporary files
             cleanupTempFiles(tempFiles);
 
             res.status(400).json({
                 success: false,
-                message: bookingResult.message
+                message: bookingResult.message || 'Failed to process booking request'
             });
             return;
         }
 
         await connection.commit();
 
-        // Once the transaction is committed successfully, we can clear the tempFiles array
-        // since we don't want to delete the files that have been properly moved
-        tempFiles.length = 0;
+        // Once the transaction is committed successfully, we don't want to delete 
+        // files that have been properly moved
+        tempFiles = [];
 
         res.status(201).json({
+            success: true,
             message: 'Booking request submitted successfully',
-            booking_id: timeslot_id,
-            infrastructure_id: bookingResult.booking.infrastructure_id,
-            booking_date: bookingResult.booking.booking_date,
-            start_time: bookingResult.booking.start_time,
-            end_time: bookingResult.booking.end_time
+            booking_id: parsedRequest.timeslotId,
+            infrastructure_id: bookingResult.booking!.infrastructure_id,
+            booking_date: bookingResult.booking!.booking_date,
+            start_time: bookingResult.booking!.start_time,
+            end_time: bookingResult.booking!.end_time
         });
-
     } catch (err) {
         await connection.rollback();
-        // Clean up any temporary files
         cleanupTempFiles(tempFiles);
 
-        console.error('Database error:', err);
+        console.error('Error processing booking request:', err);
         res.status(500).json({
+            success: false,
             message: 'Error creating booking request',
-            error: err.message,
-            stack: err.stack
+            error: err instanceof Error ? err.message : 'Unknown error'
         });
     } finally {
         connection.release();

@@ -24,15 +24,13 @@ import { Input } from '@/components/ui/input';
 import {
   Infrastructure,
   BookingEntry,
-  requestUserBooking,
   fetchInfrastAvailTimeslots,
   fetchInfrastructureQuestions,
   FilterQuestionData,
-  BookingReqAnswerType,
   BookingReqAnswersMap,
   Message,
-  requestGuestBooking,
-  formatTimeString
+  formatTimeString,
+  requestBooking
 } from '@/utils';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
@@ -193,24 +191,36 @@ const BookTimeslot = () => {
     e.preventDefault();
 
     if (!selectedTimeslotId || !selectedInfrastructure) {
-      setMessage({ type: 'error', text: 'Please select a valid infrastructure and timeslot' });
+      setMessage({
+        type: 'error',
+        text: 'Please select a valid infrastructure and timeslot'
+      });
       return;
     }
 
     if (!guestName.trim()) {
-      setMessage({ type: 'error', text: 'Please enter your name' });
+      setMessage({
+        type: 'error',
+        text: 'Please enter your name'
+      });
       return;
     }
 
     if (!guestEmail.trim()) {
-      setMessage({ type: 'error', text: 'Please enter your email address' });
+      setMessage({
+        type: 'error',
+        text: 'Please enter your email address'
+      });
       return;
     }
 
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(guestEmail)) {
-      setMessage({ type: 'error', text: 'Please enter a valid email address' });
+      setMessage({
+        type: 'error',
+        text: 'Please enter a valid email address'
+      });
       return;
     }
 
@@ -218,13 +228,12 @@ const BookTimeslot = () => {
     setMessage(null);
 
     try {
-      const result = await requestGuestBooking(
-        guestName,
-        guestEmail,
-        selectedInfrastructure.id,
+      const result = await requestBooking(
         selectedTimeslotId,
         purpose,
-        answers
+        answers,
+        { name: guestName, email: guestEmail },
+        selectedInfrastructure.id
       );
 
       if (result.success) {
@@ -260,10 +269,10 @@ const BookTimeslot = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedTimeslotId) {
+    if (!selectedTimeslotId || !selectedInfrastructure) {
       setMessage({
         type: 'error',
-        text: 'Please select a timeslot'
+        text: 'Please select an infrastructure and timeslot'
       });
       return;
     }
@@ -277,18 +286,31 @@ const BookTimeslot = () => {
     // Regular booking flow for authenticated users
     try {
       setIsLoading(true);
-      await requestUserBooking(selectedTimeslotId, purpose, answers);
-      setMessage({
-        type: 'success',
-        text: 'Your booking request has been submitted successfully!'
-      });
 
-      resetForm();
-      setSelectedInfrastructure(null);
-      setTimeout(() => {
-        window.location.reload();
-      }, ALERT_MESSAGE_TIME);
+      const result = await requestBooking(
+        selectedTimeslotId,
+        purpose,
+        answers
+      );
 
+      if (result.success) {
+        setMessage({
+          type: 'success',
+          text: 'Your booking request has been submitted successfully!'
+        });
+
+        resetForm();
+        setSelectedInfrastructure(null);
+
+        setTimeout(() => {
+          window.location.reload();
+        }, ALERT_MESSAGE_TIME);
+      } else {
+        setMessage({
+          type: 'error',
+          text: result.message
+        });
+      }
     } catch (error) {
       console.error('Error creating booking:', error);
       setMessage({

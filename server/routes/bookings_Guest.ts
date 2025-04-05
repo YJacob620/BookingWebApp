@@ -1,17 +1,16 @@
 import express, { Request, Response } from 'express';
 import argon2 from 'argon2';
 import fs from 'fs';
-import path from 'path';
-import { upload, tempUploadDir, uploadDir, moveFileToStorage, cleanupTempFiles } from '../middleware/fileUploadMiddleware';
-
+import { upload, moveFileToStorage, cleanupTempFiles } from '../middleware/fileUploadMiddleware';
 import emailService from '../utils/emailService';
 import pool from '../configuration/db';
 import {
     processBookingRequest,
     BookingEntry,
-    User,
     generateToken,
-    findUserByIdOrEmail
+    findUserByIdOrEmail,
+    parseBookingRequest,
+    trackTempFiles
 } from '../utils';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 const router = express.Router();
@@ -50,55 +49,43 @@ interface EmailActionTokensEntry extends RowDataPacket {
 // Handle guest booking request initiation
 router.post('/request', upload.any(), async (req: Request, res: Response): Promise<void> => {
     const connection = await pool.getConnection();
-    const tempFiles: string[] = []; // Track temporary files for cleanup
+    let tempFiles: string[] = [];
 
     try {
         await connection.beginTransaction();
 
-        // Extract basic parameters from req.body
-        const email = req.body.email;
-        const name = req.body.name;
-        const infrastructureId = parseInt(req.body.infrastructureId, 10);
-        const timeslotId = parseInt(req.body.timeslotId, 10);
-        const purpose = req.body.purpose || '';
+        // Parse booking request with guest validation
+        const parsedRequest = parseBookingRequest(req, true);
 
-        // Handle answers - parse from answersJSON if available
-        let parsedAnswers: Record<string, any> = {};
-        if (req.body.answersJSON) {
-            try {
-                parsedAnswers = JSON.parse(req.body.answersJSON);
-                console.log('Parsed answers from JSON:', parsedAnswers);
-            } catch (e) {
-                console.error('Error parsing answersJSON:', e);
-            }
-        }
-
-        // Validate required parameters
-        if (!email || !name || !infrastructureId || !timeslotId) {
+        if (!parsedRequest.valid) {
             res.status(400).json({
                 success: false,
-                message: 'Name, email, infrastructure ID, and timeslot ID are required'
+                message: parsedRequest.error
             });
             return;
         }
 
-        const emailRegex: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            res.status(400).json({
-                success: false,
-                message: 'Invalid email format'
-            });
-            return;
-        }
+        // Track uploaded files for potential cleanup
+        tempFiles = trackTempFiles(req);
+
+        // Extract data from the parsed request
+        const { email, name, timeslotId, infrastructureId, purpose, answers } = parsedRequest as {
+            email: string;
+            name: string;
+            timeslotId: string | number;
+            infrastructureId: string | number;
+            purpose: string;
+            answers: Record<string, any>;
+        };
 
         // Check existence of requested timeslot
         const [timeslots] = await connection.execute<BookingEntry[]>(
             'SELECT * FROM bookings WHERE id = ? AND booking_type = "timeslot" AND status = "available"',
             [timeslotId]
         );
+
         if (timeslots.length === 0) {
             await connection.rollback();
-            // Cleanup any temporary files
             cleanupTempFiles(tempFiles);
 
             res.status(404).json({
@@ -109,14 +96,15 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         }
 
         // Check if there's an existing user, register as a guest if not
-        const user = await findUserByIdOrEmail({ email: email });
+        const user = await findUserByIdOrEmail({ email });
         let userId: number;
+
         if (!user) {
             const tempPassword = generateToken();
             const passwordHash: string = await argon2.hash(tempPassword);
             const [result] = await connection.execute<ResultSetHeader>(
                 `INSERT INTO users (email, password_hash, name, role, is_verified) 
-                 VALUES (?, ?, ?, 'guest', 0)`,
+           VALUES (?, ?, ?, 'guest', 0)`,
                 [email, passwordHash, name]
             );
             userId = result.insertId;
@@ -124,7 +112,6 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
             userId = user.id;
             if (user.role !== 'guest') {
                 await connection.rollback();
-                // Cleanup any temporary files
                 cleanupTempFiles(tempFiles);
 
                 res.status(400).json({
@@ -133,12 +120,10 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
                 });
                 return;
             }
+
+            // Update guest user name and verification status
             await connection.execute(
-                'UPDATE users SET is_verified = 0 WHERE id = ?',
-                [userId]
-            );
-            await connection.execute(
-                'UPDATE users SET name = ? WHERE id = ?',
+                'UPDATE users SET is_verified = 0, name = ? WHERE id = ?',
                 [name, userId]
             );
         }
@@ -147,13 +132,15 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         const today: string = new Date().toISOString().split('T')[0];
         const [existingBookings] = await connection.execute<RowDataPacket[]>(
             `SELECT COUNT(*) as count FROM bookings 
-             WHERE user_email = ? AND booking_date = ? 
-             AND booking_type = 'booking' AND status != 'canceled'`,
+         WHERE user_email = ? AND booking_date = ? 
+         AND booking_type = 'booking' AND status != 'canceled'`,
             [email, today]
         );
+
+        const GUEST_MAX_BOOKINGS_PER_DAY = 1; // Could be moved to a config file
+
         if (existingBookings[0].count >= GUEST_MAX_BOOKINGS_PER_DAY) {
             await connection.rollback();
-            // Cleanup any temporary files
             cleanupTempFiles(tempFiles);
 
             res.status(429).json({
@@ -168,42 +155,11 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         const expires: Date = new Date();
         expires.setHours(expires.getHours() + 24);
 
-        // Process uploaded files
-        const uploadedFiles: Record<string, TempFileInfo> = {};
-        console.log('Files received:', req.files);
-
-        if (req.files && Array.isArray(req.files)) {
-            for (const file of req.files) {
-                console.log('Processing file:', file.fieldname, file.originalname);
-
-                // Extract questionId from field name
-                const questionId = file.fieldname.replace('file_', '');
-
-                // Get metadata from request
-                const metadata = req.fileMetadata?.[file.fieldname] || {
-                    originalName: file.originalname,
-                    secureFilename: path.basename(file.path)
-                };
-
-                // Store temporary path for later confirmation
-                tempFiles.push(file.path);
-
-                // Store file reference with metadata
-                uploadedFiles[questionId] = {
-                    originalName: metadata.originalName,
-                    tempPath: file.path,
-                    secureFilename: metadata.secureFilename
-                };
-
-                console.log(`File ${metadata.originalName} stored at ${file.path}`);
-            }
-        }
-
-        // Save token with metadata including answers and uploaded files
+        // Save token with metadata
         await connection.execute(
             `INSERT INTO email_action_tokens 
-             (token, booking_id, expires, metadata) 
-             VALUES (?, ?, ?, ?)`,
+         (token, booking_id, expires, metadata) 
+         VALUES (?, ?, ?, ?)`,
             [
                 bookingToken,
                 timeslotId,
@@ -211,10 +167,11 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
                 JSON.stringify({
                     type: 'guest_booking',
                     email,
+                    name,
                     purpose,
-                    answers: parsedAnswers,
                     userId,
-                    uploadedFiles
+                    infrastructureId,
+                    answers
                 })
             ]
         );
@@ -224,6 +181,10 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         await emailService.sendGuestBookingVerificationEmail(name, email, verificationUrl);
 
         await connection.commit();
+
+        // Once committed, don't delete the files
+        tempFiles = [];
+
         res.json({
             success: true,
             message: 'Booking verification email sent. Please check your inbox to confirm your booking.',
@@ -231,7 +192,6 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         });
     } catch (error) {
         await connection.rollback();
-        // Cleanup any temporary files on error
         cleanupTempFiles(tempFiles);
 
         console.error('Error initiating guest booking:', error);

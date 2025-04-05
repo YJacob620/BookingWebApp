@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import path from 'path';
 import { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
 import emailService from './emailService'
@@ -32,6 +33,31 @@ interface BookingRequestResult {
     actionToken?: string;
     missingAnswers?: number[];
 }
+
+
+/**
+ * Interface for the result of parsing a booking request
+ */
+interface ParsedBookingRequest {
+    valid: true;
+    timeslotId: string | number;
+    purpose: string;
+    answers: Record<string, any>;
+    email?: string;       // For guest bookings
+    name?: string;        // For guest bookings
+    infrastructureId?: number | string; // For guest bookings
+    error?: string;
+}
+
+export interface ParsedBookingError {
+    valid: false;
+    error: string;
+}
+
+/**
+ * Type for the result of parsing a booking request
+ */
+type BookingRequestParseResult = ParsedBookingRequest | ParsedBookingError;
 
 /**
  * Process a booking request for either a logged-in user or a guest
@@ -189,6 +215,121 @@ const processBookingRequest =
             throw error;
         }
     };
+
+/**
+ * Parse and validate a booking request from FormData
+ * Works for both user and guest booking requests
+ * 
+ * @param req - Express request object containing form data
+ * @param isGuestBooking - Whether this is a guest booking (requires email and name)
+ * @returns Parsed booking request or error object
+ */
+export const parseBookingRequest = (req: Request, isGuestBooking = false): BookingRequestParseResult => {
+    try {
+        // Extract core booking data
+        const timeslotId = req.body.timeslot_id;
+        const purpose = req.body.purpose || '';
+
+        // Validate required params
+        if (!timeslotId) {
+            return { valid: false, error: 'Missing required parameter: timeslot_id' };
+        }
+
+        // For guest requests, validate additional fields
+        if (isGuestBooking) {
+            const { name, email, infrastructure_id } = req.body;
+
+            if (!name || !email || !infrastructure_id) {
+                return {
+                    valid: false,
+                    error: 'Missing required guest parameters: name, email, or infrastructure_id'
+                };
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return { valid: false, error: 'Invalid email format' };
+            }
+        }
+
+        // Process answers
+        const answers: Record<string, any> = {};
+
+        // First process non-file fields (excluding known booking params)
+        const reservedFields = ['timeslot_id', 'purpose', 'name', 'email', 'infrastructure_id'];
+
+        for (const key in req.body) {
+            if (reservedFields.includes(key)) {
+                continue;
+            }
+
+            answers[key] = {
+                type: 'text',
+                value: req.body[key]
+            };
+        }
+
+        // Then process files
+        if (req.files && Array.isArray(req.files)) {
+            for (const file of req.files) {
+                const questionId = file.fieldname;
+
+                // Skip if this is a reserved field
+                if (reservedFields.includes(questionId)) {
+                    continue;
+                }
+
+                // Get metadata from request
+                const metadata = req.fileMetadata?.[questionId] || {
+                    originalName: file.originalname,
+                    secureFilename: path.basename(file.path)
+                };
+
+                answers[questionId] = {
+                    type: 'file',
+                    filePath: file.path,
+                    originalName: metadata.originalName,
+                    secureFilename: metadata.secureFilename
+                };
+            }
+        }
+
+        return {
+            valid: true,
+            timeslotId,
+            purpose,
+            answers,
+            ...(isGuestBooking ? {
+                email: req.body.email,
+                name: req.body.name,
+                infrastructureId: req.body.infrastructure_id
+            } : {})
+        };
+    } catch (error) {
+        console.error('Error parsing booking request:', error);
+        return {
+            valid: false,
+            error: error instanceof Error ? error.message : 'Failed to parse booking request'
+        };
+    }
+};
+
+/**
+ * Helper to track temporary files for potential cleanup
+ * 
+ * @param req - Express request object with files
+ * @returns Array of file paths to track
+ */
+export const trackTempFiles = (req: Request): string[] => {
+    const tempFiles: string[] = [];
+
+    if (req.files && Array.isArray(req.files)) {
+        req.files.forEach(file => tempFiles.push(file.path));
+    }
+
+    return tempFiles;
+};
 
 export {
     processBookingRequest,
