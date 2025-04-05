@@ -161,11 +161,7 @@ export const requestUserBooking = async (
     headers['authorization_token'] = token;
   }
 
-  const response = await fetch(`${API_BASE_URL}/bookings/user/request`, {
-    method: 'POST',
-    headers,
-    body: formData
-  });
+  const response = await fetch(`${API_BASE_URL}/bookings/user/request`, { method: 'POST', headers, body: formData });
 
   // Clone response for multiple reads if needed
   const responseClone = response.clone();

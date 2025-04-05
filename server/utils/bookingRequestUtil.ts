@@ -73,7 +73,22 @@ const processBookingRequest =
 
             const missingAnswers = requiredQuestions
                 .map(q => q.id)
-                .filter(qId => !answers[qId] || !answers[qId].value?.trim());
+                .filter(qId => {
+                    const answer = answers[qId];
+                    if (!answer) return true; // No answer provided
+
+                    // Check based on answer type
+                    if (answer.type === 'file') {
+                        // For file uploads, consider it present if there's file information
+                        return !answer.filePath && !answer.originalName;
+                    } else if (answer.type === 'text') {
+                        // For text-based answers, check the value property
+                        return !answer.value?.trim();
+                    }
+
+                    // Default case - consider missing
+                    return true;
+                });
 
             if (missingAnswers.length > 0) {
                 return {
