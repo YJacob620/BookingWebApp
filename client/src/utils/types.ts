@@ -107,9 +107,11 @@ export interface FilterQuestionData {
   display_order: number;
 }
 
-export type FilterQuestionsAnswersType = string | number | File | null;
+export type BookingReqAnswerType = string | number | File | null;
 
-export interface BookingAnswer {
+export type BookingReqAnswersMap = Record<number, BookingReqAnswerType>;
+
+export interface BookingReqAnswer {
   question_id: number;
   question_text: string;
   question_type: 'dropdown' | 'text' | 'number' | 'document';
@@ -119,5 +121,5 @@ export interface BookingAnswer {
 
 export interface BookingDetails {
   booking: BookingEntry;
-  answers: BookingAnswer[];
+  answers: BookingReqAnswer[];
 }

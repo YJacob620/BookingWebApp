@@ -9,7 +9,8 @@ import {
   Infrastructure,
   User,
   BookingDetails,
-  FilterQuestionsAnswersType
+  BookingReqAnswerType,
+  BookingReqAnswersMap
 } from './types';
 
 /**
@@ -120,7 +121,7 @@ export const fetchUserBookings = (recent: boolean = false): Promise<BookingEntry
 export const requestUserBooking = async (
   timeslotId: number,
   purpose: string = '',
-  answers: Record<number, FilterQuestionsAnswersType> = {}
+  answers: BookingReqAnswersMap = {}
 ): Promise<any> => {
   const formData = new FormData();
 
@@ -129,42 +130,26 @@ export const requestUserBooking = async (
   formData.append('purpose', purpose || '');
 
   // Process answers if any
-  const hasAnswers = Object.keys(answers).length > 0;
-
-  if (hasAnswers) {
-    // Create a clean object for JSON serialization
-    const answersForJson: Record<string, any> = {};
-
-    Object.entries(answers).forEach(([questionId, answer]) => {
-      if (answer instanceof File) {
-        // Handle file upload
-        console.log('Adding file: ', answer.name, 'Size:', answer.size, 'bytes');
-        const fieldName = `file_${questionId}`;
-        formData.append(fieldName, answer);
-        answersForJson[questionId] = { type: 'file', fieldName };
-      } else if (answer !== null && answer !== undefined) {
-        // Handle text answers
-        formData.append(`answer_${questionId}`, answer.toString());
-        answersForJson[questionId] = { type: 'text', value: answer.toString() };
-      }
-    });
-
-    // Add structured answers as JSON for easier processing on server
-    formData.append('answersJSON', JSON.stringify(answersForJson));
-  }
+  Object.entries(answers).forEach(([questionId, answer]) => {
+    if (answer instanceof File) {
+      console.log('Sending file: ', answer.name, '(', answer.size, 'bytes)');
+      formData.append(questionId, answer, answer.name);
+    } else if (answer !== null) {
+      formData.append(questionId, answer.toString());
+    }
+  });
 
   // Make API request with token but without Content-Type header (browser sets it for FormData)
   const token = getLocalToken();
   const headers: Record<string, string> = {};
-
   if (token) {
     headers['authorization_token'] = token;
   }
 
-  const response = await fetch(`${API_BASE_URL}/bookings/user/request`, { method: 'POST', headers, body: formData });
-
-  // Clone response for multiple reads if needed
-  const responseClone = response.clone();
+  const response = await fetch(
+    `${API_BASE_URL}/bookings/user/request`, { method: 'POST', headers: headers, body: formData }
+  );
+  const responseClone = response.clone(); // Clone response for multiple reads if needed
 
   if (!response.ok) {
     let errorMessage = `API request failed with status ${response.status}`;
@@ -188,6 +173,83 @@ export const requestUserBooking = async (
     return await response.json();
   } catch (e) {
     return { message: await responseClone.text() };
+  }
+};
+
+/**
+ * Initiate a guest booking request
+ * @param name - Guest name
+ * @param email - Guest email address
+ * @param infrastructureId - ID of the selected infrastructure
+ * @param timeslotId - ID of the selected timeslot
+ * @param purpose - Purpose of the booking (optional)
+ * @param answers - Answers to infrastructure questions (optional)
+ * @returns Promise with the response data
+ */
+export const requestGuestBooking = async (
+  name: string,
+  email: string,
+  infrastructureId: number,
+  timeslotId: number,
+  purpose: string = '',
+  answers: Record<number, BookingReqAnswerType> = {}
+): Promise<{ success: boolean, message: string, data?: any }> => {
+  try {
+    // Create FormData for file uploads
+    const formData = new FormData();
+
+    // Add basic guest booking data
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('infrastructureId', infrastructureId.toString());
+    formData.append('timeslotId', timeslotId.toString());
+    formData.append('purpose', purpose || '');
+
+    // Process answers if any
+    const hasAnswers = Object.keys(answers).length > 0;
+    if (hasAnswers) {
+      // Create a clean object for JSON serialization of non-file answers
+      const answersForJson: Record<string, any> = {};
+
+      Object.entries(answers).forEach(([questionId, answer]) => {
+        if (answer instanceof File) {
+          // Handle file upload
+          console.log('Adding file for guest booking:', answer.name, 'Size:', answer.size, 'bytes');
+          const fieldName = `file_${questionId}`;
+          formData.append(fieldName, answer);
+          answersForJson[questionId] = { type: 'file', fieldName };
+        } else if (answer !== null && answer !== undefined) {
+          // Handle text answers
+          formData.append(`answer_${questionId}`, answer.toString());
+          answersForJson[questionId] = { type: 'text', value: answer.toString() };
+        }
+      });
+
+      // Add structured answers as JSON for easier processing on server
+      formData.append('answersJSON', JSON.stringify(answersForJson));
+    }
+
+    // Send the request without specifying Content-Type
+    const response = await fetch(`${API_BASE_URL}/guest/request`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    return {
+      success: response.ok,
+      message: data.message || (response.ok
+        ? 'Booking verification email sent! Please check your inbox to confirm your booking.'
+        : 'Failed to process booking request'),
+      data: response.ok ? data : null
+    };
+  } catch (error) {
+    console.error('Error initiating guest booking:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'An error occurred while processing your booking'
+    };
   }
 };
 
@@ -503,84 +565,6 @@ export const fetchBookingDetails = async (bookingId: number): Promise<BookingDet
 export const downloadBookingDocument = async (bookingId: string, questionId: string) => {
   const data = await apiRequest<void>(`${API_BASE_URL}/bookings/download-file/${bookingId}/${questionId}`);
   return data;
-};
-
-/**
- * Initiate a guest booking request
- * @param name - Guest name
- * @param email - Guest email address
- * @param infrastructureId - ID of the selected infrastructure
- * @param timeslotId - ID of the selected timeslot
- * @param purpose - Purpose of the booking (optional)
- * @param answers - Answers to infrastructure questions (optional)
- * @returns Promise with the response data
- */
-export const requestGuestBooking = async (
-  name: string,
-  email: string,
-  infrastructureId: number,
-  timeslotId: number,
-  purpose: string = '',
-  answers: Record<string, any> = {}
-): Promise<{ success: boolean, message: string, data?: any }> => {
-  try {
-    // Create FormData for file uploads
-    const formData = new FormData();
-
-    // Add basic guest booking data
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('infrastructureId', infrastructureId.toString());
-    formData.append('timeslotId', timeslotId.toString());
-    formData.append('purpose', purpose || '');
-
-    // Process answers if any
-    const hasAnswers = Object.keys(answers).length > 0;
-
-    if (hasAnswers) {
-      // Create a clean object for JSON serialization of non-file answers
-      const answersForJson: Record<string, any> = {};
-
-      Object.entries(answers).forEach(([questionId, answer]) => {
-        if (answer instanceof File) {
-          // Handle file upload
-          console.log('Adding file for guest booking:', answer.name, 'Size:', answer.size, 'bytes');
-          const fieldName = `file_${questionId}`;
-          formData.append(fieldName, answer);
-          answersForJson[questionId] = { type: 'file', fieldName };
-        } else if (answer !== null && answer !== undefined) {
-          // Handle text answers
-          formData.append(`answer_${questionId}`, answer.toString());
-          answersForJson[questionId] = { type: 'text', value: answer.toString() };
-        }
-      });
-
-      // Add structured answers as JSON for easier processing on server
-      formData.append('answersJSON', JSON.stringify(answersForJson));
-    }
-
-    // Send the request without specifying Content-Type
-    const response = await fetch(`${API_BASE_URL}/guest/request`, {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-
-    return {
-      success: response.ok,
-      message: data.message || (response.ok
-        ? 'Booking verification email sent! Please check your inbox to confirm your booking.'
-        : 'Failed to process booking request'),
-      data: response.ok ? data : null
-    };
-  } catch (error) {
-    console.error('Error initiating guest booking:', error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'An error occurred while processing your booking'
-    };
-  }
 };
 
 export const processGuestConfirmation = async (token: string) => {

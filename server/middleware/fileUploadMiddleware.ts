@@ -89,14 +89,14 @@ const storage: StorageEngine = multer.diskStorage({
     }
 });
 
+/**
+ * Middleware for file-uploads. Creates 
+ */
 const upload = multer({
     storage: storage,
-    limits: {
-        fileSize: MAX_UPLOAD_SIZE_MB * 1024 * 1024,
-    },
+    limits: { fileSize: MAX_UPLOAD_SIZE_MB * 1024 * 1024, },
     fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
         const allowedTypes = Object.values(mimeTypes); // Get allowed MIME types from dictionary
-
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {

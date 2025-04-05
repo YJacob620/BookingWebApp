@@ -28,7 +28,8 @@ import {
   fetchInfrastAvailTimeslots,
   fetchInfrastructureQuestions,
   FilterQuestionData,
-  FilterQuestionsAnswersType,
+  BookingReqAnswerType,
+  BookingReqAnswersMap,
   Message,
   requestGuestBooking,
   formatTimeString
@@ -37,7 +38,6 @@ import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 import InfrastructureSelector from '@/components/_InfrastructureSelector';
 
-type UserAnswersMap = Record<number, FilterQuestionsAnswersType>;
 const ALERT_MESSAGE_TIME: number = 4000;
 
 const BookTimeslot = () => {
@@ -54,7 +54,7 @@ const BookTimeslot = () => {
   const [purpose, setPurpose] = useState<string>('');
   const [message, setMessage] = useState<Message | null>(null);
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
-  const [answers, setAnswers] = useState<UserAnswersMap>({});
+  const [answers, setAnswers] = useState<BookingReqAnswersMap>({});
   const [isFormValid, setIsFormValid] = useState(false);
 
   // Guest-specific state
@@ -72,7 +72,7 @@ const BookTimeslot = () => {
         .then(data => {
           setQuestions(data);
           // Initialize answers state with empty values
-          const initialAnswers: UserAnswersMap = {};
+          const initialAnswers: BookingReqAnswersMap = {};
           data.forEach(q => {
             initialAnswers[q.id] = q.question_type === 'document' ? null : '';
           });
@@ -394,7 +394,7 @@ const BookTimeslot = () => {
     setPurpose('');
     setShowGuestEmailForm(false);
 
-    const initialAnswers: UserAnswersMap = {};
+    const initialAnswers: BookingReqAnswersMap = {};
     questions.forEach(q => {
       initialAnswers[q.id] = q.question_type === 'document' ? null : '';
     });

@@ -106,14 +106,14 @@ router.post('/:id/cancel', authenticateToken, async (req: Request, res: Response
 });
 
 // Request a booking (user)
-router.post('/request', authenticateToken, upload.any(), async (req: Request, res: Response): Promise<void> => {
+router.post('/request', authenticateToken, upload.array('documents'), async (req: Request, res: Response): Promise<void> => {
     const connection: any = await pool.getConnection();
     const tempFiles: string[] = []; // Track files for potential cleanup
 
     try {
         await connection.beginTransaction();
 
-        const userEmail: string = req.user!.email;
+        const userEmail: string = req.user.email;
         const timeslot_id: string = req.body.timeslot_id;
         const purpose: string = req.body.purpose || '';
 
@@ -128,11 +128,7 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
         let answersObj: { [key: string]: any } = {};
         if (req.is('multipart/form-data')) {
             if (req.body.answersJSON) {
-                try {
-                    answersObj = JSON.parse(req.body.answersJSON);
-                } catch (e) {
-                    console.error('Error parsing answersJSON:', e);
-                }
+                answersObj = JSON.parse(req.body.answersJSON);
             }
 
             for (const key in req.body) {
@@ -145,34 +141,29 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
                 }
             }
 
-            if (Array.isArray(req.files)) {
-                if (req.files && req.files.length > 0) {
-                    for (const file of req.files) {
-                        const fieldName: string = file.fieldname;
-                        console.log(`originalname: ${file.originalname}, size: ${file.size} bytes`);
+            if (req.files && Array.isArray(req.files)) {
+                for (const file of req.files) {
+                    const fieldName: string = file.fieldname;
+                    console.log(`Processing file: '${file.originalname}, (${file.size} bytes)`);
 
-                        // Track for potential cleanup
-                        tempFiles.push(file.path);
+                    // Track for potential cleanup
+                    tempFiles.push(file.path);
 
-                        // Get metadata from request
-                        const metadata = req.fileMetadata?.[file.fieldname] || {
-                            originalName: file.originalname,
-                            secureFilename: path.basename(file.path)
+                    // Get metadata from request
+                    const metadata = req.fileMetadata?.[file.fieldname] || {
+                        originalName: file.originalname,
+                        secureFilename: path.basename(file.path)
+                    };
+
+                    if (fieldName.startsWith('file_')) {
+                        const questionId: string = fieldName.replace('file_', '');
+                        answersObj[questionId] = {
+                            type: 'file',
+                            filePath: file.path,
+                            originalName: metadata.originalName,
+                            secureFilename: metadata.secureFilename
                         };
-
-                        if (fieldName.startsWith('file_')) {
-                            const questionId: string = fieldName.replace('file_', '');
-                            answersObj[questionId] = {
-                                type: 'file',
-                                filePath: file.path,
-                                originalName: metadata.originalName,
-                                secureFilename: metadata.secureFilename
-                            };
-                        }
                     }
-                }
-                else {
-                    console.error("req.files IS NOT AN ARRAY");
                 }
             }
         }
