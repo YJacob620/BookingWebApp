@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
+import path from 'path';
 import { authenticateToken } from '../middleware/authMiddleware';
-import { upload } from '../middleware/fileUploadMiddleware';
+import { upload, cleanupTempFiles } from '../middleware/fileUploadMiddleware';
 import { processBookingRequest } from '../utils';
 import pool from '../configuration/db';
 const router = express.Router();
@@ -107,6 +108,8 @@ router.post('/:id/cancel', authenticateToken, async (req: Request, res: Response
 // Request a booking (user)
 router.post('/request', authenticateToken, upload.any(), async (req: Request, res: Response): Promise<void> => {
     const connection: any = await pool.getConnection();
+    const tempFiles: string[] = []; // Track files for potential cleanup
+
     try {
         await connection.beginTransaction();
 
@@ -146,14 +149,24 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
                 if (req.files && req.files.length > 0) {
                     for (const file of req.files) {
                         const fieldName: string = file.fieldname;
-                        console.log(`[BookingRequest] File field: ${fieldName}, originalname: ${file.originalname}, path: ${file.path}, size: ${file.size} bytes`);
+                        console.log(`originalname: ${file.originalname}, size: ${file.size} bytes`);
+
+                        // Track for potential cleanup
+                        tempFiles.push(file.path);
+
+                        // Get metadata from request
+                        const metadata = req.fileMetadata?.[file.fieldname] || {
+                            originalName: file.originalname,
+                            secureFilename: path.basename(file.path)
+                        };
 
                         if (fieldName.startsWith('file_')) {
                             const questionId: string = fieldName.replace('file_', '');
                             answersObj[questionId] = {
                                 type: 'file',
                                 filePath: file.path,
-                                originalName: file.originalname
+                                originalName: metadata.originalName,
+                                secureFilename: metadata.secureFilename
                             };
                         }
                     }
@@ -164,7 +177,7 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
             }
         }
 
-        const bookingResult: any = await processBookingRequest(connection, {
+        const bookingResult = await processBookingRequest(connection, {
             email: userEmail,
             timeslotId: timeslot_id,
             purpose,
@@ -173,6 +186,9 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
 
         if (!bookingResult.success) {
             await connection.rollback();
+            // Clean up any temporary files
+            cleanupTempFiles(tempFiles);
+
             res.status(400).json({
                 success: false,
                 message: bookingResult.message
@@ -181,6 +197,11 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
         }
 
         await connection.commit();
+
+        // Once the transaction is committed successfully, we can clear the tempFiles array
+        // since we don't want to delete the files that have been properly moved
+        tempFiles.length = 0;
+
         res.status(201).json({
             message: 'Booking request submitted successfully',
             booking_id: timeslot_id,
@@ -192,6 +213,9 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
 
     } catch (err) {
         await connection.rollback();
+        // Clean up any temporary files
+        cleanupTempFiles(tempFiles);
+
         console.error('Database error:', err);
         res.status(500).json({
             message: 'Error creating booking request',

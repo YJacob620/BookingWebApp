@@ -6,19 +6,21 @@ import {
     Infrastructure,
     User,
 } from '../utils';
+import { moveFileToStorage } from '../middleware/fileUploadMiddleware';
 
-interface QuestionAnswer {
+interface FilterQuestionAnswer {
     type: 'text' | 'file';
     value?: string;
     filePath?: string;
     originalName?: string;
+    secureFilename?: string;
 }
 
 interface BookingRequestParams {
     email: string;
     timeslotId: number | string;
     purpose?: string;
-    answers?: Record<string, QuestionAnswer>;
+    answers?: Record<string, FilterQuestionAnswer>;
 }
 
 interface BookingRequestResult {
@@ -65,7 +67,7 @@ const processBookingRequest =
             const infrastructure_id = timeslot.infrastructure_id;
 
             const [requiredQuestions] = await connection.execute<RowDataPacket[]>(
-                `SELECT id FROM infrastructure_questions WHERE infrastructure_id = ? AND is_required = 1`,
+                `SELECT * FROM infrastructure_questions WHERE infrastructure_id = ? AND is_required = 1`,
                 [infrastructure_id]
             );
 
@@ -76,7 +78,7 @@ const processBookingRequest =
             if (missingAnswers.length > 0) {
                 return {
                     success: false,
-                    message: 'All required questions must be answered',
+                    message: 'Not all required filter-questions were answered',
                     missingAnswers
                 };
             }
@@ -93,10 +95,36 @@ const processBookingRequest =
             );
             const booking = bookings[0];
 
-            // Save answers if provided
+            // Process file answers - move from temp to permanent location if needed
             for (const [questionId, answerData] of Object.entries(answers)) {
-                const answerText = answerData.type === 'text' ? answerData.value : path.basename(answerData.originalName || '');
-                const documentPath = answerData.type === 'file' ? answerData.filePath : null;
+                let answerText = '';
+                let documentPath = null;
+
+                if (answerData.type === 'text') {
+                    answerText = answerData.value || '';
+                } else if (answerData.type === 'file') {
+                    answerText = answerData.originalName || path.basename(answerData.filePath || '');
+
+                    // If file is in temporary storage, move it to permanent booking-based storage
+                    if (answerData.filePath && answerData.filePath.includes('temp')) {
+                        const newPath = moveFileToStorage(
+                            answerData.filePath,
+                            booking.id,
+                            answerData.secureFilename || path.basename(answerData.filePath)
+                        );
+
+                        if (newPath) {
+                            documentPath = newPath;
+                        } else {
+                            return {
+                                success: false,
+                                message: 'Failed to process file uploads'
+                            };
+                        }
+                    } else {
+                        documentPath = answerData.filePath || null;
+                    }
+                }
 
                 await connection.execute(
                     `INSERT INTO booking_answers (booking_id, question_id, answer_text, document_path) VALUES (?, ?, ?, ?)`,
@@ -149,7 +177,4 @@ const processBookingRequest =
 
 export {
     processBookingRequest,
-    type BookingRequestParams,
-    type BookingRequestResult,
-    type QuestionAnswer
 };

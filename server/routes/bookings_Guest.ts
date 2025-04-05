@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import argon2 from 'argon2';
 import fs from 'fs';
 import path from 'path';
-import { upload } from '../middleware/fileUploadMiddleware';
+import { upload, tempUploadDir, uploadDir, moveFileToStorage, cleanupTempFiles } from '../middleware/fileUploadMiddleware';
 
 import emailService from '../utils/emailService';
 import pool from '../configuration/db';
@@ -14,14 +14,20 @@ import {
     findUserByIdOrEmail
 } from '../utils';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
-import { tempUploadDir, uploadDir } from '../middleware/fileUploadMiddleware';
 const router = express.Router();
 
 let GUEST_MAX_BOOKINGS_PER_DAY = 1;
 
+interface FileMetadata {
+    originalName: string;
+    tempPath: string;
+    secureFilename: string;
+}
+
 interface TempFileInfo {
     originalName: string,
-    tempPath: string
+    tempPath: string,
+    secureFilename: string
 }
 
 /**
@@ -44,6 +50,8 @@ interface EmailActionTokensEntry extends RowDataPacket {
 // Handle guest booking request initiation
 router.post('/request', upload.any(), async (req: Request, res: Response): Promise<void> => {
     const connection = await pool.getConnection();
+    const tempFiles: string[] = []; // Track temporary files for cleanup
+
     try {
         await connection.beginTransaction();
 
@@ -90,6 +98,9 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         );
         if (timeslots.length === 0) {
             await connection.rollback();
+            // Cleanup any temporary files
+            cleanupTempFiles(tempFiles);
+
             res.status(404).json({
                 success: false,
                 message: 'Timeslot not found or not available'
@@ -113,6 +124,9 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
             userId = user.id;
             if (user.role !== 'guest') {
                 await connection.rollback();
+                // Cleanup any temporary files
+                cleanupTempFiles(tempFiles);
+
                 res.status(400).json({
                     success: false,
                     message: 'This email is already registered. Please login to book.'
@@ -139,6 +153,9 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         );
         if (existingBookings[0].count >= GUEST_MAX_BOOKINGS_PER_DAY) {
             await connection.rollback();
+            // Cleanup any temporary files
+            cleanupTempFiles(tempFiles);
+
             res.status(429).json({
                 success: false,
                 message: 'You have already made a booking today. Try again tomorrow.'
@@ -151,9 +168,8 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         const expires: Date = new Date();
         expires.setHours(expires.getHours() + 24);
 
-        // Process file uploads for guests
+        // Process uploaded files
         const uploadedFiles: Record<string, TempFileInfo> = {};
-
         console.log('Files received:', req.files);
 
         if (req.files && Array.isArray(req.files)) {
@@ -163,23 +179,23 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
                 // Extract questionId from field name
                 const questionId = file.fieldname.replace('file_', '');
 
-                // Create token-based directory
-                const tokenDir = path.join(tempUploadDir, bookingToken);
-                if (!fs.existsSync(tokenDir)) {
-                    fs.mkdirSync(tokenDir, { recursive: true });
-                }
-
-                // Move file to token directory
-                const tempFilePath = path.join(tokenDir, file.originalname);
-                fs.renameSync(file.path, tempFilePath);
-
-                // Store file reference in uploadedFiles object
-                uploadedFiles[questionId] = {
+                // Get metadata from request
+                const metadata = req.fileMetadata?.[file.fieldname] || {
                     originalName: file.originalname,
-                    tempPath: tempFilePath
+                    secureFilename: path.basename(file.path)
                 };
 
-                console.log(`File ${file.originalname} stored at ${tempFilePath}`);
+                // Store temporary path for later confirmation
+                tempFiles.push(file.path);
+
+                // Store file reference with metadata
+                uploadedFiles[questionId] = {
+                    originalName: metadata.originalName,
+                    tempPath: file.path,
+                    secureFilename: metadata.secureFilename
+                };
+
+                console.log(`File ${metadata.originalName} stored at ${file.path}`);
             }
         }
 
@@ -215,6 +231,9 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         });
     } catch (error) {
         await connection.rollback();
+        // Cleanup any temporary files on error
+        cleanupTempFiles(tempFiles);
+
         console.error('Error initiating guest booking:', error);
         res.status(500).json({
             success: false,
@@ -228,6 +247,7 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
 // Process guest booking confirmation from email link
 router.get('/confirm-booking/:token', async (req: Request, res: Response): Promise<void> => {
     const connection = await pool.getConnection();
+    const tempFiles: string[] = []; // Track files for potential cleanup
 
     try {
         await connection.beginTransaction();
@@ -236,7 +256,7 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
         const token = req.params.token;
         const [tokens] = await connection.execute<EmailActionTokensEntry[]>(
             `SELECT * FROM email_action_tokens 
-	 		   WHERE token=? AND used=0 AND expires > NOW()`,
+             WHERE token=? AND used=0 AND expires > NOW()`,
             [token]
         );
         if (tokens.length === 0) {
@@ -262,8 +282,8 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
         const today: string = new Date().toISOString().split('T')[0];
         const [existingBookings] = await connection.execute(
             `SELECT COUNT(*) as count FROM bookings 
-           WHERE user_email=? AND booking_date=? 
-           AND booking_type='booking' AND status!='canceled'`,
+             WHERE user_email=? AND booking_date=? 
+             AND booking_type='booking' AND status!='canceled'`,
             [metadata.email, today]
         );
         if (existingBookings[0].count >= GUEST_MAX_BOOKINGS_PER_DAY) {
@@ -276,58 +296,77 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
         }
 
         // Process the stored file references
-        const tempUploadedFiles: Record<number, TempFileInfo> = metadata.uploadedFiles;
-        if (tempUploadedFiles) {
-            const enhancedAnswers = { ...metadata.answers };
+        const tempUploadedFiles: Record<string, TempFileInfo> = metadata.uploadedFiles || {};
+        const enhancedAnswers = { ...metadata.answers };
 
-            for (const [questionId, fileInfo] of Object.entries(tempUploadedFiles)) {
-                if (fileInfo.tempPath && fs.existsSync(fileInfo.tempPath)) {
-                    // Determine final path for the file
-                    const finalDir = path.join(uploadDir, 'guestBooking_' + tokenData.timeslotId);
-                    if (!fs.existsSync(finalDir)) {
-                        fs.mkdirSync(finalDir, { recursive: true });
-                    }
+        // Track if all file operations succeeded
+        let allFilesProcessed = true;
 
-                    const finalPath = path.join(finalDir, fileInfo.originalName);
+        for (const [questionId, fileInfo] of Object.entries(tempUploadedFiles)) {
+            if (fileInfo.tempPath && fs.existsSync(fileInfo.tempPath)) {
+                // Add to tracked files
+                tempFiles.push(fileInfo.tempPath);
 
-                    // Move file from temp to final location
-                    fs.renameSync(fileInfo.tempPath, finalPath);
+                // Move to permanent storage with standardized structure
+                const finalPath = moveFileToStorage(
+                    fileInfo.tempPath,
+                    tokenData.booking_id,
+                    fileInfo.secureFilename
+                );
 
+                if (finalPath) {
                     // Update answers with file info
                     enhancedAnswers[questionId] = {
                         type: 'file',
                         filePath: finalPath,
-                        originalName: fileInfo.originalName
+                        originalName: fileInfo.originalName,
+                        secureFilename: fileInfo.secureFilename
                     };
+                } else {
+                    allFilesProcessed = false;
+                    break;
                 }
             }
-
-            // Clean up temp directory
-            const tokenDir = path.join(tempUploadDir, token);
-            if (fs.existsSync(tokenDir)) {
-                fs.rmSync(tokenDir, { recursive: true, force: true });
-            }
-
-            // Use enhanced answers that include file paths
-            metadata.answers = enhancedAnswers;
         }
+
+        // If any file operation failed, roll back
+        if (!allFilesProcessed) {
+            await connection.rollback();
+            // Cleanup any files that might have been successfully moved
+            cleanupTempFiles(tempFiles);
+
+            res.status(500).json({
+                success: false,
+                message: 'Error processing file uploads'
+            });
+            return;
+        }
+
         // Process the booking request
         const bookingResult = await processBookingRequest(connection, {
             email: metadata.email,
             timeslotId: tokenData.booking_id,
             purpose: metadata.purpose || '',
-            answers: metadata.answers || {},
+            answers: enhancedAnswers || {},
         });
+
         if (!bookingResult.success) {
             await connection.rollback();
+            // Cleanup any files
+            cleanupTempFiles(tempFiles);
+
             res.status(400).json({
                 success: false,
                 message: bookingResult.message
             });
             return;
         }
+
         if (!bookingResult.booking) {
             await connection.rollback();
+            // Cleanup any files
+            cleanupTempFiles(tempFiles);
+
             res.status(400).json({
                 success: false,
                 message: 'Internal server error'
@@ -337,10 +376,14 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
 
         // Mark token as used   
         await connection.execute(
-            `UPDATE email_action_tokens SET used=1 ,used_at=NOW() WHERE id=?`,
+            `UPDATE email_action_tokens SET used=1, used_at=NOW() WHERE id=?`,
             [tokenData.id]);
 
         await connection.commit();
+
+        // Once the transaction is committed successfully, we can clear the tempFiles array
+        // since we don't want to delete the files that have been properly moved
+        tempFiles.length = 0;
 
         res.json({
             success: true,
@@ -354,6 +397,9 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
         });
     } catch (error) {
         await connection.rollback();
+        // Cleanup any temporary files
+        cleanupTempFiles(tempFiles);
+
         console.error('Error confirming guest booking:', error);
         res.status(500).json({
             success: false,

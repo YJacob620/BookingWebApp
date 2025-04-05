@@ -372,7 +372,6 @@ const BookTimeslot = () => {
               type="file"
               onChange={e => {
                 const file = e.target.files?.[0] || null;
-                console.log('File selected in UI:', file ? file.name : 'No file');
                 setAnswers({ ...answers, [q.id]: file });
               }}
               required={q.is_required}

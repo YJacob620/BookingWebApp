@@ -150,7 +150,7 @@ const sendBookingNotificationToManagers = async (
     actionToken: string
 ): Promise<any[] | undefined> => {
     // Check if all managers have opted out of emails
-    const activeManagers = managers.filter(manager => manager.email_notifications == 0);
+    const activeManagers = managers.filter(manager => manager.email_notifications == 1);
     if (activeManagers.length === 0) {
         return;
     }
