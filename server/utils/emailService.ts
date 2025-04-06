@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
-import pool from '../configuration/db';
 import ical, { ICalEventStatus } from 'ical-generator';
+import { RowDataPacket } from 'mysql2';
+import pool from '../configuration/db';
 import {
     User,
     BookingEntry,
@@ -9,6 +10,16 @@ import {
     findUserByIdOrEmail
 } from './'
 
+
+// Define interface for booking answers
+interface BookingAnswer extends RowDataPacket {
+    question_id: number;
+    question_text: string;
+    question_type: string;
+    answer_text: string | null;
+    document_path?: string;
+    document_url?: string;
+}
 
 // Create a reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
@@ -20,7 +31,6 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASSWORD as string
     }
 });
-
 
 /**
  * Send verification email to user
@@ -163,6 +173,7 @@ const sendBookingNotificationToManagers = async (
         // Generate calendar file for the pending booking request
         const user = await findUserByIdOrEmail({ email: booking.user_email });
         const icsAttachment = generateICSFile(booking, infrastructure, user);
+        const filterQuestionAnswers = await fetchBookingAnswers(booking.id);
 
         // Send email to each manager individually
         return Promise.all(activeManagers.map(manager => {
@@ -183,12 +194,12 @@ const sendBookingNotificationToManagers = async (
                         <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
                     </div>
                     
-                    ${actionToken ? `
+                    ${formatBookingAnswersHTML(filterQuestionAnswers)}
+                    
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="${approveUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; font-weight: bold;">Approve Request</a>
                         <a href="${rejectUrl}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reject Request</a>
                     </div>
-                    ` : ''}
                     
                     <p>A calendar invitation for this pending request has been attached to this email. You can add it to your calendar application to keep track of it while you consider approval.</p>
                     
@@ -214,6 +225,72 @@ const sendBookingNotificationToManagers = async (
     } catch (error) {
         console.error('Error sending email to managers:', error);
     }
+};
+
+/**
+ * Fetch booking answers with question details
+ * @param bookingId - ID of the booking
+ * @param connection - Optional database connection for transactions
+ * @returns Array of booking answers with question details
+ */
+const fetchBookingAnswers = async (bookingId: number, connection = pool): Promise<BookingAnswer[]> => {
+    try {
+        const [answers] = await connection.execute<BookingAnswer[]>(
+            `SELECT 
+                a.question_id,
+                q.question_text,
+                q.question_type,
+                a.answer_text,
+                a.document_path
+            FROM booking_answers a
+            JOIN infrastructure_questions q ON a.question_id = q.id
+            WHERE a.booking_id = ?
+            ORDER BY q.display_order`,
+            [bookingId]
+        );
+
+        // Add document_url for file uploads
+        return answers.map(answer => {
+            if (answer.document_path) {
+                answer.document_url = `/bookings/download-file/${bookingId}/${answer.question_id}`;
+            }
+            return answer;
+        });
+    } catch (error) {
+        console.error('Error fetching booking answers:', error);
+        return [];
+    }
+};
+
+/**
+ * Format booking answers for email display
+ */
+const formatBookingAnswersHTML = (answers: BookingAnswer[]): string => {
+    if (!answers || answers.length === 0) {
+        return '<p><em>No additional information provided.</em></p>';
+    }
+
+    let html = '<div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">';
+    html += '<h3 style="color: #333;">Additional Information</h3>';
+
+    answers.forEach(answer => {
+        html += `<div style="margin-bottom: 15px;">`;
+        html += `<p style="font-weight: bold; margin-bottom: 5px;">${answer.question_text}</p>`;
+
+        if (answer.question_type === 'document' && answer.document_path) {
+            // For file uploads, include a note about the file
+            html += `<p>File uploaded: ${answer.answer_text || 'Unnamed file'}</p>`;
+            html += `<p style="font-size: 12px; color: #666;">You can view this file by logging into the system.</p>`;
+        } else {
+            // For text answers
+            html += `<p style="background-color: #f5f5f5; padding: 10px; border-radius: 4px;">${answer.answer_text || 'No answer provided'}</p>`;
+        }
+
+        html += `</div>`;
+    });
+
+    html += '</div>';
+    return html;
 };
 
 /**

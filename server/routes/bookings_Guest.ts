@@ -18,12 +18,6 @@ const router = express.Router();
 
 let GUEST_MAX_BOOKINGS_PER_DAY = 1;
 
-interface FileMetadata {
-    originalName: string;
-    tempPath: string;
-    secureFilename: string;
-}
-
 interface TempFileInfo {
     originalName: string,
     tempPath: string,
