@@ -2,6 +2,8 @@ import nodemailer from 'nodemailer';
 import ical, { ICalEventStatus } from 'ical-generator';
 import { RowDataPacket } from 'mysql2';
 import pool from '../configuration/db';
+import fs from 'fs';
+import path from 'path';
 import {
     User,
     BookingEntry,
@@ -15,7 +17,7 @@ import {
 interface BookingAnswer extends RowDataPacket {
     question_id: number;
     question_text: string;
-    question_type: string;
+    question_type: 'dropdown' | 'text' | 'number' | 'document';
     answer_text: string | null;
     document_path?: string;
     document_url?: string;
@@ -175,6 +177,9 @@ const sendBookingNotificationToManagers = async (
         const icsAttachment = generateICSFile(booking, infrastructure, user);
         const filterQuestionAnswers = await fetchBookingAnswers(booking.id);
 
+        // Prepare file attachments
+        const fileAttachments = prepareFileAttachments(filterQuestionAnswers);
+
         // Send email to each manager individually
         return Promise.all(activeManagers.map(manager => {
             const mailOptions = {
@@ -216,7 +221,8 @@ const sendBookingNotificationToManagers = async (
                         filename: 'pending_booking_request.ics',
                         content: icsAttachment,
                         contentType: 'text/calendar'
-                    }
+                    },
+                    ...fileAttachments
                 ]
             };
 
@@ -263,7 +269,7 @@ const fetchBookingAnswers = async (bookingId: number, connection = pool): Promis
 };
 
 /**
- * Format booking answers for email display
+ * Format booking answers for email display (for infrastructure managers)
  */
 const formatBookingAnswersHTML = (answers: BookingAnswer[]): string => {
     if (!answers || answers.length === 0) {
@@ -278,9 +284,9 @@ const formatBookingAnswersHTML = (answers: BookingAnswer[]): string => {
         html += `<p style="font-weight: bold; margin-bottom: 5px;">${answer.question_text}</p>`;
 
         if (answer.question_type === 'document' && answer.document_path) {
-            // For file uploads, include a note about the file
+            // For file uploads, mention that the file is attached
             html += `<p>File uploaded: ${answer.answer_text || 'Unnamed file'}</p>`;
-            html += `<p style="font-size: 12px; color: #666;">You can view this file by logging into the system.</p>`;
+            html += `<p style="font-size: 12px; color: #666;">The file has been attached to this email for your convenience.</p>`;
         } else {
             // For text answers
             html += `<p style="background-color: #f5f5f5; padding: 10px; border-radius: 4px;">${answer.answer_text || 'No answer provided'}</p>`;
@@ -291,6 +297,57 @@ const formatBookingAnswersHTML = (answers: BookingAnswer[]): string => {
 
     html += '</div>';
     return html;
+};
+
+/**
+ * Prepare file attachments for email
+ * @param answers - Array of booking answers with document paths
+ * @returns Array of attachment objects for nodemailer
+ */
+const prepareFileAttachments = (answers: BookingAnswer[]): any[] => {
+    const attachments: any[] = [];
+
+    answers.forEach(answer => {
+        if (answer.question_type === 'document' && answer.document_path && fs.existsSync(answer.document_path)) {
+            try {
+                const filename = answer.answer_text || path.basename(answer.document_path);
+                const content = fs.readFileSync(answer.document_path);
+
+                // Determine content type based on file extension
+                const ext = path.extname(answer.document_path).toLowerCase();
+                let contentType = 'application/octet-stream'; // Default
+
+                // Map common extensions to MIME types
+                const mimeTypes: Record<string, string> = {
+                    '.pdf': 'application/pdf',
+                    '.doc': 'application/msword',
+                    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    '.xls': 'application/vnd.ms-excel',
+                    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    '.jpg': 'image/jpeg',
+                    '.jpeg': 'image/jpeg',
+                    '.png': 'image/png',
+                    '.txt': 'text/plain',
+                    '.csv': 'text/csv'
+                };
+
+                if (mimeTypes[ext]) {
+                    contentType = mimeTypes[ext];
+                }
+
+                attachments.push({
+                    filename,
+                    content,
+                    contentType
+                });
+            } catch (error) {
+                console.error(`Error reading file attachment ${answer.document_path}:`, error);
+                // Continue with other attachments even if one fails
+            }
+        }
+    });
+
+    return attachments;
 };
 
 /**
