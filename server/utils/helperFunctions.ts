@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import crypto from 'crypto';
 import pool from '../configuration/db';
+import { PoolConnection } from 'mysql2/promise';
+import fs from 'fs';
 
 import { User } from '../utils';
 
@@ -71,3 +73,36 @@ export async function findUserByIdOrEmail(params: FindUserOptions): Promise<User
 
     return users[0];
 }
+
+/**
+ * Helper function to handle common error handling in guest booking requests
+ * This consolidates the pattern of: rollback transaction, cleanup temp files, and send error response
+ * 
+ * @param connection - Database connection for rolling back transaction
+ * @param tempFiles - Array of temporary file paths to clean up
+ * @param res - Express response object for sending the error response
+ * @param statusCode - HTTP status code to send
+ * @param errorMessage - Error message to include in the response
+ */
+export const handleBookingError = async (
+    connection: PoolConnection,
+    tempFiles: string[],
+    res: Response,
+    statusCode: number,
+    errorMessage: string
+): Promise<void> => {
+    await connection.rollback();
+    for (const filePath of tempFiles) {
+        try {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        } catch (error) {
+            console.error(`Error removing temporary file ${filePath}:`, error);
+        }
+    }
+    res.status(statusCode).json({
+        success: false,
+        message: errorMessage
+    });
+};

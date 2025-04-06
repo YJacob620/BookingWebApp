@@ -66,7 +66,7 @@ type BookingRequestParseResult = ParsedBookingRequest | ParsedBookingError;
  * @param params - Booking parameters
  * @returns - Booking result with success status and related data
  */
-const processBookingRequest =
+export const processBookingRequest =
     async (connection: PoolConnection | Pool, params: BookingRequestParams): Promise<BookingRequestResult> => {
         const {
             email,
@@ -329,8 +329,4 @@ export const trackTempFiles = (req: Request): string[] => {
     }
 
     return tempFiles;
-};
-
-export {
-    processBookingRequest,
 };

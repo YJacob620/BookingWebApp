@@ -128,21 +128,6 @@ const moveFileToStorage = (tempFilePath: string, bookingId: number, secureFilena
     }
 };
 
-/**
- * Cleans up temporary files if an operation fails
- */
-const cleanupTempFiles = (files: Array<string>): void => {
-    for (const filePath of files) {
-        try {
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
-        } catch (error) {
-            console.error(`Error removing temporary file ${filePath}:`, error);
-        }
-    }
-};
-
 // Helper method to get file URL from saved path
 const getFileUrl = (filePath: string | null): string | null => {
     if (!filePath) return null;
@@ -192,5 +177,4 @@ export {
     uploadDir,
     tempUploadDir,
     moveFileToStorage,
-    cleanupTempFiles
 };

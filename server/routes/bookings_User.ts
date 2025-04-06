@@ -1,12 +1,12 @@
 import express, { Request, Response } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware';
-import { upload, cleanupTempFiles } from '../middleware/fileUploadMiddleware';
+import { upload } from '../middleware/fileUploadMiddleware';
 import pool from '../configuration/db';
 import {
     processBookingRequest,
     parseBookingRequest,
     trackTempFiles,
-    ParsedBookingError
+    handleBookingError
 } from '../utils';
 const router = express.Router();
 
@@ -142,13 +142,7 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
         });
 
         if (!bookingResult.success) {
-            await connection.rollback();
-            cleanupTempFiles(tempFiles);
-
-            res.status(400).json({
-                success: false,
-                message: bookingResult.message || 'Failed to process booking request'
-            });
+            await handleBookingError(connection, tempFiles, res, 400, bookingResult.message);
             return;
         }
 
@@ -168,15 +162,7 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
             end_time: bookingResult.booking!.end_time
         });
     } catch (err) {
-        await connection.rollback();
-        cleanupTempFiles(tempFiles);
-
-        console.error('Error processing booking request:', err);
-        res.status(500).json({
-            success: false,
-            message: 'Error creating booking request',
-            error: err instanceof Error ? err.message : 'Unknown error'
-        });
+        await handleBookingError(connection, tempFiles, res, 500, 'Error creating booking request');
     } finally {
         connection.release();
     }

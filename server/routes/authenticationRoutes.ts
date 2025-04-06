@@ -327,7 +327,7 @@ router.post('/forgot-password', async (req: Request<{}, {}, EmailRequestBody>, r
 
     try {
         const user = await findUserByIdOrEmail({ email: email });
-        if (!user) {
+        if (!user || user.role === "guest") {
             res.json({ message: 'No user with such an email is registered.' });
             return;
         }

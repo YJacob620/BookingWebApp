@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import argon2 from 'argon2';
 import fs from 'fs';
-import { upload, moveFileToStorage, cleanupTempFiles } from '../middleware/fileUploadMiddleware';
+import { upload, moveFileToStorage } from '../middleware/fileUploadMiddleware';
 import emailService from '../utils/emailService';
 import pool from '../configuration/db';
 import {
@@ -10,7 +10,8 @@ import {
     generateToken,
     findUserByIdOrEmail,
     parseBookingRequest,
-    trackTempFiles
+    trackTempFiles,
+    handleBookingError
 } from '../utils';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 const router = express.Router();
@@ -85,13 +86,7 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         );
 
         if (timeslots.length === 0) {
-            await connection.rollback();
-            cleanupTempFiles(tempFiles);
-
-            res.status(404).json({
-                success: false,
-                message: 'Timeslot not found or not available'
-            });
+            await handleBookingError(connection, tempFiles, res, 404, 'Timeslot not found or not available');
             return;
         }
 
@@ -111,13 +106,8 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         } else {
             userId = user.id;
             if (user.role !== 'guest') {
-                await connection.rollback();
-                cleanupTempFiles(tempFiles);
-
-                res.status(400).json({
-                    success: false,
-                    message: 'This email is already registered. Please login to book.'
-                });
+                await handleBookingError(connection, tempFiles, res, 400,
+                    'This email is already registered. Please login to book.');
                 return;
             }
 
@@ -140,13 +130,8 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
         const GUEST_MAX_BOOKINGS_PER_DAY = 1; // Could be moved to a config file
 
         if (existingBookings[0].count >= GUEST_MAX_BOOKINGS_PER_DAY) {
-            await connection.rollback();
-            cleanupTempFiles(tempFiles);
-
-            res.status(429).json({
-                success: false,
-                message: 'You have already made a booking today. Try again tomorrow.'
-            });
+            await handleBookingError(connection, tempFiles, res, 429,
+                'You have already made a booking today. Try again tomorrow.');
             return;
         }
 
@@ -191,14 +176,8 @@ router.post('/request', upload.any(), async (req: Request, res: Response): Promi
             email
         });
     } catch (error) {
-        await connection.rollback();
-        cleanupTempFiles(tempFiles);
-
         console.error('Error initiating guest booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to process booking request'
-        });
+        await handleBookingError(connection, tempFiles, res, 500, 'Failed to process booking request');
     } finally {
         connection.release();
     }
@@ -220,21 +199,13 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
             [token]
         );
         if (tokens.length === 0) {
-            await connection.rollback();
-            res.status(400).json({
-                success: false,
-                message: 'Invalid or expired booking token'
-            });
+            await handleBookingError(connection, tempFiles, res, 400, 'Invalid or expired booking token');
             return;
         }
         const tokenData = tokens[0];
         const metadata: Record<string, any> = JSON.parse(tokenData.metadata || '{}');
         if (metadata.type !== 'guest_booking') {
-            await connection.rollback();
-            res.status(400).json({
-                success: false,
-                message: 'Invalid token type'
-            });
+            await handleBookingError(connection, tempFiles, res, 400, 'Invalid token');
             return;
         }
 
@@ -247,11 +218,8 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
             [metadata.email, today]
         );
         if (existingBookings[0].count >= GUEST_MAX_BOOKINGS_PER_DAY) {
-            await connection.rollback();
-            res.status(429).json({
-                success: false,
-                message: 'You have already made a booking today. Try again tomorrow.'
-            });
+            await handleBookingError(connection, tempFiles, res, 429,
+                'You have already made a booking today. Try again tomorrow.');
             return;
         }
 
@@ -291,14 +259,7 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
 
         // If any file operation failed, roll back
         if (!allFilesProcessed) {
-            await connection.rollback();
-            // Cleanup any files that might have been successfully moved
-            cleanupTempFiles(tempFiles);
-
-            res.status(500).json({
-                success: false,
-                message: 'Error processing file uploads'
-            });
+            await handleBookingError(connection, tempFiles, res, 500, 'Error processing file uploads');
             return;
         }
 
@@ -311,26 +272,12 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
         });
 
         if (!bookingResult.success) {
-            await connection.rollback();
-            // Cleanup any files
-            cleanupTempFiles(tempFiles);
-
-            res.status(400).json({
-                success: false,
-                message: bookingResult.message
-            });
+            await handleBookingError(connection, tempFiles, res, 400, bookingResult.message);
             return;
         }
 
         if (!bookingResult.booking) {
-            await connection.rollback();
-            // Cleanup any files
-            cleanupTempFiles(tempFiles);
-
-            res.status(400).json({
-                success: false,
-                message: 'Internal server error'
-            });
+            await handleBookingError(connection, tempFiles, res, 400, 'Internal server error');
             return;
         }
 
@@ -356,15 +303,7 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
             }
         });
     } catch (error) {
-        await connection.rollback();
-        // Cleanup any temporary files
-        cleanupTempFiles(tempFiles);
-
-        console.error('Error confirming guest booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to confirm Booking'
-        });
+        await handleBookingError(connection, tempFiles, res, 500, 'Failed to confirm booking');
     } finally {
         connection.release();
     }
