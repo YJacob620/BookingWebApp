@@ -5,6 +5,7 @@ import LogoutButton from '@/components/_LogoutButton';
 import { Message } from '@/utils';
 import { Alert } from "@/components/ui/alert";
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import LanguageSelector from "@/components/LanguageSelector";
 
 interface AlertManagerProps {
   alertMessage: Message | null;
@@ -210,14 +211,21 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
 
       <Card className={`general-container ${className}`}>
         <div className="max-w-7xl mx-3">
-          <div
-            className={`grid ${showDashboardButton && showLogoutButton ? 'grid-cols-2' : 'grid-cols-1'}`}
+        <div
+            className={`grid ${
+              showDashboardButton && showLogoutButton
+                ? "grid-cols-3"
+                : "grid-cols-2"
+            }`}
           >
             {showDashboardButton && (
               <div className="flex justify-start mb-7">
                 <BackToDashboardButton />
               </div>
             )}
+            <div className="flex mb-7">
+              <LanguageSelector/>
+            </div>
             {showLogoutButton && (
               <div className="flex justify-end mb-7">
                 <LogoutButton />

@@ -161,7 +161,7 @@ const LoginPage: React.FC = () => {
 
                         <div>
                             <p className='text-left pb-0.5 pl-0.5'>
-                                Email
+                                {t('Email')}
                             </p>
                             <Input
                                 id="email"
