@@ -12,11 +12,16 @@ import BasePageLayout from '@/components/_BasePageLayout';
 import { LOGIN } from '@/RoutePaths';
 
 
+import { useTranslation } from "react-i18next";
+
+
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const {t} = useTranslation()
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -60,14 +65,14 @@ const ForgotPasswordPage: React.FC = () => {
           {isSuccess ? (
             <div className="text-centerz">
               <Alert className="alert-success mb-6">
-                <AlertDescription>
-                  If an account exists with that email, we've sent password reset instructions.
-                  Please check your inbox.
+                <AlertDescription>{/*todo */}
+                  If an account exists with that email, we've sent password
+                  reset instructions. Please check your inbox.
                 </AlertDescription>
               </Alert>
-              <p className="text-sm explanation-text1 mb-6">
-                If you don't receive an email within a few minutes, check your spam folder
-                or make sure you entered the correct email address.
+              <p className="text-sm explanation-text1 mb-6">{/*todo */}
+                If you don't receive an email within a few minutes, check your
+                spam folder or make sure you entered the correct email address.
               </p>
             </div>
           ) : (
@@ -87,22 +92,23 @@ const ForgotPasswordPage: React.FC = () => {
                   required
                   value={email}
                   onChange={handleEmailChange}
-                  placeholder="Enter your email address"
+                  placeholder={t("inputEmailPlcHldr", {
+                    defaultValue: "Enter your email",
+                  })}
+                  // placeholder="Enter your email address"
                 />
               </div>
 
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full"
-              >
+              <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? (
                   <>
                     <Loader className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
+                    {t("sending", {defaultValue: "Sending...", })}
+                    {/* Sending... */}
                   </>
                 ) : (
-                  'Send Reset Link'
+                  t("Send Reset Link", {defaultValue: "Send Reset Link", })
+                  // "Send Reset Link"
                 )}
               </Button>
             </form>
@@ -111,6 +117,7 @@ const ForgotPasswordPage: React.FC = () => {
       </Card>
       <CardFooter className="flex justify-center">
         <Link to={LOGIN} className="link mt-2 -mb-5">
+        {t("Back to Login", {defaultValue: "Back to Login", })}
           Back to Login
         </Link>
       </CardFooter>

@@ -25,6 +25,7 @@ import {
   ArrowUp,
 } from "lucide-react";
 import { SortConfig } from '@/utils';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Defines the structure of a column in the paginated table
@@ -82,6 +83,7 @@ const PaginatedTable = <T extends object>({
   columns,
   initialRowsPerPage = 10,
   rowsPerPageOptions = [5, 10, 25, 50],
+  // emptyMessage = 'No data available',
   emptyMessage = 'No data available',
   tableClassName = '',
   noResults,
@@ -106,6 +108,8 @@ const PaginatedTable = <T extends object>({
   // Use server-provided total pages if available, otherwise calculate from data
   const totalPages = serverTotalPages || clientTotalPages;
   const dataCount = totalItems || data.length;
+
+  const {t} = useTranslation()
 
   // Calculate total pages when data or rows per page changes
   useEffect(() => {
@@ -273,8 +277,9 @@ const PaginatedTable = <T extends object>({
                   {noResults || (
                     <div className="text-gray-400">
                       {data.length > 0
-                        ? 'No items match your current filters.'
-                        : emptyMessage}
+                        ? t('noItemsMatchFilter',{defaultValue:"No items match your current filters."})
+                        // ? 'No items match your current filters.'
+                        : t(emptyMessage,{defaultValue:emptyMessage})}
                     </div>
                   )}
                 </td>
@@ -304,7 +309,7 @@ const PaginatedTable = <T extends object>({
                 ))}
               </SelectContent>
             </Select>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-400">{/** todo */}
               {`${startItem}-${endItem} of ${dataCount}`}
             </span>
           </div>

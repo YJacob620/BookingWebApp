@@ -1,0 +1,31 @@
+{
+  "unVerEmail": "Your email address hasn't been verified yet.",
+  "resendVerEmail": "Resend Verification Email",
+  "inputEmailPlcHldr": "Enter your email",
+  "forgotPassword": "Forgot password",
+  "logging in": "logging in",
+  "cont guest": "Continue as Guest",
+  "no account?": "Don't have an account?",
+  "loginExplain": "Sign in to access the scheduling system.",
+  "sendingVerEmail": "Sending verification emai",
+  "verEmailSent": "Verification email sent! Please check your inbox.",
+  "enterPassword": "Enter your password",
+  "Register here": "Register here",
+  "Login": "Login",
+  "Email": "Email",
+  "sending": "Sending...",
+  "Send Reset Link": "Send Reset Link",
+  "Back to Login": "Back to Login",
+  "Booking Details": "Booking Details",
+  "emailSubTogCheck": "You have been subscribed to email notifications",
+  "emailSubTogUnCheck": "You have been subscribed to email notifications",
+  "Email Notifications": "Email Notifications",
+  "Logout": "Logout",
+  "noItemsMatchFilter": "No items match your current filters.",
+  "msgReciveEmailNotif": {
+    "enabled": "You will receive email notifications about bookings and updates",
+    "disabled": "You will not receive any email notifications from the system"
+  },
+  "Loading": "Loading {{what}}...",
+  "booking details": "booking details"
+}

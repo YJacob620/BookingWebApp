@@ -29,6 +29,7 @@ import {
 } from '@/utils';
 import TruncatedText from '@/components/_TruncatedText';
 import { DialogTitle } from '@radix-ui/react-dialog';
+import { useTranslation } from 'react-i18next';
 
 interface BookingDetailsDialogProps {
     bookingId: number | null;
@@ -46,6 +47,8 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [details, setDetails] = useState<BookingDetails | null>(null);
+
+    const {t} = useTranslation()
 
     // Fetch booking details when the dialog opens and bookingId changes
     useEffect(() => {
@@ -84,12 +87,16 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                 aria-describedby={undefined}
             >
                 <DialogHeader>
-                    <DialogTitle className='text-center text-3xl font-medium'>Booking Details</DialogTitle>
+                    <DialogTitle className='text-center text-3xl font-medium'>
+                        {t('Booking Details','Booking Details')}
+                        {/* Booking Details */}
+                        </DialogTitle>
                 </DialogHeader>
                 {isLoading ? (
                     <div className="py-8 text-center">
                         <Loader className="h-8 w-8 animate-spin mx-auto mb-4" />
                         <p>Loading booking details...</p>
+                        {t('Loading',{what:t('booking details','booking details')})}
                     </div>
                 ) : error ? (
                     <div className="py-8 text-center text-red-500">
@@ -161,7 +168,8 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                         {details.answers && details.answers.length > 0 ? (
                             <div className="space-y-4">
                                 <h3 className="underlined-title">
-                                    User Answers For Filter-Questions
+                                    {t('User Answers For Filter-Questions','User Answers For Filter-Questions')}
+                                    {/* User Answers For Filter-Questions */}
                                 </h3>
 
                                 <div className="pb-4 space-y-4">
@@ -209,18 +217,23 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                             </div>
                         ) : details.booking.booking_type === 'booking' ? (
                             <div className="text-center py-4 text-gray-400 border-t border-gray-700">
-                                <p>No additional information was provided for this booking.</p>
+                                <p>
+                                {/* No additional information was provided for this booking. */}
+                                {t('noAddonInfo','No additional information was provided for this booking.')}
+                                </p>
+                                
                             </div>
                         ) : null}
                     </div>
                 ) : (
                     <div className="py-8 text-center text-gray-400">
-                        <p>No booking details available</p>
+                        {/* <p>No booking details available</p> */}
+                        <p>{t('No booking details available','No booking details available')}</p>
                     </div>
                 )}
 
                 <DialogFooter>
-                    <Button onClick={onClose}>Close</Button>
+                    <Button onClick={onClose}>{t('Close','Close')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
