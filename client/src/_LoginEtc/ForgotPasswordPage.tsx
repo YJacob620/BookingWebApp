@@ -57,8 +57,8 @@ const ForgotPasswordPage: React.FC = () => {
 
   return (
     <BasePageLayout
-      pageTitle="Forgot Password"
-      explanationText="Enter your email to receive a password reset link"
+      pageTitle={t("forgotPassPgTitle")}
+      explanationText={t('forgotPassPgexplain',"Enter your email to receive a password reset link")}
     >
       <Card className="pt-2">
         <CardContent>

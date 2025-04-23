@@ -97,5 +97,7 @@
   "Resending": "Resending...",
   "Resend Verification Email": "Resend Verification Email",
   "Return to": "Return to {{where}}",
-  "Forgot password": "Forgot password"
+  "Forgot password": "Forgot password",
+  "forgotPassPgTitle": "Forgot Password",
+  "forgotPassPgexplain": "Enter your email to receive a password reset link"
 }

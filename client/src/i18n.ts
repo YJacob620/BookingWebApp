@@ -91,6 +91,47 @@ i18n
           "Log in": "Log in",
           "Enter your name": "Enter your name",
           "Enter your email": "Enter your email",
+          "Reset Password": "Reset Password",
+          "Enter your new password": "Enter your new password",
+          psswrdResetSuccess: {
+            msg: "Your password has been reset successfully!",
+            redir: "You will be redirected to the login page shortly.",
+            redirfail:
+              "If you're not redirected, you can manually return to the login page.",
+          },
+          "New Password": "New Password",
+          "Enter new password": "Enter new password",
+          pswrdChrsNumMsg: "Password must be at least 8 characters",
+          "Confirm New Password": "Confirm New Password",
+          Resetting: "Resetting...",
+          "Back to": "Back to {{where}}",
+          verPendPg: {
+            title: "Verify Your Email",
+            chkinbx: "Check Your Inbox",
+            spmchk: "If you don't see the email, check your spam folder.",
+            succsesMsg: "Verification email has been resent successfully!",
+            sentMsg: "We've sent a verification email to:",
+          },
+          "your email address": "_NOT_TRANSLATED_",
+          emailVerPg: {
+            title: "Email Verification",
+            verifying: "Verifying your email address...",
+            succses: "Email Verified Successfully!",
+            confirm:
+              "Your email has been verified and your account is now active.",
+            redir: "You will be redirected to the dashboard automatically...",
+            fail: "Verification Failed",
+            failExplain: "The verification link may be invalid or expired.",
+            requestNew: "Request New Verification Email",
+          },
+          "Go to Login": "Go to Login",
+          Resending: "Resending...",
+          "Resend Verification Email": "Resend Verification Email",
+          "Return to": "Return to {{where}}",
+          "Forgot password": "Forgot password",
+          forgotPassPgTitle: "Forgot Password",
+          forgotPassPgexplain:
+            "Enter your email to receive a password reset link",
         },
       },
       he: {
@@ -161,6 +202,45 @@ i18n
           "Log in": "הכנס",
           "Enter your name": "הכנס את שמך",
           "Enter your email": 'הכנס כתובת דוא"ל',
+          "Reset Password": "אפס סיסמה",
+          "Enter your new password": "הזן את הסיסמה החדשה שלך",
+          psswrdResetSuccess: {
+            msg: "הסיסמה שלך אותחלה בהצלחה!",
+            redir: "תופנה מחדש לדף הכניסה בקרוב.",
+            redirfail: "אם אינך מופנה, אתה יכול לחזור ידנית לדף הכניסה.",
+          },
+          "New Password": "סיסמה חדשה",
+          "Enter new password": "הזן סיסמה חדשה",
+          pswrdChrsNumMsg: "הסיסמה חייבת להכיל לפחות 8 תווים",
+          "Confirm New Password": "אשר סיסמא חדשה",
+          Resetting: "איפוס ...",
+          "Back to": "חזרה ל {{where}}",
+          verPendPg: {
+            title: 'אמת את הדוא"ל שלך',
+            chkinbx: "בדוק את תיבת הדואר הנכנס שלך",
+            spmchk: 'אם אינך רואה את הדוא"ל, בדוק את תיקיית הספאם שלך.',
+            succsesMsg: 'דוא"ל אימות התמרמר בהצלחה!',
+            sentMsg: 'שלחנו דוא"ל אימות ל:',
+          },
+          "your email address": 'כתובת הדוא"ל שלך',
+          emailVerPg: {
+            title: 'אימות דוא"ל',
+            verifying: 'מאמת את כתובת הדוא"ל שלך ...',
+            succses: 'דוא"ל מאומת בהצלחה!',
+            confirm: 'הדוא"ל שלך אומת וחשבונך פעיל כעת.',
+            redir: "תופנה אל תפריט הבית באופן אוטומטי ...",
+            fail: "האימות נכשל",
+            failExplain: "קישור האימות עשוי להיות לא חוקי או שפג תוקפו.",
+            requestNew: 'בקש דוא"ל אימות חדש',
+          },
+          "Go to Login": "עבור לדף כניסה",
+          Resending: "נוהג ...",
+          "Resend Verification Email": 'הודע בדוא"ל אימות מחדש',
+          "Return to": "חזור ל {{where}}",
+          "Forgot password": "שכחתי סיסמה",
+          forgotPassPgTitle: "איפוס סיסמה",
+          forgotPassPgexplain:
+            'הכנס את כתובת הדוא"ל שלך כדי לקבל לינק לאיפוס הסיסמה',
         },
       },
     },
@@ -172,6 +252,6 @@ i18n.services.formatter?.add("lowercase", (value) => {
 
 i18n.services.formatter?.add("sentence_start", (value, lng) => {
   let txt = value;
-  if ((lng = "en")) txt = txt.toLocaleUpperCase();
+  if (lng == "en") txt = txt.toLocaleUpperCase();
   return txt;
 });
