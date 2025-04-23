@@ -128,7 +128,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <BasePageLayout
-      pageTitle="Login"
+      pageTitle={t("Login")}
       //   explanationText={"Sign in to access the scheduling system"}
       explanationText={t("loginExplain", {
         defaultValue: "Sign in to access the scheduling system.",
@@ -165,9 +165,7 @@ const LoginPage: React.FC = () => {
                   {isResendingVerification && (
                     <div className="flex items-center gap-2 text-sm">
                       <Loader className="h-4 w-4 animate-spin" />
-                      {t("sendingVerEmail", {
-                        defaultValue: "Sending verification emai",
-                      })}
+                      {t("sendingVerEmail")}
                       ...
                       {/* Sending verification email... */}
                     </div>
@@ -175,10 +173,7 @@ const LoginPage: React.FC = () => {
                   {resendSuccess && (
                     <div className="text-green-300 text-sm flex items-center gap-2">
                       <Info className="h-4 w-4" />
-                      {t("verEmailSent", {
-                        defaultValue:
-                          "Verification email sent! Please check your inbox.",
-                      })}
+                      {t("verEmailSent")}
                       {/* Verification email sent! Please check your inbox. */}
                     </div>
                   )}
@@ -195,18 +190,16 @@ const LoginPage: React.FC = () => {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder={t("inputEmailPlcHldr", {
-                  defaultValue: "Enter your email",
-                })}
+                placeholder={t("inputEmailPlcHldr")}
                 // placeholder="Enter your email"
               />
             </div>
 
             <div>
               <div className="flex justify-between items-center">
-                <p className="text-left pl-0.5">Password</p>
+                <p className="text-left pl-0.5">{t("Password")}</p>
                 <Link to={FORGOT_PASSWORD} className="link text-sm">
-                  {t("forgotPassword", { defaultValue: "Forgot password" })}?
+                  {t("Forgot password", { defaultValue: "Forgot password" })}?
                   {/* Forgot password? */}
                 </Link>
               </div>

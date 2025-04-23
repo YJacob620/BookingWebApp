@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowLeftCircle } from "lucide-react";
 import { ADMIN_DASHBOARD, MANAGER_DASHBOARD, USER_DASHBOARD, LOGIN } from '@/RoutePaths';
+import { useTranslation } from 'react-i18next';
 
 const BackToDashboardButton: React.FC = () => {
     const navigate = useNavigate();
+    const {t} = useTranslation()
 
     const handleNavigate = () => {
         // Get the current user from localStorage
         const userString = localStorage.getItem('user');
+
 
         if (!userString) {
             console.error('No user data found');
@@ -52,7 +55,7 @@ const BackToDashboardButton: React.FC = () => {
             className="back-button min-w-40"
         >
             <ArrowLeftCircle className="mr-2 h-4 w-4" />
-            Dashboard
+             {t('Dashboard','Dashboard')}
         </Button>
     );
 };

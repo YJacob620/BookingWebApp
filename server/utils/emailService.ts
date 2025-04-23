@@ -612,8 +612,8 @@ const sendGuestBookingVerificationEmail = async (
     return transporter.sendMail(mailOptions);
 };
 
+
 export default {
-    generateToken,
     sendVerificationEmail,
     sendPasswordResetEmail,
     verifyEmailConfig,

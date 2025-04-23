@@ -9,7 +9,7 @@ import {
   } from "@/components/ui/dropdown-menu"
   import {Button} from "@/components/ui/button"
   import i18n from "i18next"
-import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 
   type language = {[lng:string]: {icn:string, name:string} }
   const lngs:language = {
@@ -24,10 +24,8 @@ import i18next from 'i18next';
   }
 
   const LanguageSelector:React.FC = () => {
-    const [langpresent,setlangpresent] = useState(i18next.language)
-    // const chooselanghandler = (key:Event)=>{
-    //     setlangpresent(lngs[key.currentTarget.value].name)
-    // }
+    const [langpresent,setlangpresent] = useState(i18n.language)
+    const {t} = useTranslation()
       return(
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -36,7 +34,7 @@ import i18next from 'i18next';
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className='w-8'>
-                <DropdownMenuLabel>language</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('language')}</DropdownMenuLabel>
                 <DropdownMenuSeparator/>
                 {Object.keys(lngs).map((lng)=>{
                      const isSelected = i18n.resolvedLanguage === lng

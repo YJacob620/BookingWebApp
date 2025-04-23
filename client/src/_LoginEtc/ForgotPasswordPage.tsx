@@ -65,14 +65,16 @@ const ForgotPasswordPage: React.FC = () => {
           {isSuccess ? (
             <div className="text-centerz">
               <Alert className="alert-success mb-6">
-                <AlertDescription>{/*todo */}
-                  If an account exists with that email, we've sent password
-                  reset instructions. Please check your inbox.
+                <AlertDescription>
+                  {t('alert.paswrdresetsuccses')}
+                  {/* If an account exists with that email, we've sent password
+                  reset instructions. Please check your inbox. */}
                 </AlertDescription>
               </Alert>
-              <p className="text-sm explanation-text1 mb-6">{/*todo */}
-                If you don't receive an email within a few minutes, check your
-                spam folder or make sure you entered the correct email address.
+              <p className="text-sm explanation-text1 mb-6">
+                {t('explain.ifDontRecieveEmail')}
+                {/* If you don't receive an email within a few minutes, check your
+                spam folder or make sure you entered the correct email address. */}
               </p>
             </div>
           ) : (
@@ -84,7 +86,7 @@ const ForgotPasswordPage: React.FC = () => {
               )}
 
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label>{t("Email")}</Label>
                 <Input
                   id="email"
                   name="email"
@@ -118,7 +120,7 @@ const ForgotPasswordPage: React.FC = () => {
       <CardFooter className="flex justify-center">
         <Link to={LOGIN} className="link mt-2 -mb-5">
         {t("Back to Login", {defaultValue: "Back to Login", })}
-          Back to Login
+          {/* Back to Login */}
         </Link>
       </CardFooter>
     </BasePageLayout>

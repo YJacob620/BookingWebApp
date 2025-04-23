@@ -18,7 +18,8 @@ import emailService from '../utils/emailService';
 import {
     User,
     findUserByIdOrEmail,
-    isAllowedUser
+    isAllowedUser,
+    generateToken
 } from '../utils';
 
 const router = express.Router();
@@ -132,7 +133,7 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequestBody>, res: 
 
         // Hash password and generate verification token
         const passwordHash = await argon2.hash(password);
-        const verificationToken = emailService.generateToken();
+        const verificationToken = generateToken();
 
         // Calculate expiry (from current time + configured hours)
         const now = new Date();
@@ -294,7 +295,7 @@ router.post('/resend-verification', async (req: Request<{}, {}, EmailRequestBody
         }
 
         // Generate new verification token
-        const verificationToken = emailService.generateToken();
+        const verificationToken = generateToken();
 
         // Calculate new expiry
         const now = new Date();
@@ -332,7 +333,7 @@ router.post('/forgot-password', async (req: Request<{}, {}, EmailRequestBody>, r
             return;
         }
 
-        const resetToken = emailService.generateToken();
+        const resetToken = generateToken();
         const now = new Date();
         const expiryDate = new Date(now.getTime() + PASSWORD_RESET_EXPIRY);
         await pool.execute<ResultSetHeader>(

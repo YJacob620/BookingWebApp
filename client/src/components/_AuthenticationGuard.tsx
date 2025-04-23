@@ -6,6 +6,7 @@ import { UserRole } from '@/utils';
 import { getDashboardPath, getLocalToken } from '@/utils/localAuthUtils';
 import { verifyAdmin, verifyManager, verifyUser } from '@/utils';
 import { CREATE_BOOKING } from '@/RoutePaths';
+import { useTranslation } from 'react-i18next';
 
 
 interface TokenParams {
@@ -35,6 +36,7 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
   const location = useLocation();
   const params = useParams();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const {t} = useTranslation()
 
   // Get token from URL if in token mode
   const getToken = (): string | null => {
@@ -187,7 +189,8 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
       <div className="general-container flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
-          <div className="text-xl">Loading...</div>
+          {/* <div className="text-xl">Loading...</div> */}
+          <div className="text-xl">{t('Loading')}</div>
         </div>
       </div>
     );

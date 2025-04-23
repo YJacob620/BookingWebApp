@@ -9,6 +9,7 @@ import { Info, Loader } from 'lucide-react';
 
 import { resetPassword } from '@/utils';
 import { LOGIN, FORGOT_PASSWORD } from '@/RoutePaths';
+import { useTranslation } from 'react-i18next';
 
 
 const ResetPasswordPage: React.FC = () => {
@@ -20,6 +21,8 @@ const ResetPasswordPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const {t} = useTranslation()
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
@@ -88,9 +91,9 @@ const ResetPasswordPage: React.FC = () => {
   return (
     <Card className="general-container">
       <CardHeader>
-        <CardTitle className="text-3xl">Reset Password</CardTitle>
+        <CardTitle className="text-3xl">{t('Reset Password','Reset Password')}</CardTitle>
         <CardDescription className="explanation-text1 pt-3">
-          Enter your new password
+           {t('Enter your new password','Enter your new password')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -98,12 +101,12 @@ const ResetPasswordPage: React.FC = () => {
           <div className="text-center p-6">
             <Alert className="alert-success mb-6">
               <AlertDescription>
-                Your password has been reset successfully!
+                {t('psswrdResetSuccess.msg','Your password has been reset successfully!')}
               </AlertDescription>
             </Alert>
-            <p className="mb-2">You will be redirected to the login page shortly.</p>
+            <p className="mb-2">{t('psswrdResetSuccess.redir','You will be redirected to the login page shortly.')}</p>
             <p className="text-sm explanation-text1">
-              If you're not redirected, you can manually return to the login page.
+              {t('psswrdResetSuccess.redirfail',"If you're not redirected, you can manually return to the login page.")}
             </p>
           </div>
         ) : (
@@ -115,7 +118,7 @@ const ResetPasswordPage: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              <Label>New Password</Label>
+              <Label>{t('New Password','New Password')}</Label>
               <Input
                 id="password"
                 name="password"
@@ -123,16 +126,16 @@ const ResetPasswordPage: React.FC = () => {
                 required
                 value={password}
                 onChange={handlePasswordChange}
-                placeholder="Enter new password"
+                placeholder={t("Enter new password","Enter new password")}
               />
               <p className="text-xs text-gray-400">
                 <Info className="inline mr-1 h-3 w-3" />
-                Password must be at least 8 characters
+                {t('pswrdChrsNumMsg','Password must be at least 8 characters')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label>Confirm Password</Label>
+              <Label>{t('Confirm Password','Confirm Password')}</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -140,7 +143,7 @@ const ResetPasswordPage: React.FC = () => {
                 required
                 value={confirmPassword}
                 onChange={handleConfirmPasswordChange}
-                placeholder="Confirm new password"
+                placeholder={t('Confirm New Password','Confirm New Password')}
               />
             </div>
 
@@ -152,10 +155,10 @@ const ResetPasswordPage: React.FC = () => {
               {isLoading ? (
                 <>
                   <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  Resetting...
+                  {t('Resetting','Resetting...')}
                 </>
               ) : (
-                'Reset Password'
+                t('Reset Password','Reset Password')
               )}
             </Button>
           </form>
@@ -164,7 +167,7 @@ const ResetPasswordPage: React.FC = () => {
       <CardFooter className="flex justify-center">
         <Link to={LOGIN}>
           <Button variant="ghost">
-            Back to Login
+             {t('Back to',{where:t('Login'),defaultValue:'Back to {{where}}'})}
           </Button>
         </Link>
       </CardFooter>
