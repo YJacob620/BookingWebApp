@@ -6,6 +6,7 @@ import * as RoutePaths from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 import { useEffect, useState } from 'react';
 import { getLocalUser, User } from '@/utils';
+import { useTranslation } from 'react-i18next';
 
 const AdminDashboard = () => {
     const [user, setUser] = useState<User | null>();
@@ -13,35 +14,38 @@ const AdminDashboard = () => {
         setUser(getLocalUser());
     }, []);
 
+    const {t} = useTranslation()
+
     const menuItems = [
         {
-            title: 'Users',
+            title: t('Users','Users'),
             link: RoutePaths.USER_MANAGEMENT,
-            description: 'Manage users, assign roles, and control infrastructure access',
+            description:t('UsersDesc','Manage users, assign roles, and control infrastructure access') ,
             icon: <Users className="h-6 w-6" />
         },
         {
-            title: 'Infrastructures',
+            title: t('Infrastructures'),
             link: RoutePaths.INFRASTRUCTURE_MANAGEMENT,
-            description: 'Manage scientific infrastructures',
+            description: t('adminDash.InfrastructuresDesc','Manage scientific infrastructures'),
             icon: <Database className="h-6 w-6" />
         },
         {
-            title: 'Bookings & Timeslots',
+            title: t('Bookings & Timeslots'),
             link: RoutePaths.BOOKING_MANAGEMENT,
-            description: 'Manage booking requests and available time slots',
+            description: t('adminDash.Book&TimeDesc','Manage booking requests and available time slots'),
             icon: <Calendar className="h-6 w-6" />
         }
     ];
 
     return (
         <BasePageLayout
-            pageTitle="Admin Dashboard"
+            pageTitle={t('adminDash.title',"Admin Dashboard")}
             showLogoutButton
-            explanationText={"Select a section below to manage different aspects of the system"}
+            explanationText={t('adminDash.explanation')}
+            // {"Select a section below to manage different aspects of the system"}
             className={"w-170"}
         >
-            <h2 className="text-xl font-semibold mb-5">Welcome, {user?.name || user?.email}</h2>
+            <h2 className="text-xl font-semibold mb-5">{t('welcomeHeader',{name:user?.name || user?.email})}</h2>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                 {menuItems.map((item, index) => (
                     <Link

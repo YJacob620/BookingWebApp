@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import PaginatedTable from '@/components/_PaginatedTable';
 import { TableCell } from "@/components/ui/table";
 import BookingDetailsDialog from '@/components/_BookingDetailsDialog'; // Add this import
+import { useTranslation } from 'react-i18next';
+
 
 import {
   formatDate,
@@ -35,6 +37,8 @@ const BookingHistory = () => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const {t} = useTranslation();
+
 
   // New state for booking details dialog
   const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
@@ -60,7 +64,7 @@ const BookingHistory = () => {
       console.error('Error fetching bookings:', err);
       setMessage({
         type: 'error',
-        text: 'Unable to load your bookings. Please try again later.'
+        text: t('userBookHist.msgErrBookFetch','Unable to load your bookings. Please try again later.')
       });
     } finally {
       setIsLoading(false);
@@ -91,8 +95,8 @@ const BookingHistory = () => {
 
   const handleCancelBooking = async (bookingId: number, status: string) => {
     const confirmMessage = status === 'pending'
-      ? 'Are you sure you want to cancel this booking request?'
-      : 'Are you sure you want to cancel this approved booking?';
+      ? t('userBookHist.cancelBookQuest','Are you sure you want to cancel this booking request?')
+      : t('userBookHist.cancelAppBookQuest','Are you sure you want to cancel this approved booking?');
 
     if (!confirm(confirmMessage)) {
       return;
@@ -113,7 +117,7 @@ const BookingHistory = () => {
       console.error('Error canceling booking:', err);
       setMessage({
         type: 'error',
-        text: 'Unable to cancel your booking. Please try again later.'
+        text: t('userBookHist.msgErrBookCancel','Unable to cancel your booking. Please try again later.')
       });
     }
   };
@@ -122,7 +126,7 @@ const BookingHistory = () => {
   const columns = [
     {
       key: 'infrastructure',
-      header: 'Infrastructure',
+      header: t('Infrastructure'),
       cell: (booking: BookingEntry) => (
         <TableCell className="font-medium">
           {booking.infrastructure_name}
@@ -140,7 +144,7 @@ const BookingHistory = () => {
     },
     {
       key: 'time',
-      header: 'Time',
+      header: t('Time'),
       cell: (booking: BookingEntry) => (
         <TableCell className="text-center whitespace-nowrap">
           {formatTimeString(booking.start_time)} - {formatTimeString(booking.end_time)}
@@ -149,7 +153,7 @@ const BookingHistory = () => {
     },
     {
       key: 'location',
-      header: 'Location',
+      header: t('Location'),
       cell: (booking: BookingEntry) => (
         <TableCell className="text-center">
           {booking.infrastructure_location || 'N/A'}
@@ -158,7 +162,7 @@ const BookingHistory = () => {
     },
     {
       key: 'details',
-      header: 'Details',
+      header: t('Details'),
       cell: (booking: BookingEntry) => (
         <TableCell className="text-center">
           <Button
@@ -177,7 +181,7 @@ const BookingHistory = () => {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('Status'),
       cell: (booking: BookingEntry) => (
         <TableCell className="text-center">
           <Badge className={getStatusColor(booking.status)}>
@@ -188,7 +192,7 @@ const BookingHistory = () => {
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('Actions'),
       cell: (booking: BookingEntry) => (
         <TableCell className="text-center">
           {(booking.status === 'pending' || booking.status === 'approved') && (() => {
@@ -201,14 +205,14 @@ const BookingHistory = () => {
                   onClick={() => handleCancelBooking(booking.id, booking.status)}
                   className="discard"
                   disabled={isWithin24h}
-                  title={isWithin24h ? "Cannot cancel bookings within 24 hours" : "Cancel this booking"}
+                  title={isWithin24h ? t('userBookHist.notWithin24h',"Cannot cancel bookings within 24 hours") : t('userBookHist.Cancel this booking')}
                 >
-                  Cancel
+                  {t('Cancel')}
                 </Button>
 
                 {isWithin24h && (
                   <div className="text-xs text-amber-500 mt-1">
-                    Within 24h
+                    {t('userBookHist.Within 24h')}
                   </div>
                 )}
               </>
@@ -222,14 +226,14 @@ const BookingHistory = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen general-container flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+        <div className="text-xl">{t('Loading')}</div>
       </div>
     );
   }
 
   return (
     <BasePageLayout
-      pageTitle="Booking History & Management"
+      pageTitle={t('userBookHist.title',"Booking History & Management")}
       showDashboardButton
       alertMessage={message}
       className={"w-250"}
@@ -242,7 +246,7 @@ const BookingHistory = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search infrastructure, location, or purpose..."
+                placeholder={t('userBookHist.searchPlaceholder',"Search infrastructure, location, or purpose...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 w-full"
@@ -253,28 +257,29 @@ const BookingHistory = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Status filter using MultiSelectFilter */}
               <MultiSelectFilter
-                label="Status"
+                label={t("Status")}
                 options={createFilterOptions(BOOKING_STATUSES, getStatusColor)}
                 selectedValues={selectedStatuses}
                 onSelectionChange={setSelectedStatuses}
                 variant="badge"
-                placeholder="All Statuses"
+                placeholder={t('userBookHist.All Statuses')}
               />
 
               {/* Date filter using MultiSelectFilter */}
               <MultiSelectFilter
-                label="Date"
+                label={t("Date")}
                 options={createFilterOptions(DATE_FILTER_OPTIONS)}
                 selectedValues={selectedDateFilters}
                 onSelectionChange={setSelectedDateFilters}
-                placeholder="All Dates"
+                placeholder={t("All Dates")}
               />
             </div>
           </div>
         </CardContent>
 
         {/* Bookings table */}
-        <p className="explanation-text1 pb-2">You can only cancel bookings if they don't occur in the next 24 hours.</p>
+        <p className="explanation-text1 pb-2">{t('userBookHist.bookCancelExplain')}</p>
+        {/* You can only cancel bookings if they don't occur in the next 24 hours. */}
         <CardContent>
           {/* PaginatedTable with integrated pagination */}
           <PaginatedTable
@@ -282,11 +287,11 @@ const BookingHistory = () => {
             columns={columns}
             initialRowsPerPage={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
-            emptyMessage="You have no booking history."
+            emptyMessage={t('userBookHist.noBookHist',"You have no booking history.")}
             noResults={
               bookings.length > 0 ? (
                 <div className="text-center py-8 text-gray-400">
-                  No bookings match your current filters.
+                  {t('userBookHist.noBookMatch',"No bookings match your current filters.")}
                 </div>
               ) : null
             }

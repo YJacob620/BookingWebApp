@@ -6,6 +6,8 @@ import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import { processGuestConfirmation } from '@/utils';
 import { LOGIN, REGISTER } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
+import { useTranslation } from 'react-i18next';
+
 
 /**
  * Component to handle guest booking confirmation from email link
@@ -18,6 +20,8 @@ const GuestConfirmationPage: React.FC = () => {
 
     // Use a ref to track if the confirmation has been processed
     const hasProcessed = useRef(false);
+    const {t} = useTranslation();
+
 
     useEffect(() => {
         if (!token) {
@@ -36,7 +40,7 @@ const GuestConfirmationPage: React.FC = () => {
                 // setIsSuccess(true);
             } catch (err) {
                 console.error('Error confirming booking:', err);
-                setError(err instanceof Error ? err.message : 'An error occurred confirming your booking');
+                setError(err instanceof Error ? err.message : t('guestConfPage.msgErrBooking','An error occurred confirming your booking'));
             } finally {
                 setIsLoading(false);
             }
@@ -47,12 +51,12 @@ const GuestConfirmationPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <BasePageLayout pageTitle="Confirming Booking">
+            <BasePageLayout pageTitle={t('guestConfPage.Confirming Booking')}>
                 <Card className="max-w-md mx-auto">
                     <CardContent className="flex flex-col items-center py-8">
                         <Loader className="h-12 w-12 animate-spin text-blue-500 mb-4" />
-                        <p className="text-lg">Processing your booking confirmation...</p>
-                        <p className="text-sm text-gray-400 mt-2">Please wait while we confirm your booking.</p>
+                        <p className="text-lg">{t('guestConfPage.ProccessingBookConf','Processing your booking confirmation...')}</p>
+                        <p className="text-sm text-gray-400 mt-2">{t('guestConfPage.waitWhileProc','Please wait while we confirm your booking.')}</p>
                     </CardContent>
                 </Card>
             </BasePageLayout>
@@ -61,16 +65,16 @@ const GuestConfirmationPage: React.FC = () => {
 
     if (error) {
         return (
-            <BasePageLayout pageTitle="Confirmation Failed">
+            <BasePageLayout pageTitle={t('guestConfPage.Confirmation Failed')}>
                 <Card className="max-w-md mx-auto">
                     <CardContent className="flex flex-col items-center py-8">
                         <XCircle className="h-16 w-16 text-red-500 mb-4" />
-                        <h2 className="text-2xl font-bold mb-4">Booking Confirmation Failed</h2>
+                        <h2 className="text-2xl font-bold mb-4">{t('guestConfPage.Booking Confirmation Failed')}</h2>
                         <p className="text-center mb-4">{error}</p>
                     </CardContent>
                     <CardFooter className="flex justify-center">
                         <Link to={LOGIN}>
-                            <Button>Return to Login</Button>
+                            <Button>{t('Return to',{where:t('Login')})}</Button>
                         </Link>
                     </CardFooter>
                 </Card>
@@ -79,35 +83,36 @@ const GuestConfirmationPage: React.FC = () => {
     }
 
     return (
-        <BasePageLayout pageTitle="Booking Confirmed">
+        <BasePageLayout pageTitle={t('guestConfPage.Booking Confirmed')}>
             <Card className="max-w-md mx-auto">
                 <CardContent className="flex flex-col items-center py-8">
                     <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-                    <h2 className="text-2xl font-bold mb-4">Booking Confirmed!</h2>
+                    <h2 className="text-2xl font-bold mb-4">{t('guestConfPage.Booking Confirmed!')}</h2>
                     <p className="text-center mb-4">
-                        Your booking request has been submitted successfully.
+                       {t('','Your booking request has been submitted successfully.')} 
                     </p>
                     <p className="text-sm text-gray-400 text-center">
-                        You will receive an email notification when the infrastructure manager reviews your request.
+                        {t('guestConfPage.managerReviewExplain')}
+                        {/* You will receive an email notification when the infrastructure manager reviews your request. */}
                     </p>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
                     <p className="text-center">
-                        Want to manage your bookings more easily?
+                    {t('guestConfPage.registerSuggest','Want to manage your bookings more easily?')}
                     </p>
                     <div className="flex flex-col gap-4">
                         <Link to={REGISTER}>
-                            <Button className='apply w-full'>Create Account</Button>
+                            <Button className='apply w-full'>{t('Create Account')}</Button>
                         </Link>
                         <div className="text-center">
-                            <p className="text-sm explanation-text1">- OR -</p>
+                            <p className="text-sm explanation-text1">- {t('OR')} -</p>
                         </div>
                         <Link to={LOGIN}>
                             <Button
                                 variant="custom5"
                                 className="w-full py-1"
                             >
-                                Go to Login
+                                {t('Go to Login')}
                             </Button>
                         </Link>
                     </div>

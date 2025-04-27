@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from '@/components/ui/label';
 
 import { Infrastructure, InfrastFormData } from '@/utils';
+import { useTranslation } from 'react-i18next';
 
 
 interface InfrastructureFormProps {
@@ -24,6 +25,8 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
     onCancelEdit,
     // onDataChange
 }) => {
+    const {t} = useTranslation()
+
     const [formData, setFormData] = useState<InfrastFormData>({
         name: '',
         description: '',
@@ -78,21 +81,21 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
             <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">
-                        {isEditMode ? 'Edit Infrastructure' : 'Add New Infrastructure'}
+                        {isEditMode ? t('infManageForm.Edit Infrastructure') : t('infManageForm.Add New Infrastructure')}
                     </h2>
                     {isEditMode && (
                         <Button
                             onClick={onCancelEdit}
                             className="discard h-8"
                         >
-                            Cancel Edit
+                           {t('infManageForm.Cancel Edit')}
                         </Button>
                     )}
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <p className="mb-1">Infrastructure Name *</p>
+                            <p className="mb-1">{t('infManageForm.Infrastructure Name')} *</p>
                             <Input
                                 id="name"
                                 name="name"
@@ -104,7 +107,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
                         </div>
 
                         <div className="space-y-2">
-                            <p className="mb-1">Location *</p>
+                            <p className="mb-1">{t('infManageForm.Location')} *</p>
                             <Input
                                 id="location"
                                 name="location"
@@ -117,7 +120,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                        <p className="mb-1">Description *</p>
+                        <p className="mb-1">{t('infManageForm.Description')} *</p>
                         <Textarea
                             id="description"
                             name="description"
@@ -135,11 +138,11 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
                             onCheckedChange={handleCheckboxChange}
                             className="h-5 w-5"
                         />
-                        <Label htmlFor="is_active" className='text-md font-normal'>Infrastructure is active</Label>
+                        <Label htmlFor="is_active" className='text-md font-normal'>{t('infManageForm.Infrastructure is active')}</Label>
                     </div>
 
                     <Button type="submit" className="apply">
-                        {isEditMode ? 'Update Infrastructure' : 'Add Infrastructure'}
+                        {isEditMode ? t('infManageForm.Update Infrastructure') : t('infManageForm.Add Infrastructure')}
                     </Button>
                 </form>
             </CardContent>

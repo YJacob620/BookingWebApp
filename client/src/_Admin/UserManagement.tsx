@@ -37,6 +37,8 @@ import {
 } from '@/utils';
 import BasePageLayout from '@/components/_BasePageLayout';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
+import { useTranslation } from 'react-i18next';
+
 
 const UserManagement: React.FC = () => {
 
@@ -56,6 +58,7 @@ const UserManagement: React.FC = () => {
     const [infraSearchQuery, setInfraSearchQuery] = useState('');
     const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
     const [pendingChanges, setPendingChanges] = useState<{ [key: number]: boolean }>({});
+    const {t} = useTranslation();
 
     useEffect(() => {
         loadUsers();
@@ -75,7 +78,7 @@ const UserManagement: React.FC = () => {
             console.error('Error loading users:', error);
             setMessage({
                 type: 'error',
-                text: 'Failed to load users'
+                text: t('userManagement.msgErrUserLoad','Failed to load users')
             });
         } finally {
             setIsLoading(false);
@@ -120,7 +123,7 @@ const UserManagement: React.FC = () => {
 
             setMessage({
                 type: 'success',
-                text: 'User role updated successfully'
+                text: t('userManagement.msgSuccessUpUserRole','User role updated successfully')
             });
 
             // If changing to/from infrastructure_manager, reload user data to get assigned infrastructures
@@ -135,7 +138,7 @@ const UserManagement: React.FC = () => {
             console.error('Error updating user role:', error);
             setMessage({
                 type: 'error',
-                text: 'Failed to update user role'
+                text: t('userManagement.msgErrUserUpdate','Failed to update user role')
             });
 
             setTimeout(() => setMessage(null), 3000);
@@ -163,7 +166,7 @@ const UserManagement: React.FC = () => {
             console.error('Error toggling blacklist status:', error);
             setMessage({
                 type: 'error',
-                text: 'Failed to update blacklist status'
+                text: t('userManagement.msgErrUpdateBlklstStatus','Failed to update blacklist status')
             });
 
             // Clear error message after 3 seconds
@@ -230,7 +233,7 @@ const UserManagement: React.FC = () => {
 
             setMessage({
                 type: 'success',
-                text: 'Infrastructure access updated successfully'
+                text: t('userManagement.msgSuccsessInfAccessUpdate','Infrastructure access updated successfully')
             });
 
             setTimeout(() => setMessage(null), 3000);
@@ -238,7 +241,7 @@ const UserManagement: React.FC = () => {
             console.error('Error updating infrastructure assignments:', error);
             setMessage({
                 type: 'error',
-                text: 'Failed to update some infrastructure assignments'
+                text: t('userManagement.msgErrUpdateInfStatus','Failed to update some infrastructure assignments')
             });
 
             setTimeout(() => setMessage(null), 3000);
@@ -265,7 +268,7 @@ const UserManagement: React.FC = () => {
     const infrastructureColumns: PaginatedTableColumn<Infrastructure>[] = [
         {
             key: 'access',
-            header: 'Access',
+            header: t('Access'),
             cell: (infra: Infrastructure) => {
                 const isAssigned = assignedInfrastructures.includes(infra.id);
 
@@ -285,8 +288,8 @@ const UserManagement: React.FC = () => {
             sortable: false
         },
         {
-            key: 'name',
-            header: 'Name',
+            key:  'name',
+            header: t('Name'),
             cell: (infra: Infrastructure) => (
                 <TableCell className="font-medium text-center">{infra.name}</TableCell>
             ),
@@ -294,7 +297,7 @@ const UserManagement: React.FC = () => {
         },
         {
             key: 'location',
-            header: 'Location',
+            header: t('Location'),
             cell: (infra: Infrastructure) => (
                 <TableCell className="text-center">{infra.location || 'N/A'}</TableCell>
             ),
@@ -302,11 +305,11 @@ const UserManagement: React.FC = () => {
         },
         {
             key: 'status',
-            header: 'Status',
+            header: t('Status'),
             cell: (infra: Infrastructure) => (
                 <TableCell className="text-center">
                     <Badge className={infra.is_active ? 'bg-green-800' : 'bg-red-800'}>
-                        {infra.is_active ? 'Active' : 'Inactive'}
+                        {infra.is_active ? t('Active') : t('Inactive')}
                     </Badge>
                 </TableCell>
             ),
@@ -319,7 +322,7 @@ const UserManagement: React.FC = () => {
     const columns: PaginatedTableColumn<User>[] = [
         {
             key: 'name',
-            header: 'Name',
+            header: t('Name'),
             cell: (user: User) => (
                 <TableCell className="font-medium">{user.name}</TableCell>
             ),
@@ -327,7 +330,7 @@ const UserManagement: React.FC = () => {
         },
         {
             key: 'email',
-            header: 'Email',
+            header: t('Email'),
             cell: (user: User) => (
                 <TableCell>{user.email}</TableCell>
             ),
@@ -335,7 +338,7 @@ const UserManagement: React.FC = () => {
         },
         {
             key: 'role',
-            header: 'Role',
+            header: t('Role'),
             cell: (user: User) => (
                 <TableCell>
                     <Select
@@ -347,10 +350,10 @@ const UserManagement: React.FC = () => {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="manager">Infrastructure Manager</SelectItem>
-                            <SelectItem value="faculty">Faculty</SelectItem>
-                            <SelectItem value="student">Student</SelectItem>
+                            <SelectItem value="admin">{t('Admin')}</SelectItem>
+                            <SelectItem value="manager">{t('Infrastructure Manager')}</SelectItem>
+                            <SelectItem value="faculty">{t('Faculty')}</SelectItem>
+                            <SelectItem value="student">{t('Student')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </TableCell>
@@ -359,11 +362,11 @@ const UserManagement: React.FC = () => {
         },
         {
             key: 'status',
-            header: 'Status',
+            header: t('Status'),
             cell: (user: User) => (
                 <TableCell>
                     <Badge className={user.is_blacklisted ? 'bg-red-700' : 'bg-green-700'}>
-                        {user.is_blacklisted ? 'Blacklisted' : 'Allowed'}
+                        {user.is_blacklisted ? t('Blacklisted') : t('Allowed')}
                     </Badge>
                 </TableCell>
             ),
@@ -371,7 +374,7 @@ const UserManagement: React.FC = () => {
         },
         {
             key: 'actions',
-            header: 'Actions',
+            header: t('Actions'),
             cell: (user: User) => (
                 <TableCell>
                     <div className="flex space-x-2">
@@ -383,9 +386,9 @@ const UserManagement: React.FC = () => {
                             disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent blacklisting the first admin
                         >
                             {user.is_blacklisted ? (
-                                <><UserCheck className="h-4 w-4 mr-1" /> Un-blacklist</>
+                                <><UserCheck className="h-4 w-4 mr-1" /> {t('userManagement.Un-blacklist')}</>
                             ) : (
-                                <><UserX className="h-4 w-4 mr-1" /> Blacklist</>
+                                <><UserX className="h-4 w-4 mr-1" /> {t('userManagement.Blacklist')}</>
                             )}
                         </Button>
 
@@ -396,7 +399,7 @@ const UserManagement: React.FC = () => {
                                 onClick={() => openManagerDialog(user)}
                                 className="text-blue-500"
                             >
-                                <Shield className="h-4 w-4 mr-1" /> Manage Access
+                                <Shield className="h-4 w-4 mr-1" /> {t('Manage Access')}
                             </Button>
                         )}
                     </div>
@@ -413,7 +416,7 @@ const UserManagement: React.FC = () => {
 
     return (
         <BasePageLayout
-            pageTitle="User Management"
+            pageTitle={t('userManagement.title',"User Management")}
             showDashboardButton
             alertMessage={message}
         >
@@ -422,7 +425,7 @@ const UserManagement: React.FC = () => {
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                        placeholder="Search users by name, email, or role..."
+                        placeholder={t('userManagement.searchBarPlaceholder',"Search users by name, email, or role...")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10"
@@ -434,20 +437,20 @@ const UserManagement: React.FC = () => {
             <Card className="card1">
                 <CardContent className="p-6">
                     {isLoading ? (
-                        <div className="text-center py-10">Loading users...</div>
+                        <div className="text-center py-10">{t('Loading',{what:t('users')})}</div>
                     ) : (
                         <PaginatedTable
                             data={filteredUsers}
                             columns={columns}
                             initialRowsPerPage={10}
                             rowsPerPageOptions={[5, 10, 25, 50]}
-                            emptyMessage="No users found."
+                            emptyMessage={t('userManagement.No users found','No users found.')}
                             onSortChange={handleSortChange}
                             sortConfig={sortConfig}
                             noResults={
                                 users.length > 0 ? (
                                     <div className="text-gray-400">
-                                        No users match your search criteria.
+                                        {t('userManagement.searchNoResMsg','No users match your search criteria.')}
                                     </div>
                                 ) : null
                             }
@@ -472,9 +475,10 @@ const UserManagement: React.FC = () => {
                 }}>
                     <DialogContent className="!max-w-3xl">
                         <DialogHeader>
-                            <DialogTitle>Manage Infrastructure Access</DialogTitle>
+                            <DialogTitle>{t('userManagement.manInfAccTitle','Manage Infrastructure Access')}</DialogTitle>
                             <DialogDescription>
-                                Assign or remove infrastructure access for {selectedUser.name}
+                                {t('userManagement.manInfAccDesc',{who:selectedUser.name})}
+                                {/* Assign or remove infrastructure access for {{who}} */}
                             </DialogDescription>
                         </DialogHeader>
 
@@ -483,7 +487,7 @@ const UserManagement: React.FC = () => {
                             <div className="relative mb-4">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input
-                                    placeholder="Search infrastructures..."
+                                    placeholder={t("Search infrastructures","Search infrastructures...")}
                                     value={infraSearchQuery}
                                     onChange={(e) => setInfraSearchQuery(e.target.value)}
                                     className="pl-10"
@@ -497,11 +501,11 @@ const UserManagement: React.FC = () => {
                                     columns={infrastructureColumns}
                                     initialRowsPerPage={5}
                                     rowsPerPageOptions={[3, 5, 10, 25]}
-                                    emptyMessage="No infrastructures available"
+                                    emptyMessage={t('userManagement.noInfAbleMsg',"No infrastructures available")}
                                     noResults={
                                         infrastructures.length > 0 ? (
                                             <div className="text-gray-400">
-                                                No infrastructures match your search criteria.
+                                                {t('userManagement.noInfResMsg','No infrastructures match your search criteria.')}
                                             </div>
                                         ) : null
                                     }
@@ -515,7 +519,7 @@ const UserManagement: React.FC = () => {
                                 <div>
                                     {Object.keys(pendingChanges).length > 0 && (
                                         <span className="text-sm text-amber-400">
-                                            {Object.keys(pendingChanges).length} pending changes
+                                            {Object.keys(pendingChanges).length} {t('pending changes')}
                                         </span>
                                     )}
                                 </div>
@@ -527,14 +531,14 @@ const UserManagement: React.FC = () => {
                                         }}
                                         className='max-w-15 discard'
                                     >
-                                        Cancel
+                                        {t('Cancel')}
                                     </Button>
                                     <Button
                                         onClick={handleSaveChanges}
                                         disabled={isUpdatingAccess || Object.keys(pendingChanges).length === 0}
                                         className='apply'
                                     >
-                                        {isUpdatingAccess ? 'Saving...' : 'Save Changes'}
+                                        {isUpdatingAccess ? t('Saving','Saving...') : t('Save Changes')}
                                     </Button>
                                 </div>
                             </div>

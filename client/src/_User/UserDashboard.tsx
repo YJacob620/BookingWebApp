@@ -26,12 +26,16 @@ import {
 import { BOOKING_HISTORY, CREATE_BOOKING } from '@/RoutePaths';
 import EmailPreferencesToggle from '@/components/_EmailPreferencesToggle';
 import BasePageLayout from '@/components/_BasePageLayout';
+import { useTranslation } from 'react-i18next';
+
 
 const UserDashboard = () => {
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>();
+  const {t} = useTranslation();
+
 
   useEffect(() => {
     setUser(getLocalUser());
@@ -54,25 +58,25 @@ const UserDashboard = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen general-container flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+        <div className="text-xl">{t('Loading')}</div>
       </div>
     );
   }
 
   return (
     <BasePageLayout
-      pageTitle="User Dashboard"
-      explanationText={"You can create a new booking or view your existing ones below"}
+      pageTitle={t('userDashboard.title',"User Dashboard")}
+      explanationText={t('userDashboard.explaination',"You can create a new booking or view your existing ones below")}
       showLogoutButton
     >
-      <h2 className="text-xl font-semibold mb-5">Welcome, {user?.name || user?.email}</h2>
+      <h2 className="text-xl font-semibold mb-5">{t('welcomeHeader',{name:user?.name || user?.email})}</h2>
 
       <EmailPreferencesToggle />
       <div className="my-8">
         <Link to={CREATE_BOOKING}>
           <Button className="bg-blue-600 hover:bg-blue-700">
             <CalendarPlus className="mr-2 h-4 w-4" />
-            New Booking
+            {t('userDashboard.New Booking')}
           </Button>
         </Link>
       </div>
@@ -87,9 +91,10 @@ const UserDashboard = () => {
       {/* Bookings table */}
       <Card className="card1">
         <CardHeader>
-          <CardTitle>Your Recent Bookings</CardTitle>
+          <CardTitle>{t('userDashboard.recentBookTitle','Your Recent Bookings')}</CardTitle>
           <CardDescription className="explanation-text1">
-            Here are your most recent booking requests and their current status
+          {t('userDashboard.recentBookDesc')}
+            {/* Here are your most recent booking requests and their current status */}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,11 +103,11 @@ const UserDashboard = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="border-gray-700">
-                    <TableHead>Infrastructure</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t("Infrastructure")}</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t("Time")}</TableHead>
+                    <TableHead>{t("Location")}</TableHead>
+                    <TableHead>{t("Status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -135,14 +140,14 @@ const UserDashboard = () => {
             </div>
           ) : (
             <p className="text-center py-8 explanation-text1">
-              You don't have any bookings yet.
+              {t('userDashboard.noBookExplain',"You don't have any bookings yet.")}
             </p>
           )}
 
           {bookings.length > 0 && (
             <div className="mt-4 flex justify-center">
               <Link to={BOOKING_HISTORY}>
-                <Button>View And Manage All Bookings</Button>
+                <Button>{t('userDashboard.bookHistLink','View And Manage All Bookings')}</Button>
               </Link>
             </div>
           )}

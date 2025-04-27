@@ -6,6 +6,7 @@ import { unsubscribeEmailAction } from '@/utils/apiFunctions';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
 import { getDashboardPath, getLocalUser, Message } from '@/utils';
+import { useTranslation } from 'react-i18next';
 
 const EmailUnsubscribePage: React.FC = () => {
     const { email } = useParams<{ email: string }>();
@@ -15,6 +16,8 @@ const EmailUnsubscribePage: React.FC = () => {
     const [isProcessing, setIsProcessing] = useState(true);
     const [status, setStatus] = useState<'success' | 'error' | null>(null);
     const [message, setMessage] = useState<Message | null>(null);
+
+    const {t} = useTranslation();
 
     // Use a ref to track if the action has been processed
     const hasProcessed = useRef(false);
@@ -29,7 +32,7 @@ const EmailUnsubscribePage: React.FC = () => {
                 setStatus('error');
                 setMessage({
                     type: 'error',
-                    text: 'Invalid email address'
+                    text: t('emailUnsubPage.msgErrInvAddress','Invalid email address')
                 });
                 setIsProcessing(false);
                 return;
@@ -42,14 +45,16 @@ const EmailUnsubscribePage: React.FC = () => {
                 setStatus('success');
                 setMessage({
                     type: 'success',
-                    text: 'You have been successfully unsubscribed from email notifications.'
+                    text: t('emailUnsubPage.msgSucUnsub')
+                    // 'You have been successfully unsubscribed from email notifications.'
                 });
             } catch (err: any) {
                 console.error('Error processing unsubscribe action:', err);
                 setStatus('error');
                 setMessage({
                     type: 'error',
-                    text: 'An error occurred while processing your unsubscribe request.'
+                    text: t('emailUnsubPage.msgErrProcReq')
+                    // 'An error occurred while processing your unsubscribe request.'
                 });
             } finally {
                 setIsProcessing(false);
@@ -76,11 +81,12 @@ const EmailUnsubscribePage: React.FC = () => {
 
     if (isProcessing) {
         return (
-            <BasePageLayout pageTitle="Unsubscribing from Emails">
+            <BasePageLayout pageTitle={t("emailUnsubPage.Unsubscribing from Emails")}>
                 <div className="flex flex-col items-center justify-center py-12">
                     <Loader className="h-12 w-12 animate-spin text-blue-500 mb-4" />
-                    <p className="text-lg">Processing your unsubscribe request...</p>
-                    <p className="text-sm text-gray-400 mt-2">Please wait.</p>
+                    <p className="text-lg">{t('emailUnsubPage.processingReq')}</p>
+                    {/* Processing your unsubscribe request... */}
+                    <p className="text-sm text-gray-400 mt-2">{t('Please wait',{context:'dot'})}</p>
                 </div>
             </BasePageLayout>
         );
@@ -88,7 +94,7 @@ const EmailUnsubscribePage: React.FC = () => {
 
     return (
         <BasePageLayout
-            pageTitle={status === 'success' ? 'Successfully Unsubscribed' : 'Unsubscribe Failed'}
+        pageTitle={status === 'success' ? t('emailUnsubPage.Successfully Unsubscribed') : t('emailUnsubPage.Unsubscribe Failed')}
             alertMessage={message}
         >
             <div className="max-w-md mx-auto text-center">
@@ -100,15 +106,19 @@ const EmailUnsubscribePage: React.FC = () => {
 
                 {status === 'success' ? (
                     <p className="mb-6">
-                        You have been successfully unsubscribed from all email notifications from the Scientific Infrastructure Booking System.
+                        {t('emailUnsubPage.unsubSuccessTxt')}
+                        {/* You have been successfully unsubscribed from all email notifications from the Scientific Infrastructure Booking System. */}
                         <br /><br />
-                        If you change your mind, you can re-enable email notifications at any time by logging into your account and updating your preferences.
+                        {t('emailUnsubPage.ResubSuggestTxt')}
+                        {/* If you change your mind, you can re-enable email notifications at any time by logging into your account and updating your preferences. */}
                     </p>
                 ) : (
                     <p className="mb-6">
-                        There was an error processing your unsubscribe request. The link may be invalid or expired.
+                        {t('emailUnsubPage.unsubErrTxt')}
+                        {/* There was an error processing your unsubscribe request. The link may be invalid or expired. */}
                         <br /><br />
-                        Please try again or log in to your account to manage your email preferences.
+                        {t('emailUnsubPage.unsubTryAgainTxt')}
+                        {/* Please try again or log in to your account to manage your email preferences. */}
                     </p>
                 )}
 
@@ -117,7 +127,7 @@ const EmailUnsubscribePage: React.FC = () => {
                         onClick={handleNavigation}
                         size="lg"
                     >
-                        {user ? 'Go to Dashboard' : 'Go to Login'}
+                        {user ? t('Go to Dashboard') : t('Go to Login')}
                     </Button>
                 </div>
             </div>
