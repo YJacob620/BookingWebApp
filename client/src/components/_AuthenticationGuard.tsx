@@ -190,7 +190,7 @@ const AuthenticationGuard: React.FC<AuthGuardProps> = ({
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
           {/* <div className="text-xl">Loading...</div> */}
-          <div className="text-xl">{t('Loading')}</div>
+          <div className="text-xl">{t('Loading',{what:''})}</div>
         </div>
       </div>
     );

@@ -121,7 +121,7 @@
   "Infrastructures": "Infrastructures",
   "Bookings & Timeslots": "Bookings & Timeslots",
   "managerDash": {
-    "InfrastructuresDesc": "'Manage your assigned infrastructures'",
+    "InfrastructuresDesc": "Manage your assigned infrastructures",
     "Book&TimeDesc": "Manage booking requests and available time slots for your assigned infrastructures",
     "title": "Infrastructure-Manager Dashboard",
     "explanation": "Manage your assigned infrastructures and booking requests"

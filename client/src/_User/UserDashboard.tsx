@@ -58,15 +58,15 @@ const UserDashboard = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen general-container flex items-center justify-center">
-        <div className="text-xl">{t('Loading')}</div>
+        <div className="text-xl">{t('Loading',{what:' '})}</div>
       </div>
     );
   }
 
   return (
     <BasePageLayout
-      pageTitle={t('userDashboard.title',"User Dashboard")}
-      explanationText={t('userDashboard.explaination',"You can create a new booking or view your existing ones below")}
+      pageTitle={t('userDashboard.title')}
+      explanationText={t('userDashboard.explaination')}
       showLogoutButton
     >
       <h2 className="text-xl font-semibold mb-5">{t('welcomeHeader',{name:user?.name || user?.email})}</h2>
