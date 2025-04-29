@@ -14,6 +14,8 @@ import {
   Infrastructure,
 } from '@/utils';
 
+import { useTranslation } from 'react-i18next';
+
 
 interface BookingManagementTabsProps {
   selectedInfrastructure: Infrastructure
@@ -41,6 +43,8 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
 
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const { t } = useTranslation();
+
   const handleForceUpdate = async () => {
     setIsUpdating(true);
     try {
@@ -66,10 +70,11 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
             disabled={isUpdating}
           >
             <RefreshCcw className="mr-2 h-4 w-4" />
-            {isUpdating ? "Updating..." : "Force Update Past Bookings/Timeslots Statuses"}
+            {isUpdating ? t('Updating','Updating...') : t('ForceUpdatePastStatuses',"Force Update Past Bookings/Timeslots Statuses")}
           </Button>
           <p className="explanation-text1 text-sm text-center">
-            Normally an update occurs automatically every few minutes, but you can force an update at any time.
+            {t('forceUpdateExplanation')}
+            {/* Normally an update occurs automatically every few minutes, but you can force an update at any time. */}
           </p>
         </div>
 
@@ -80,12 +85,12 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
         >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="bookings">
-              Manage Bookings
+              {t('Manage Bookings','Manage Bookings')}
             </TabsTrigger>
             <TabsTrigger value="timeslots">
-              Manage Timeslots
+              {t('Manage Timeslots','Manage Timeslots')}
             </TabsTrigger>
-            <TabsTrigger value="create">Create Timeslots</TabsTrigger>
+            <TabsTrigger value="create">{t('Create Timeslots','Create Timeslots')}</TabsTrigger>
           </TabsList>
           <TabsContent value="bookings">
             <BookingManagementTabsBookings

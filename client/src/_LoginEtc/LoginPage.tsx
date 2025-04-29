@@ -253,7 +253,7 @@ const LoginPage: React.FC = () => {
               {/* Don't have an account? */}
               {t("no account?", {
                 defaultValue: "Don't have an account?",
-              })}{" "}
+              })}
               <Link to={REGISTER} className="text-blue-400 hover:underline">
                 {t("Register here", { defaultValue: "Register here" })}
                 {/* Register here */}

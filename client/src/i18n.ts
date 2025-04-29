@@ -16,10 +16,10 @@ i18n
   .init({
     debug: isDev, // Enable logging for development
     fallbackLng: "en", // Default language
-    saveMissing: isDev,
     interpolation: {
       defaultVariables: [""],
-    }, // you should not use saveMissing in production
+    },
+    saveMissing: isDev, // you should not use saveMissing in production
     resources: {
       en: {
         translation: {
@@ -307,7 +307,7 @@ i18n
             bookCancelExplain:
               "You can only cancel bookings if they don't occur in the next 24 hours.",
             noBookHist: "You have no booking history.",
-            noBookMatch: "No bookings match your current filters.",
+
             msgErrBookFetch:
               "Unable to load your bookings. Please try again later.",
             cancelBookQuest:
@@ -317,6 +317,7 @@ i18n
             msgErrBookCancel:
               "Unable to cancel your booking. Please try again later.",
           },
+          noBookMatch: "No bookings match your current filters.",
           Cancel: "Cancel",
           Date: "Date",
           "All Dates": "All Dates",
@@ -342,6 +343,13 @@ i18n
             "Update Infrastructure": "Update Infrastructure",
             "Add Infrastructure": "Add Infrastructure",
           },
+          bookingsAndAvailableTimeManagement: "Booking & Timeslot Management",
+          selectInfrastructure: "Select Infrastructure",
+          loadingBookingData: "Loading booking data...",
+          viewBookingsAndTimeSlots: "View Bookings and Timeslots",
+          viewBookingsAndTimeSlotsExplanation:
+            "View future Timeslots and bookings. Toggle between calendar-view and list-view to see details.\nIn calendar-view, clicking on an active date will take you to a filtered list-view of this date.",
+          manageBookingsAndTimeSlots: "Manage Bookings and Timeslots",
         },
       },
       he: {
@@ -606,13 +614,13 @@ i18n
             bookCancelExplain:
               "אתה יכול לבטל הזמנות רק אם הן לא מתרחשות תוך 24 שעות.",
             noBookHist: "אין לך הזמנות קודמות.",
-            noBookMatch: "אין הזמנות התואמות את המסננים הנוכחיים שלך.",
             msgErrBookFetch: "לא ניתן לטעון את ההזמנות שלך. ",
             cancelBookQuest: "האם אתה בטוח שאתה רוצה לבטל את בקשת ההזמנה הזו?",
             cancelAppBookQuest:
               "האם אתה בטוח שאתה רוצה לבטל את ההזמנה המאושרת הזו?",
             msgErrBookCancel: "לא ניתן לבטל את ההזמנה שלך. ",
           },
+          noBookMatch: "אין הזמנות התואמות את המסננים הנוכחיים שלך.",
           Cancel: "בטל",
           Date: "תַאֲרִיך",
           "All Dates": "כל התאריכים",
@@ -637,6 +645,15 @@ i18n
             "Update Infrastructure": "עדכן תשתית",
             "Add Infrastructure": "הוסף תשתית",
           },
+          bookingsAndAvailableTimeManagement: "ניהול הזמנות ותורים",
+          selectInfrastructure: "בחר תשתית",
+          loadingBookingData: "טוען נתוני הזמנות...",
+          viewBookingsAndTimeSlots: "צפייה בהזמנות ותורים",
+          viewBookingsAndTimeSlotsExplanation:
+            "צפה בהזמנות ותורים עתידיים. החלף בין תצוגת לוח שנה לתצוגת רשימה כדי לראות פרטים.\nבתצוגת לוח שנה, לחיצה על תאריך פעיל תעביר אותך לתצוגת רשימה מסוננת של תאריך זה.",
+          manageBookingsAndTimeSlots: "ניהול הזמנות ותורים",
+          manageBookingsAndTimeSlotsExplanation:
+            "צפה ונהל את כל ההזמנות/תורים, כולל בעבר.",
         },
       },
     },
@@ -644,10 +661,4 @@ i18n
 
 i18n.services.formatter?.add("lowercase", (value) => {
   return value.toLowerCase();
-});
-
-i18n.services.formatter?.add("sentence_start", (value, lng) => {
-  let txt = value;
-  if (lng == "en") txt = txt.toLocaleUpperCase();
-  return txt;
 });

@@ -32,6 +32,7 @@ import BookingDetailsDialog from '@/components/_BookingDetailsDialog';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 import { FilterSortState } from './BookingManagement';
+import { useTranslation } from 'react-i18next';
 
 interface BookingListProps {
   items: BookingEntry[];
@@ -69,6 +70,8 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   // New state for booking details dialog
   const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+
+  const { t } = useTranslation();
 
   // Load bookings when infrastructure changes or after actions
   useEffect(() => {
@@ -140,12 +143,12 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
   const handleApproveBooking = async (bookingId: number) => {
     try {
-      if (!confirm('Are you sure you want to approve this booking?')) {
+      if (!confirm(t('questionApproveBooking','Are you sure you want to approve this booking?'))) {
         return;
       }
 
       await approveBooking(bookingId);
-      const successMessage = `Booking approved successfully`;
+      const successMessage = t('Booking approved successfully');
 
       onStatusChange(successMessage);
       onDataChange(); // Refresh the bookings list
@@ -157,11 +160,11 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
   const handleRejectBooking = async (bookingId: number) => {
     try {
-      if (!confirm('Are you sure you want to reject this booking? '
+      if (!confirm(t('questionRejectBooking')+'Are you sure you want to reject this booking? '
         + 'This will automatically create a new available timeslot at the same time.')) {
         return;
       }
-
+// 'Are you sure you want to reject this booking? This will automatically create a new available timeslot at the same time.'
       await rejectOrCancelBooking(bookingId, 'rejected');
       onStatusChange(`Booking rejected successfully`);
       onDataChange(); // Refresh the bookings list
@@ -173,7 +176,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
   const handleCancelBooking = async (bookingId: number) => {
     try {
-      if (!confirm('Are you sure you want to cancel this approved booking?')) {
+      if (!confirm(t('questionCancelAppBooking','Are you sure you want to cancel this approved booking?'))) {
         return;
       }
 
@@ -190,12 +193,12 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const columns: PaginatedTableColumn<BookingEntry>[] = [
     {
       key: 'user_email',
-      header: 'User',
+      header: t('User'),
       cell: (booking: BookingEntry) => (
         <TableCell>
           <div className="font-medium">{booking.user_email}</div>
           {booking.user_role && (
-            <div className="text-xs text-gray-400">
+            <div className="text-xs text-gray-400">{/*todo options for user role?*/}
               {booking.user_role.charAt(0).toUpperCase() + booking.user_role.slice(1)}
             </div>
           )}
@@ -205,7 +208,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     },
     {
       key: 'booking_date',
-      header: 'Date',
+      header: t('Date'),
       cell: (booking: BookingEntry) => (
         <TableCell>
           {formatDate(booking.booking_date)}
@@ -216,7 +219,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     },
     {
       key: 'start_time',
-      header: 'Time',
+      header: t('Time'),
       cell: (booking: BookingEntry) => (
         <TableCell className="text-center whitespace-nowrap">
           {formatTimeString(booking.start_time)} - {formatTimeString(booking.end_time)}
@@ -225,7 +228,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     },
     {
       key: 'details',
-      header: 'Details',
+      header: t('Details'),
       cell: (booking: BookingEntry) => (
         <TableCell>
           <Button
@@ -237,7 +240,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
             }}
           >
             <FileText className="h-4 w-4 mr-1" />
-            View
+            {t('View')}
           </Button>
         </TableCell>
       ),
@@ -245,10 +248,10 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('Status'),
       cell: (booking: BookingEntry) => (
         <TableCell>
-          <Badge className={getStatusColor(booking.status)}>
+          <Badge className={getStatusColor(booking.status)}>{/*todo  translate*/}
             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
           </Badge>
         </TableCell>
@@ -258,7 +261,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('Actions'),
       cell: (booking: BookingEntry) => (
         <TableCell>
           {(() => {
@@ -272,7 +275,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                       onClick={() => handleApproveBooking(booking.id)}
                     >
                       <Check className="h-4 w-4" />
-                      Approve
+                      {t('Approve')}
                     </Button>
                     <Button
                       variant={"custom4_reject"}
@@ -280,7 +283,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                       onClick={() => handleRejectBooking(booking.id)}
                     >
                       <X className="h-4 w-4" />
-                      Reject
+                      {t('Reject')}
                     </Button>
                   </div>
                 );
@@ -293,7 +296,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                     onClick={() => handleCancelBooking(booking.id)}
                   >
                     <CalendarX className="mr-1 h-4 w-4" />
-                    Cancel
+                    {t('Cancel')}
                   </Button>
                 );
               default:
@@ -310,24 +313,24 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
     <div className="space-y-4">
       <div className="mb-4">
         <p className="explanation-text1">
-          Manage booking requests and approvals.
+          {t('manageBookingExplaintion','Manage booking requests and approvals.')}
         </p>
       </div>
 
       {/* Filter controls */}
       <div className="grid grid-cols-2 grid-rows-2 gap-4">
         <div>
-          <p>Search</p>
+          <p>{t('Search')}</p>
           <Input
             id="search-bookings"
-            placeholder="Search by email or purpose..."
+            placeholder={t('Search by email or purpose',"Search by email or purpose...")}
             value={bookingsSearchQuery}
             onChange={(e) => onFilterStateChange({ bookingsSearchQuery: e.target.value })}
             className='h-10'
           />
         </div>
         <div>
-          <p>Filter by Date</p>
+          <p>{t('Filter by Date')}</p>
           <div className="flex space-x-2">
             <Input
               id="date-filter-input"
@@ -343,29 +346,29 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                 onClick={handleClearDateFilter}
                 className="p-2"
               >
-                Clear
+                {t('Clear')}
               </Button>
             )}
           </div>
         </div>
 
         <MultiSelectFilter
-          label="Filter by Status"
+          label={t("Filter by Status")}
           options={createFilterOptions(BOOKING_STATUSES, getStatusColor)}
           selectedValues={selectedBookingStatusFilters}
           onSelectionChange={(values) =>
             onFilterStateChange({ selectedBookingStatusFilters: values as BookingStatus[] })}
           variant="badge"
-          placeholder="All Statuses"
+          placeholder={t("All Statuses")}
         />
 
         <MultiSelectFilter
-          label="Filter by Time-Period"
+          label={t("Filter by Time-Period")}
           options={createFilterOptions(DATE_FILTER_OPTIONS)}
           selectedValues={selectedBookingDateFilters}
           onSelectionChange={(values) =>
             onFilterStateChange({ selectedBookingDateFilters: values })}
-          placeholder="All Times"
+          placeholder={t("All Times")}
           disabled={!!bookingsDayFilter}
           triggerClassName={bookingsDayFilter ? 'opacity-50' : ''}
         />
@@ -373,7 +376,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
 
       {/* Bookings Table */}
       {isLoading ? (
-        <div className="text-center py-10">Loading bookings...</div>
+        <div className="text-center py-10">{t('Loading bookings','Loading bookings...')}</div>
       ) : (
         <div className="space-y-4">
           <PaginatedTable
@@ -381,13 +384,13 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
             columns={columns}
             initialRowsPerPage={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
-            emptyMessage="No bookings exist for this infrastructure."
+            emptyMessage={t('noBookingExistForInf',"No bookings exist for this infrastructure.")}
             sortConfig={bookingsSortConfig}
             onSortChange={(newSortConfig) => onFilterStateChange({ bookingsSortConfig: newSortConfig })}
             noResults={
               bookings.length > 0 ? (
                 <div className="text-gray-400">
-                  No bookings match your current filters.
+                  {t('noBookMatch')}
                 </div>
               ) : null
             }

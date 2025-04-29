@@ -291,7 +291,7 @@ const BookingHistory = () => {
             noResults={
               bookings.length > 0 ? (
                 <div className="text-center py-8 text-gray-400">
-                  {t('userBookHist.noBookMatch',"No bookings match your current filters.")}
+                  {t('noBookMatch',"No bookings match your current filters.")}
                 </div>
               ) : null
             }

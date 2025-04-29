@@ -223,7 +223,7 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
                 <BackToDashboardButton />
               </div>
             )}
-            <div className="flex mb-7">
+            <div className={`flex ${showDashboardButton?'justify-end':'justify-start'} mb-7`}>
               <LanguageSelector/>
             </div>
             {showLogoutButton && (

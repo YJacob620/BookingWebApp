@@ -18,6 +18,8 @@ import {
     TimeslotStatus
 } from '@/utils';
 
+import { useTranslation } from 'react-i18next';
+
 /**
  * Interface for concentrating all of the information about the current filtering 
  * and sorting state of the Booking Management page.
@@ -77,6 +79,8 @@ const BookingManagement: React.FC = () => {
 
     // Ref to store scroll position
     const scrollPositionRef = useRef<number>(0);
+
+    const { t } = useTranslation();
 
     // Check for refresh flag from email action completion
     useEffect(() => {
@@ -182,54 +186,53 @@ const BookingManagement: React.FC = () => {
     };
 
     return (
-        <BasePageLayout
-            pageTitle="Booking & Timeslot Management"
-            showDashboardButton
-            alertMessage={message}
-        >
-            <p className='text-xl pb-1'>Select Infrastructure</p>
-            <InfrastructureSelector
-                onSelectInfrastructure={handleInfrastructureSelected}
-                onError={handleError}
+      <BasePageLayout
+        pageTitle={t("bookingsAndAvailableTimeManagement")}
+        showDashboardButton
+        alertMessage={message}
+      >
+        <p className="text-xl pb-1">{t("selectInfrastructure")}</p>
+        <InfrastructureSelector
+          onSelectInfrastructure={handleInfrastructureSelected}
+          onError={handleError}
+        />
+
+        {isLoadingEntries && selectedInfrastructure && (
+          <div className="flex justify-center my-8">
+            <Loader className="h-8 w-8 animate-spin text-blue-500" />
+            <span className="ml-2">{t("loadingBookingData")}</span>
+          </div>
+        )}
+
+        {!isLoadingEntries && selectedInfrastructure && (
+          <>
+            <p className="text-xl">{t("viewBookingsAndTimeSlots")}</p>
+            <p className="explanation-text1 pb-1">
+              {t("viewBookingsAndTimeSlotsExplanation")}
+            </p>
+            <BookingManagementViews
+              bookingEntries={bookingEntries}
+              filterState={filterState}
+              onFilterStateChange={handleFilterStateChange}
             />
 
-            {isLoadingEntries && selectedInfrastructure && (
-                <div className="flex justify-center my-8">
-                    <Loader className="h-8 w-8 animate-spin text-blue-500" />
-                    <span className="ml-2">Loading booking data...</span>
-                </div>
-            )}
-
-            {!isLoadingEntries && selectedInfrastructure && (
-                <>
-                    <p className="text-xl">View Bookings and Timeslots</p>
-                    <p className="explanation-text1 pb-1">
-                        View future timeslots and bookings. Toggle between calendar-view and list-view to see details.
-                        <br />In calendar-view, clicking on an active date will take you to a filtered list-view of this date.
-                    </p>
-                    <BookingManagementViews
-                        bookingEntries={bookingEntries}
-                        filterState={filterState}
-                        onFilterStateChange={handleFilterStateChange}
-                    />
-
-                    <p className="text-xl">Manage Bookings and Timeslots</p>
-                    <p className="explanation-text1 pb-1">
-                        View and manage all bookings/timeslots, including past ones.
-                    </p>
-                    <BookingManagementTabs
-                        selectedInfrastructure={selectedInfrastructure}
-                        bookingEntries={bookingEntries}
-                        onSuccess={handleSuccess}
-                        onError={handleError}
-                        onUpdatePastBookings={handleUpdatePastBookings}
-                        onDataChange={() => setRefreshTrigger(prev => prev + 1)}
-                        filterState={filterState}
-                        onFilterStateChange={handleFilterStateChange}
-                    />
-                </>
-            )}
-        </BasePageLayout>
+            <p className="text-xl">{t("manageBookingsAndTimeSlots")}</p>
+            <p className="explanation-text1 pb-1">
+              {t("manageBookingsAndTimeSlotsExplanation")}
+            </p>
+            <BookingManagementTabs
+              selectedInfrastructure={selectedInfrastructure}
+              bookingEntries={bookingEntries}
+              onSuccess={handleSuccess}
+              onError={handleError}
+              onUpdatePastBookings={handleUpdatePastBookings}
+              onDataChange={() => setRefreshTrigger((prev) => prev + 1)}
+              filterState={filterState}
+              onFilterStateChange={handleFilterStateChange}
+            />
+          </>
+        )}
+      </BasePageLayout>
     );
 };
 
