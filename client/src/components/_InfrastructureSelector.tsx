@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover";
+import { useTranslation } from "react-i18next";
 
 import { Infrastructure, fetchInfrastructures } from '@/utils';
 
@@ -33,6 +34,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   const [selectedInfrast, setSelectedInfrast] = useState<Infrastructure | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
+  const [t] = useTranslation();
 
   useEffect(() => {
     getInfrastructures();
@@ -93,7 +95,10 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
         </PopoverTrigger>
         <PopoverContent className="p-0 card1 min-w-80">
           <Command>
-            <CommandInput placeholder="Search infrastructure..." className="border-none focus:ring-0 !bg-transparent px-1" />
+            {/* <CommandInput placeholder="Search infrastructure..." className="border-none focus:ring-0 !bg-transparent px-1" /> */}
+            <CommandInput
+              placeholder={t("Search infrastructures")}
+              className="border-none focus:ring-0 !bg-transparent px-1" />
             <CommandList>
               <CommandEmpty>No infrastructure found.</CommandEmpty>{/** todo */}
               <CommandGroup>

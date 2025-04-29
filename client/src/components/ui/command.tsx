@@ -53,8 +53,12 @@ function CommandDialog({
 
 function CommandInput({
   className,
+  placeholder,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
+  const content = placeholder?.toString().trim() || "";
+  const isRTL = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(content);
+
   return (
     <div
       data-slot="command-input-wrapper"
@@ -63,6 +67,8 @@ function CommandInput({
       <SearchIcon className="size-4 shrink-0 opacity-50" />
       <CommandPrimitive.Input
         data-slot="command-input"
+        dir={isRTL ? "rtl" : "ltr"}
+        placeholder={placeholder}
         className={cn(
           "placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
           className

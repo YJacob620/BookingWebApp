@@ -182,7 +182,7 @@ const LoginPage: React.FC = () => {
             )}
 
             <div>
-              <p className="text-left pb-0.5 pl-0.5">{t("Email")}</p>
+              <p className="text-center text-ali pb-0.5 pl-0.5">{t("Email")}</p>
               <Input
                 id="email"
                 name="email"
@@ -191,18 +191,12 @@ const LoginPage: React.FC = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder={t("inputEmailPlcHldr")}
-                // placeholder="Enter your email"
+              // placeholder="Enter your email"
               />
             </div>
 
             <div>
-              <div className="flex justify-between items-center">
-                <p className="text-left pl-0.5">{t("Password")}</p>
-                <Link to={FORGOT_PASSWORD} className="link text-sm">
-                  {t("Forgot password", { defaultValue: "Forgot password" })}?
-                  {/* Forgot password? */}
-                </Link>
-              </div>
+              <p className="text-center pl-0.5">{t("Password")}</p>
               <Input
                 id="password"
                 name="password"
@@ -213,8 +207,12 @@ const LoginPage: React.FC = () => {
                 placeholder={t("enterPassword", {
                   defaultValue: "Enter your password",
                 })}
-                // placeholder="Enter your password"
+              // placeholder="Enter your password"
               />
+              <Link to={FORGOT_PASSWORD} className="link text-sm" dir="auto">
+                {t("Forgot password", { defaultValue: "Forgot password" })}?
+                {/* Forgot password? */}
+              </Link>
             </div>
 
             <div className="flex flex-col gap-4">

@@ -524,7 +524,7 @@ i18n
           Actions: "פעולות",
           "Manage Access": "נהל גישה",
           users: "משתמשים",
-          "Search infrastructures": "חיפוש בתשתיות ...",
+          "Search infrastructures": "חיפוש בתשתיות...",
           "pending changes": "שינויים בהמתנה",
           Saving: "שומר...",
           "Save Changes": "שמור שינויים",

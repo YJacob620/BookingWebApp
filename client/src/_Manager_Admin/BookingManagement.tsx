@@ -186,53 +186,53 @@ const BookingManagement: React.FC = () => {
     };
 
     return (
-      <BasePageLayout
-        pageTitle={t("bookingsAndAvailableTimeManagement")}
-        showDashboardButton
-        alertMessage={message}
-      >
-        <p className="text-xl pb-1">{t("selectInfrastructure")}</p>
-        <InfrastructureSelector
-          onSelectInfrastructure={handleInfrastructureSelected}
-          onError={handleError}
-        />
-
-        {isLoadingEntries && selectedInfrastructure && (
-          <div className="flex justify-center my-8">
-            <Loader className="h-8 w-8 animate-spin text-blue-500" />
-            <span className="ml-2">{t("loadingBookingData")}</span>
-          </div>
-        )}
-
-        {!isLoadingEntries && selectedInfrastructure && (
-          <>
-            <p className="text-xl">{t("viewBookingsAndTimeSlots")}</p>
-            <p className="explanation-text1 pb-1">
-              {t("viewBookingsAndTimeSlotsExplanation")}
-            </p>
-            <BookingManagementViews
-              bookingEntries={bookingEntries}
-              filterState={filterState}
-              onFilterStateChange={handleFilterStateChange}
+        <BasePageLayout
+            pageTitle={t("bookingsAndAvailableTimeManagement")}
+            showDashboardButton
+            alertMessage={message}
+        >
+            <p className="text-xl pb-1">{t("selectInfrastructure")}</p>
+            <InfrastructureSelector
+                onSelectInfrastructure={handleInfrastructureSelected}
+                onError={handleError}
             />
 
-            <p className="text-xl">{t("manageBookingsAndTimeSlots")}</p>
-            <p className="explanation-text1 pb-1">
-              {t("manageBookingsAndTimeSlotsExplanation")}
-            </p>
-            <BookingManagementTabs
-              selectedInfrastructure={selectedInfrastructure}
-              bookingEntries={bookingEntries}
-              onSuccess={handleSuccess}
-              onError={handleError}
-              onUpdatePastBookings={handleUpdatePastBookings}
-              onDataChange={() => setRefreshTrigger((prev) => prev + 1)}
-              filterState={filterState}
-              onFilterStateChange={handleFilterStateChange}
-            />
-          </>
-        )}
-      </BasePageLayout>
+            {isLoadingEntries && selectedInfrastructure && (
+                <div className="flex justify-center my-8">
+                    <Loader className="h-8 w-8 animate-spin text-blue-500" />
+                    <span className="ml-2">{t("loadingBookingData")}</span>
+                </div>
+            )}
+
+            {!isLoadingEntries && selectedInfrastructure && (
+                <>
+                    <p className="text-xl">{t("viewBookingsAndTimeSlots")}</p>
+                    <p className="explanation-text1 pb-1">
+                        {t("viewBookingsAndTimeSlotsExplanation")}
+                    </p>
+                    <BookingManagementViews
+                        bookingEntries={bookingEntries}
+                        filterState={filterState}
+                        onFilterStateChange={handleFilterStateChange}
+                    />
+
+                    <p className="text-xl">{t("manageBookingsAndTimeSlots")}</p>
+                    <p className="explanation-text1 pb-1">
+                        {t("manageBookingsAndTimeSlotsExplanation")}
+                    </p>
+                    <BookingManagementTabs
+                        selectedInfrastructure={selectedInfrastructure}
+                        bookingEntries={bookingEntries}
+                        onSuccess={handleSuccess}
+                        onError={handleError}
+                        onUpdatePastBookings={handleUpdatePastBookings}
+                        onDataChange={() => setRefreshTrigger((prev) => prev + 1)}
+                        filterState={filterState}
+                        onFilterStateChange={handleFilterStateChange}
+                    />
+                </>
+            )}
+        </BasePageLayout>
     );
 };
 
