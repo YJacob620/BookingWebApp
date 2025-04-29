@@ -60,7 +60,7 @@ router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Respon
 
         // Early return if password is invalid
         if (!isValidPassword) {
-            res.status(401).json({ message: 'Invalid email or password' });
+            res.status(401).json({ message: 'Invalid password' });
             return;
         }
 
