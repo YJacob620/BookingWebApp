@@ -17,6 +17,7 @@ import {
     getLocalUser
 } from '@/utils';
 import BasePageLayout from '@/components/_BasePageLayout';
+import { useTranslation } from 'react-i18next';
 
 
 const InfrastructureManagement: React.FC = () => {
@@ -30,6 +31,8 @@ const InfrastructureManagement: React.FC = () => {
     const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
+    const { t } = useTranslation();
 
     useEffect(() => {
         setIsAdmin(getLocalUser()?.role === "admin");
@@ -150,72 +153,77 @@ const InfrastructureManagement: React.FC = () => {
 
     return (
         <BasePageLayout
-            pageTitle="Infrastructure Management"
-            showDashboardButton
-            alertMessage={message}
-            className={"w-230"}
-        >
-            <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="mb-6"
-            >
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="list" onClick={() => {
-                        setSelectedInfrastructure(null);
-                        handleCancelEdit();
-                    }}>
-                        <Database className="mr-2 h-4 w-4" />
-                        {isAdmin ? 'All Infrastructures' : 'Your Infrastructures'}
-                    </TabsTrigger>
-                    {isAdmin && (
-                        <TabsTrigger value="form">
-                            {isEditMode ? 'Editing Infrastructure' : (<><Plus className="mr-2 h-4 w-4" /> Add Infrastructure</>)}
-                        </TabsTrigger>
-                    )}
-                    <TabsTrigger
-                        value="questions"
-                        disabled={!selectedInfrastructure}
-                    >
-                        <Filter className="mr-2 h-4 w-4" />
-                        Manage Filter Questions
-                    </TabsTrigger>
-                </TabsList>
+      pageTitle={t('infrastructureManagement.title')}
+      showDashboardButton
+      alertMessage={message}
+      className={"w-230"}
+    >
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="mb-6"
+      >
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="list" onClick={() => {
+            setSelectedInfrastructure(null);
+            handleCancelEdit();
+          }}>
+            <Database className="mr-2 h-4 w-4" />
+            {isAdmin ? t('infrastructureManagement.allInfrastructures') : t('infrastructureManagement.yourInfrastructures')}
+          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="form">
+              {isEditMode ? t('infrastructureManagement.editingInfrastructure') : (
+                <>
+                  <Plus className="mr-2 h-4 w-4" /> 
+                  {t('infrastructureManagement.addInfrastructure')}
+                </>
+              )}
+            </TabsTrigger>
+          )}
+          <TabsTrigger
+            value="questions"
+            disabled={!selectedInfrastructure}
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            {t('infrastructureManagement.manageFilterQuestions')}
+          </TabsTrigger>
+        </TabsList>
 
-                <TabsContent value="list" className="mt-4">
-                    <InfrastructureManagementList
-                        infrastructures={infrastructures}
-                        isLoading={isLoading}
-                        onEdit={handleEdit}
-                        onToggleStatus={toggleStatus}
-                        onManageQuestions={handleManageQuestions}
-                    />
-                </TabsContent>
+        <TabsContent value="list" className="mt-4">
+          <InfrastructureManagementList
+            infrastructures={infrastructures}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onToggleStatus={toggleStatus}
+            onManageQuestions={handleManageQuestions}
+          />
+        </TabsContent>
 
-                {isAdmin && (
-                    <TabsContent value="form" className="mt-4">
-                        <InfrastructureManagementForm
-                            isEditMode={isEditMode}
-                            editingInfrastructure={editingInfrastructure}
-                            onSubmit={handleSubmit}
-                            onCancelEdit={handleCancelEdit}
-                        />
-                    </TabsContent>
-                )}
+        {isAdmin && (
+          <TabsContent value="form" className="mt-4">
+            <InfrastructureManagementForm
+              isEditMode={isEditMode}
+              editingInfrastructure={editingInfrastructure}
+              onSubmit={handleSubmit}
+              onCancelEdit={handleCancelEdit}
+            />
+          </TabsContent>
+        )}
 
-                <TabsContent value="questions" className="mt-4">
-                    {selectedInfrastructure ? (
-                        <InfrastructureQuestionsManager
-                            infrastructureId={selectedInfrastructure.id}
-                        />
-                    ) : (
-                        <Card className="card1 p-6">
-                            <p className="text-center">Please select an infrastructure to manage its questions</p>
-                        </Card>
-                    )}
-                </TabsContent>
-            </Tabs>
-        </BasePageLayout>
+        <TabsContent value="questions" className="mt-4">
+          {selectedInfrastructure ? (
+            <InfrastructureQuestionsManager
+              infrastructureId={selectedInfrastructure.id}
+            />
+          ) : (
+            <Card className="card1 p-6">
+              <p className="text-center">{t('infrastructureManagement.selectInfrastructureToManageQuestions')}</p>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
+    </BasePageLayout>
     );
 };
 
