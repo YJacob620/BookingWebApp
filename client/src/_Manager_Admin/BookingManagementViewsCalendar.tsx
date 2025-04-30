@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useTranslation } from 'react-i18next';
 
 import {
   getStatusColor,
@@ -25,6 +26,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
   onDateClick
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { t } = useTranslation();
 
   // Calendar navigation
   const goToPreviousMonth = () => {
@@ -120,7 +122,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
           <Button
             className="h-8 w-8 p-0"
             onClick={goToPreviousMonth}
-            title="Previous Month"
+            title={t('common.previousMonth')}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -128,7 +130,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
           <Button
             className="h-8 w-8 p-0"
             onClick={goToNextMonth}
-            title="Next Month"
+            title={t('common.nextMonth')}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -139,7 +141,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
         {/* Calendar header (days of week) */}
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
           <div key={day} className="text-center font-medium py-2 text-gray-400">
-            {day}
+            {t(`common.daysOfWeek.${day.toLowerCase()}`)}
           </div>
         ))}
 

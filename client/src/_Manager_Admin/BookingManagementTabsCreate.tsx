@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CalendarIcon, CalendarRange } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 import {
   calculateDuration,
@@ -15,7 +20,7 @@ import {
   isTimeFormatValid,
   createTimeslots,
   BatchCreationPayload,
-  Infrastructure
+  Infrastructure,
 } from "@/utils";
 
 interface BookingManagementTabsCreateProps {
@@ -25,12 +30,11 @@ interface BookingManagementTabsCreateProps {
   onDataChange: () => void;
 }
 
-const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = ({
-  selectedInfrastructure,
-  onSuccess,
-  onError,
-  onDataChange
-}) => {
+const BookingManagementTabsCreate: React.FC<
+  BookingManagementTabsCreateProps
+> = ({ selectedInfrastructure, onSuccess, onError, onDataChange }) => {
+  const { t } = useTranslation();
+
   // Shared state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,22 +56,37 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
     // Validation
     if (!singleDate) {
-      onError("Please select a date");
+      onError(t("bookingManagementTabsCreate.msgErrSelectDate", "Please select a date"));
       return;
     }
 
     if (!startTime || !endTime) {
-      onError("Please enter both start and end time");
+      onError(
+        t(
+          "bookingManagementTabsCreate.msgErrSelectTime",
+          "Please enter both start and end time"
+        )
+      );
       return;
     }
 
     if (!isTimeFormatValid(startTime) || !isTimeFormatValid(endTime)) {
-      onError("Please enter valid time format (HH:MM)");
+      onError(
+        t(
+          "bookingManagementTabsCreate.msgErrTimeFormat",
+          "Please enter valid time format (HH:MM)"
+        )
+      );
       return;
     }
 
     if (!isEndTimeAfterStartTime(startTime, endTime)) {
-      onError("End time must be after start time");
+      onError(
+        t(
+          "bookingManagementTabsCreate.msgErrEndAfterStart",
+          "End time must be after start time"
+        )
+      );
       return;
     }
 
@@ -78,7 +97,7 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
       endDate: format(singleDate, "yyyy-MM-dd"),
       dailyStartTime: startTime,
       slotDuration: calculateDuration(startTime, endTime),
-      slotsPerDay: 1
+      slotsPerDay: 1,
     };
     await createBatchSlots(payload);
   };
@@ -89,27 +108,60 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
     // Validation
     if (!startDate || !endDate) {
-      onError("Please select both start and end dates");
+      onError(
+        t(
+          "bookingManagementTabsCreate.msgErrSelectDateRange",
+          "Please select both start and end dates"
+        )
+      );
       return;
     }
 
     if (startDate > endDate) {
-      onError("End date must be after start date");
+      onError(
+        t(
+          "bookingManagementTabsCreate.msgErrEndAfterStart",
+          "End date must be after start date"
+        )
+      );
       return;
     }
 
     if (!dailyStartTime || !isTimeFormatValid(dailyStartTime)) {
-      onError("Please enter a valid daily start time");
+      onError(
+        t(
+          "bookingManagementTabsCreate.msgErrDailyStartTime",
+          "Please enter a valid daily start time"
+        )
+      );
       return;
     }
 
-    if (!slotDuration || isNaN(parseInt(slotDuration)) || parseInt(slotDuration) <= 0) {
-      onError("Please enter a valid slot duration");
+    if (
+      !slotDuration ||
+      isNaN(parseInt(slotDuration)) ||
+      parseInt(slotDuration) <= 0
+    ) {
+      onError(
+        t(
+          "bookingManagementTabsCreate.msgErrSlotDuration",
+          "Please enter a valid slot duration"
+        )
+      );
       return;
     }
 
-    if (!slotsPerDay || isNaN(parseInt(slotsPerDay)) || parseInt(slotsPerDay) <= 0) {
-      onError("Please enter a valid number of slots per day");
+    if (
+      !slotsPerDay ||
+      isNaN(parseInt(slotsPerDay)) ||
+      parseInt(slotsPerDay) <= 0
+    ) {
+      onError(
+        t(
+          "bookingManagementTabsCreate.msgErrSlotsPerDay",
+          "Please enter a valid number of slots per day"
+        )
+      );
       return;
     }
 
@@ -119,7 +171,7 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
       endDate: format(endDate, "yyyy-MM-dd"),
       dailyStartTime,
       slotDuration: parseInt(slotDuration),
-      slotsPerDay: parseInt(slotsPerDay)
+      slotsPerDay: parseInt(slotsPerDay),
     };
 
     await createBatchSlots(payload);
@@ -133,24 +185,38 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
       const data = await createTimeslots(payload);
 
       // Create success message based on created/skipped counts
-      let message = '';
-      let overlaps: string = '';
+      let message = "";
+      let overlaps: string = "";
       if (data.skipped > 0) {
-        overlaps = ` (${data.skipped} skipped due to overlap)`;
+        overlaps = t(
+          "bookingManagementTabsCreate.msgTimeslotsSkipped",
+          "({{count}} skipped due to overlap)",
+          { count: data.skipped }
+        );
       }
       if (data.created < 1) {
-        message = 'Failed to create timeslot(s)';
+        message = t(
+          "bookingManagementTabsCreate.msgCreateSlotsFailed",
+          "Failed to create timeslot(s)"
+        );
         onError(message + overlaps);
       } else {
-        message = `Successfully created ${data.created} timeslot(s)`;
+        message = t(
+          "bookingManagementTabsCreate.msgCreateSlotsSuccess",
+          "Successfully created {{count}} timeslot(s)",
+          { count: data.created }
+        );
         onSuccess(message + overlaps);
         resetForms(); // Reset forms
         onDataChange(); // Refresh the data
       }
-
     } catch (error) {
-      console.error('Error creating timeslots:', error);
-      onError(error instanceof Error ? error.message : 'An error occurred');
+      console.error("Error creating timeslots:", error);
+      onError(
+        error instanceof Error
+          ? error.message
+          : t("bookingManagementTabsCreate.msgCreateSlotsError", "An error occurred")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -175,14 +241,21 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
     <div>
       <div className="mb-4">
         <p className="explanation-text1">
-          Create new timeslots for this infrastructure.
+          {t(
+            "bookingManagementTabsCreate.createSlotsExplain",
+            "Create new timeslots for this infrastructure."
+          )}
         </p>
       </div>
 
       <Tabs defaultValue="single" className="w-full">
         <TabsList className="w-[calc(100%-8rem)] mx-auto grid grid-cols-2">
-          <TabsTrigger value="single">Create Single Slot</TabsTrigger>
-          <TabsTrigger value="batch">Batch Create Slots</TabsTrigger>
+          <TabsTrigger value="single">
+            {t("bookingManagementTabsCreate.createSingleSlot", "Create Single Slot")}
+          </TabsTrigger>
+          <TabsTrigger value="batch">
+            {t("bookingManagementTabsCreate.batchCreateSlots", "Batch Create Slots")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="single">
@@ -192,16 +265,20 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Date Selector */}
                   <div className="space-y-2">
-                    <p className="small-title">Date</p>
+                    <p className="small-title">{t("Date", "Date")}</p>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          className={`px-2 w-full h-9 justify-start text-left ${!singleDate && "text-gray-400"}`}
+                          className={`px-2 w-full h-9 justify-start text-left ${
+                            !singleDate && "text-gray-400"
+                          }`}
                           variant="outline"
                           id="date"
                         >
                           <CalendarIcon className="h-4 w-4" />
-                          {singleDate ? format(singleDate, "PPP") : "Select date"}
+                          {singleDate
+                            ? format(singleDate, "PPP")
+                            : t("bookingManagementTabsCreate.selectDate", "Select date")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="calendar-popover">
@@ -221,7 +298,9 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
                   {/* Start Time */}
                   <div className="space-y-2">
-                    <p className="small-title">Start Time (HH:MM)</p>
+                    <p className="small-title">
+                      {t("bookingManagementTabsCreate.startTimeLabel", "Start Time (HH:MM)")}
+                    </p>
                     <Input
                       id="startTime"
                       type="time"
@@ -233,7 +312,9 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
                   {/* End Time */}
                   <div className="space-y-2">
-                    <p className="small-title">End Time (HH:MM)</p>
+                    <p className="small-title">
+                      {t("bookingManagementTabsCreate.endTimeLabel", "End Time (HH:MM)")}
+                    </p>
                     <Input
                       id="endTime"
                       type="time"
@@ -247,10 +328,14 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                 <div className="flex justify-center">
                   <Button
                     type="submit"
-                    disabled={isSubmitting || !singleDate || !startTime || !endTime}
+                    disabled={
+                      isSubmitting || !singleDate || !startTime || !endTime
+                    }
                     className="apply"
                   >
-                    {isSubmitting ? "Creating..." : "Create Slot"}
+                    {isSubmitting
+                      ? t("bookingManagementTabsCreate.creatingSlot", "Creating...")
+                      : t("bookingManagementTabsCreate.createSlot", "Create Slot")}
                   </Button>
                 </div>
               </form>
@@ -265,23 +350,38 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Date Range */}
                   <div className="space-y-2">
-                    <p className="small-title">Date Range</p>
+                    <p className="small-title">
+                      {t("bookingManagementTabsCreate.dateRangeLabel", "Date Range")}
+                    </p>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          className={`px-2 w-full h-9 justify-start text-left ${!startDate || !endDate ? "text-gray-400" : ""}`}
+                          className={`px-2 w-full h-9 justify-start text-left ${
+                            !startDate || !endDate ? "text-gray-400" : ""
+                          }`}
                           variant="outline"
                         >
                           <CalendarRange className="mr-2 h-4 w-4" />
                           {startDate && endDate
-                            ? `${format(startDate, "PP")} - ${format(endDate, "PP")}`
-                            : "Select date range"}
+                            ? `${format(startDate, "PP")} - ${format(
+                                endDate,
+                                "PP"
+                              )}`
+                            : t(
+                                "bookingManagementTabsCreate.selectDateRange",
+                                "Select date range"
+                              )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 card1" align="start">
+                      <PopoverContent
+                        className="w-auto p-0 card1"
+                        align="start"
+                      >
                         <div className="flex flex-col sm:flex-row">
                           <div className="border-r border-gray-700">
-                            <div className="p-2 text-center font-medium">Start Date</div>
+                            <div className="p-2 text-center font-medium">
+                              {t("bookingManagementTabsCreate.startDateLabel", "Start Date")}
+                            </div>
                             <Calendar
                               mode="single"
                               selected={startDate}
@@ -294,7 +394,9 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                             />
                           </div>
                           <div>
-                            <div className="p-2 text-center font-medium">End Date</div>
+                            <div className="p-2 text-center font-medium">
+                              {t("bookingManagementTabsCreate.endDateLabel", "End Date")}
+                            </div>
                             <Calendar
                               mode="single"
                               selected={endDate}
@@ -317,7 +419,12 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
                   {/* Daily Start Time */}
                   <div className="space-y-2">
-                    <Label>Daily Start Time (HH:MM)</Label>
+                    <Label>
+                      {t(
+                        "bookingManagementTabsCreate.dailyStartTimeLabel",
+                        "Daily Start Time (HH:MM)"
+                      )}
+                    </Label>
                     <Input
                       id="dailyStartTime"
                       type="text"
@@ -331,7 +438,12 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Slot Duration (minutes) */}
                   <div className="space-y-2">
-                    <Label>Slot Duration (minutes)</Label>
+                    <Label>
+                      {t(
+                        "bookingManagementTabsCreate.slotDurationLabel",
+                        "Slot Duration (minutes)"
+                      )}
+                    </Label>
                     <Input
                       id="slotDuration"
                       type="number"
@@ -345,7 +457,9 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
 
                   {/* Slots Per Day */}
                   <div className="space-y-2">
-                    <Label>Slots Per Day</Label>
+                    <Label>
+                      {t("bookingManagementTabsCreate.slotsPerDayLabel", "Slots Per Day")}
+                    </Label>
                     <Input
                       id="slotsPerDay"
                       type="number"
@@ -371,7 +485,12 @@ const BookingManagementTabsCreate: React.FC<BookingManagementTabsCreateProps> = 
                     }
                     className="apply"
                   >
-                    {isSubmitting ? "Creating..." : "Create Batch Slots"}
+                    {isSubmitting
+                      ? t("bookingManagementTabsCreate.creatingBatchSlots", "Creating...")
+                      : t(
+                          "bookingManagementTabsCreate.createBatchSlots",
+                          "Create Batch Slots"
+                        )}
                   </Button>
                 </div>
               </form>

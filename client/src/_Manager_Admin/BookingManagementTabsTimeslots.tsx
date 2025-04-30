@@ -26,6 +26,7 @@ import {
 import { FilterSortState } from './BookingManagement';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
+import { useTranslation } from 'react-i18next';
 
 interface TimeslotListProps {
   selectedInfrastructure: Infrastructure | undefined;
@@ -50,6 +51,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   const [timeslots, setTimeslots] = useState<BookingEntry[]>([]);
   const [filteredTimeslots, setFilteredTimeslots] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { t } = useTranslation();
 
   // Get relevant states from filterState
   const {
@@ -242,17 +244,17 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   ];
 
   return (
-    <div className="space-y-4">
+     <div className="space-y-4">
       {/* Description section */}
       <div className="flex-row justify-center">
         <p className="explanation-text1">
-          View and manage timeslots for this infrastructure.
+          {t('bookingManagementTabsTimeslots.description')}
         </p>
         <div className="flex-row">
           <Button
             variant={"custom2"}
             onClick={() => {
-              if (window.confirm(`Are you sure you want to cancel ${selectedTimeslots.length} selected timeslot(s)?`)) {
+              if (window.confirm(t('bookingManagementTabsTimeslots.confirmCancelSelectedTimeslots', { count: selectedTimeslots.length }))) {
                 handleDeleteTimeslots(selectedTimeslots);
               }
             }}
@@ -260,10 +262,11 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
             disabled={selectedTimeslots.length == 0}
           >
             <Trash2 className="h-4 w-4" />
-            Cancel Selected ({selectedTimeslots.length})
+            {t('bookingManagementTabsTimeslots.cancelSelected', { count: selectedTimeslots.length })}
           </Button>
         </div>
       </div>
+
 
       {/* Filter controls */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -314,20 +317,20 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
 
       {/* Timeslots Table */}
       {isLoading ? (
-        <div className="text-center py-10">Loading timeslots...</div>
+        <div className="text-center py-10">{t('common.LoadingTimeslots')}</div>
       ) : (
         <PaginatedTable
           data={filteredTimeslots}
           columns={columns}
           initialRowsPerPage={10}
           rowsPerPageOptions={[5, 10, 25, 50]}
-          emptyMessage="No timeslots for this infrastructure."
+          emptyMessage={t('bookingManagementTabsTimeslots.noTimeslotsMessage')}
           sortConfig={timeslotsSortConfig}
           onSortChange={(newSortConfig) => onFilterStateChange({ timeslotsSortConfig: newSortConfig })}
           noResults={
             timeslots.length > 0 ? (
               <div className="text-gray-400">
-                No timeslots match your current filters.
+                 {t('bookingManagementTabsTimeslots.noTimeslotsMatchFilter')}
               </div>
             ) : null
           }

@@ -13,6 +13,7 @@ import {
 import BookingManagementViewsCalendar from './BookingManagementViewsCalendar';
 import BookingManagementViewsList from './BookingManagementViewsList';
 import { FilterSortState } from './BookingManagement';
+import { useTranslation } from 'react-i18next';
 
 
 const BookingManagementViews = ({
@@ -26,6 +27,7 @@ const BookingManagementViews = ({
 }) => {
   const { viewsViewMode: viewMode, viewsTypeFilter: showOnly, viewsDayFilter } = filterState;
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
 
   // Load data when component mounts or when refreshTrigger changes
   useEffect(() => {
@@ -85,11 +87,11 @@ const BookingManagementViews = ({
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="calendar" className="flex items-center justify-center">
               <Calendar className="h-4 w-4 mr-2" />
-              Calendar View
+              {t('bookingManagementViews.calendarView')}
             </TabsTrigger>
             <TabsTrigger value="list" className="flex items-center justify-center">
               <List className="h-4 w-4 mr-2" />
-              List View
+              {t('bookingManagementViews.listView')}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -100,16 +102,15 @@ const BookingManagementViews = ({
           onValueChange={(value) => onFilterStateChange({ viewsTypeFilter: value as 'all' | 'timeslots' | 'bookings' })}
           className="w-full"
         >
-          <TabsList className="w-[calc(100%-10rem)] mx-auto grid grid-cols-3" >
-
+           <TabsList className="w-[calc(100%-10rem)] mx-auto grid grid-cols-3" >
             <TabsTrigger value="all">
-              All
+              {t('common.all')}
             </TabsTrigger>
             <TabsTrigger value="timeslots">
-              Timeslots
+              {t('common.timeslots')} 
             </TabsTrigger>
             <TabsTrigger value="bookings">
-              Bookings
+              {t('common.bookings')}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -118,7 +119,7 @@ const BookingManagementViews = ({
         {viewMode === 'list' && (
           <div className="flex items-center space-x-4">
             <div className="flex-grow flex items-center justify-center pt-2 -mb-3 gap-2">
-              <Label>Filter by Date:</Label>
+            <Label>{t('bookingManagementViews.filterByDate')}</Label>
               <Input
                 id="dateFilter"
                 type="date"
@@ -132,7 +133,7 @@ const BookingManagementViews = ({
                   className="px-2 py-1 text-md"
                   onClick={handleClearDateFilter}
                 >
-                  Clear
+                  {t('common.clear')}
                 </Button>
               )}
             </div>
@@ -142,7 +143,7 @@ const BookingManagementViews = ({
 
       {/* Main content area */}
       {isLoading ? (
-        <Card className="p-8 text-center">Loading calendar data...</Card>
+         <Card className="p-8 text-center">{t('common.loadingCalendarData')}</Card>
       ) : (
         <div className="mt-6">
           {viewMode === 'calendar' ? (
@@ -160,7 +161,7 @@ const BookingManagementViews = ({
 
           {!isLoading && bookingEntries.length === 0 && (
             <div className="text-center py-8 text-gray-400">
-              No bookings or timeslots for this infrastructure.
+               {t('bookingManagementViews.noBookingsOrTimeslots')}
             </div>
           )}
         </div>

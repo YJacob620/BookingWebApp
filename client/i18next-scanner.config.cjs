@@ -13,7 +13,7 @@ module.exports = {
   options: {
     compatibilityJSON: "v3",
     debug: true,
-    removeUnusedKeys:true,
+    removeUnusedKeys:false,
     func: {
       list: ["i18next.t", "i18n.t", "t"],
       extensions: [".tsx", ".jsx"],
@@ -50,7 +50,6 @@ module.exports = {
       suffix: "}}",
     },
     pluralSeparator: "_",
-    contextSeparator: "_",
     
   },
   transform: function customTransform(file, enc, done) {

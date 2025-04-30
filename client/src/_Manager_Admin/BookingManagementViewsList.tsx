@@ -17,10 +17,12 @@ import {
 } from '@/utils';
 import TruncatedTextCell from '@/components/_TruncatedTextCell';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
+import { useTranslation } from 'react-i18next';
 
 const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: BookingEntry[] }) => {
   // Set default sorting to date in descending order
   const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
+  const { t } = useTranslation();
 
   // Handle sort change from PaginatedTable
   const handleSortChange = (newSortConfig: SortConfig<BookingEntry>) => {
@@ -127,12 +129,12 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
         columns={columns}
         initialRowsPerPage={10}
         rowsPerPageOptions={[5, 10, 25, 50]}
-        emptyMessage="No bookings or timeslots available."
+        emptyMessage={t('bookingManagementViewsList.noBookingsOrTimeslots')}
         sortConfig={sortConfig}
         onSortChange={handleSortChange}
         noResults={
           <div className="text-gray-400">
-            No bookings or timeslots match your current filter.
+            {t('bookingManagementViewsList.noBookingsOrTimeslotsMatchFilter')}
           </div>
         }
       />

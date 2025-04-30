@@ -159,7 +159,7 @@ const EmailActionHandler: React.FC = () => {
               : t("undefined")}
           </p>
           <p className="text-sm text-gray-400 mt-2">
-            {t("Please wait", { context: "dot" })}
+            {t("Please wait",{ context: "dot" })}
           </p>
         </div>
       </BasePageLayout>
