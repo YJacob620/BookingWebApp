@@ -56,7 +56,7 @@ const SortableQuestionItem = ({ question, onEdit, onDelete }: {
     transform: CSS.Transform.toString(transform),
     transition,
   };
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   return (
     <div
@@ -78,7 +78,7 @@ const SortableQuestionItem = ({ question, onEdit, onDelete }: {
             <div>
               <h3 className="text-lg font-medium">{question.question_text}</h3>
               <div className="flex items-center mt-1 text-sm text-gray-400">
-                <span className="mr-4">Type: {question.question_type}</span>
+                <span className="mr-4">{t('Type:',{type:t(question.question_type)})}</span>
                 {question.is_required == true && (
                   <span className="text-red-400">{t("Required")}</span>
                 )}
@@ -141,7 +141,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   // Define question types
   const QuestionTypes = [
@@ -399,7 +399,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                   id="edit-question-text"
                   value={editingQuestion.question_text}
                   onChange={(e) => setEditingQuestion({ ...editingQuestion, question_text: e.target.value })}
-                  placeholder={t('infrastructureManagementQuestions.QuestionTextplaceholder', "Enter question text")}
+                  placeholder={t('infrastructureManagementQuestions.QuestionTextplaceholder')}
                 />
               </div>
 
@@ -429,7 +429,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                     id="edit-question-options"
                     value={editingQuestion.options || ''}
                     onChange={(e) => setEditingQuestion({ ...editingQuestion, options: e.target.value })}
-                    placeholder="Enter options (one per line)"
+                    placeholder={t('infrastructureManagementQuestions.QuestionOptionsEnter')}
                     rows={4}
                   />
                 </div>
@@ -476,7 +476,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                 id="question-text"
                 value={newQuestion.question_text}
                 onChange={(e) => setNewQuestion({ ...newQuestion, question_text: e.target.value })}
-                placeholder="Enter question text"
+                placeholder={t('infrastructureManagementQuestions.QuestionTextplaceholder')}
               />
             </div>
 
@@ -487,6 +487,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                 onValueChange={(value: 'text' | 'number' | 'dropdown' | 'document') =>
                   setNewQuestion({ ...newQuestion, question_type: value })
                 }
+                dir={i18n.dir()}
               >
                 <SelectTrigger id="question-type">
                   <SelectValue placeholder="Select type" />
@@ -506,7 +507,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                   id="question-options"
                   value={newQuestion.options}
                   onChange={(e) => setNewQuestion({ ...newQuestion, options: e.target.value })}
-                  placeholder="Enter options (one per line)"
+                  placeholder={t('infrastructureManagementQuestions.QuestionOptionsEnter')}
                   rows={4}
                 />
               </div>

@@ -14,7 +14,7 @@ const AdminDashboard = () => {
         setUser(getLocalUser());
     }, []);
 
-    const {t} = useTranslation()
+    const {t,i18n} = useTranslation()
 
     const menuItems = [
         {
@@ -45,7 +45,7 @@ const AdminDashboard = () => {
             // {"Select a section below to manage different aspects of the system"}
             className={"w-170"}
         >
-            <h2 className="text-xl font-semibold mb-5">{t('welcomeHeader',{name:user?.name || user?.email})}</h2>
+            <h2 className="text-xl font-semibold mb-5" dir={i18n.dir()}>{t('welcomeHeader',{name:user?.name || user?.email})}</h2>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                 {menuItems.map((item, index) => (
                     <Link

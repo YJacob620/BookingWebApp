@@ -32,7 +32,7 @@ const InfrastructureManagement: React.FC = () => {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-    const { t } = useTranslation();
+    const { t,i18n } = useTranslation();
 
     useEffect(() => {
         setIsAdmin(getLocalUser()?.role === "admin");

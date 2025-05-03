@@ -336,7 +336,8 @@
     "noTimeslotsMessage": "No timeslots for this infrastructure.",
     "noTimeslotsMatchFilter": "No timeslots match your current filters.",
     "confirmCancelSelectedTimeslots_one": "Are you sure you want to cancel the selected timeslot?",
-    "confirmCancelSelectedTimeslots_other": "Are you sure you want to cancel {{count}} selected timeslot(s)?"
+    "confirmCancelSelectedTimeslots_other": "Are you sure you want to cancel {{count}} selected timeslot(s)?",
+    "confirmCancelThisTimeSlot": "Are you sure you want to cancel this timeslot?"
   },
   "bookingManagementViews": {
     "calendarView": "Calendar View",
@@ -429,5 +430,16 @@
     "noInfAvailable": "No infrastructures available.",
     "selectInf": "Select an infrastructure",
     "noInfFound": "No infrastructure found."
-  }
+  },
+  "Pending": "Pending",
+  "Approved": "Approved",
+  "Rejected": "Rejected",
+  "Completed": "Completed",
+  "Expired": "Expired",
+  "Canceled": "Canceled",
+  "Available": "Available",
+  "blankMinutes": "{{amount}} minutes",
+  "Manager": "Manager",
+  "Guest": "Guest",
+  "Type:":"Type: {{type}}"
 }

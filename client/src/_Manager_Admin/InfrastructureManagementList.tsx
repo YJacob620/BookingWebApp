@@ -33,7 +33,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     direction: "asc",
   });
   const isAdmin: boolean = getLocalUser()?.role === "admin";
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   // Filter infrastructures based on search query
   const filteredInfrastructures = infrastructures.filter((infra) => {
@@ -51,7 +51,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
   const columns: PaginatedTableColumn<Infrastructure>[] = [
     {
       key: "name",
-      header: <>Name</>,
+      header:t('Name'),
       cell: (infra: Infrastructure) => (
         <TableCell className="font-medium text-center">{infra.name}</TableCell>
       ),
@@ -59,7 +59,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     },
     {
       key: "description",
-      header: "Description",
+      header: t("Description"),
       cell: (infra: Infrastructure) => (
         <TruncatedTextCell
           text={infra.description}
@@ -71,7 +71,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     },
     {
       key: "location",
-      header: <>Location</>,
+      header: t('Location'),
       cell: (infra: Infrastructure) => (
         <TableCell className="text-center">{infra.location || "N/A"}</TableCell>
       ),
@@ -79,7 +79,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     },
     {
       key: "status",
-      header: "Status",
+      header: t("Status"),
       cell: (infra: Infrastructure) => (
         <TableCell className="text-center">
           <span
@@ -89,7 +89,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                 : "bg-red-800 text-red-100"
             }`}
           >
-            {infra.is_active ? "Active" : "Inactive"}
+            {infra.is_active ? t("Active") : t("Inactive")}
           </span>
         </TableCell>
       ),
@@ -97,7 +97,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     },
     {
       key: "actions",
-      header: "Actions",
+      header: t("Actions"),
       cell: (infra: Infrastructure) => (
         <TableCell className="text-center">
           <div className="flex justify-center space-x-2">

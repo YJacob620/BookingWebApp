@@ -40,7 +40,7 @@ const RegistrationPage: React.FC = () => {
   const [message, setMessage] = useState<Message | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -78,19 +78,19 @@ const RegistrationPage: React.FC = () => {
 
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = t("Name is required", "Name is required");
+      newErrors.name = t("Name is required");
     }
 
     // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = t("Email is required", "Email is required");
+      newErrors.email = t("Email is required");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Invalid email format";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = t("Password is required", "Password is required");
+      newErrors.password = t("Password is required");
     } else if (formData.password.length < 8) {
       newErrors.password = t(
         "errPaswrdlngth",
@@ -165,8 +165,8 @@ const RegistrationPage: React.FC = () => {
 
   return (
     <BasePageLayout
-      pageTitle={t("Create an Account","Create an Account")}
-      explanationText={t('registraionPageExplaintion',"Register to access the infrastructure booking system")}
+      pageTitle={t("Create an Account")}
+      explanationText={t('registraionPageExplaintion')}
       alertMessage={message}
     >
       <Card className="card1 pt-4">
@@ -181,7 +181,7 @@ const RegistrationPage: React.FC = () => {
                 required
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder={t("Enter your name","Enter your name")}
+                placeholder={t("Enter your name")}
                 className={errors.name ? "border-red-500" : ""}
               />
               {errors.name && (
@@ -221,8 +221,9 @@ const RegistrationPage: React.FC = () => {
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">{errors.password}</p>
               )}
-              <p className="text-xs explanation-text1">
+              <p className="text-xs explanation-text1" dir={i18n.dir()}>
                 <Info className="inline mr-1 h-3 w-3" />
+                {" "}
                 {t("errPaswrdlngth")}
               </p>
             </div>
@@ -236,7 +237,7 @@ const RegistrationPage: React.FC = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                placeholder={t("Confirm your password","Confirm your password")}
+                placeholder={t("Confirm your password")}
                 className={errors.confirmPassword ? "border-red-500" : ""}
               />
               {errors.confirmPassword && (
@@ -248,13 +249,13 @@ const RegistrationPage: React.FC = () => {
 
             <div className="space-y-2">
               <Label>{t('Role','Role')}</Label>
-              <Select value={formData.role} onValueChange={handleSelectChange}>
+              <Select value={formData.role} onValueChange={handleSelectChange} dir={i18n.dir()}>
                 <SelectTrigger
                   id="role"
                   className={errors.role ? "border-red-500" : ""}
                 >
                     
-                  <SelectValue placeholder= {t("Select your role","Select your role")}/>
+                  <SelectValue placeholder= {t("Select your role")}/>
                 </SelectTrigger>
                 <SelectContent className="card1">
                   <SelectItem value="student">{t('Student','Student')}</SelectItem>
@@ -266,20 +267,21 @@ const RegistrationPage: React.FC = () => {
               )}
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full apply">
+            <Button type="submit" disabled={isLoading} className="w-full apply" dir={i18n.dir()}>
               {}
               {isLoading
-                ? t("Registering", "Registering") + "..."
-                : t("Register", "Register")}
+                ? t("Registering") + "..."
+                : t("Register")}
             </Button>
 
             <div className="text-center mt-4">
-              <p className="explanation-text1">
-                {t("questHaveAcc", "Already have an account?")}{/** rtl prob todo */}
+              <p className="explanation-text1" dir={i18n.dir()}>
+                {t("questHaveAcc", "Already have an account?")}
                 {/* Already have an account?{" "} */}
+                {" "}
                 <Link to={LOGIN} className="link">
                   {/* Log in */}
-                  {t("Log in", "Log in")}
+                  {t("Log in")}
                 </Link>
               </p>
             </div>

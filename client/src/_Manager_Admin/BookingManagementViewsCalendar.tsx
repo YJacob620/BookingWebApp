@@ -26,7 +26,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
   onDateClick
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   // Calendar navigation
   const goToPreviousMonth = () => {
@@ -106,7 +106,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
   }, [currentMonth, filteredItemsByType]);
 
   // Format month
-  const formattedMonth = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const formattedMonth = currentMonth.toLocaleString(i18n.language, { month: 'long', year: 'numeric' });
 
   // Format date for filtering
   const formatDateForFilter = (day: number): string => {
@@ -140,7 +140,7 @@ const BookingManagementViewsCalendar: React.FC<BookingsCalendarViewProps> = ({
       <div className="grid grid-cols-7 gap-1">
         {/* Calendar header (days of week) */}
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-          <div key={day} className="text-center font-medium py-2 text-gray-400">
+          <div key={day} className="text-center font-medium py-2 text-gray-400" dir={i18n.dir()}>
             {t(`common.daysOfWeek.${day.toLowerCase()}`)}
           </div>
         ))}

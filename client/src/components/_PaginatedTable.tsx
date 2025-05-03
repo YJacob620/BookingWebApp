@@ -109,7 +109,7 @@ const PaginatedTable = <T extends object>({
   const totalPages = serverTotalPages || clientTotalPages;
   const dataCount = totalItems || data.length;
 
-  const {t} = useTranslation()
+  const {t,i18n} = useTranslation()
 
   // Calculate total pages when data or rows per page changes
   useEffect(() => {
@@ -292,8 +292,8 @@ const PaginatedTable = <T extends object>({
       {/* Pagination Controls */}
       {data.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
-          <div className="flex items-center space-x-2">
-            <Label>Rows per page:</Label>
+          <div className="flex items-center space-x-2" dir={i18n.dir()}> 
+            <Label>{t('PaginatedTable.RowsPerPage')}</Label>
             <Select
               value={rowsPerPage.toString()}
               onValueChange={(value) => handleRowsPerPageChange(Number(value))}
@@ -309,8 +309,9 @@ const PaginatedTable = <T extends object>({
                 ))}
               </SelectContent>
             </Select>
-            <span className="text-sm text-gray-400">{/** todo */}
-              {`${startItem}-${endItem} of ${dataCount}`}
+            <span className="text-sm text-gray-400">{/** todo? */}
+              {t('PaginatedTable.RowsShown',{startItem:startItem,endItem:endItem, itemAmount:dataCount})}
+              {/* {`${startItem}-${endItem} of ${dataCount}`} */}
             </span>
           </div>
 
@@ -332,7 +333,8 @@ const PaginatedTable = <T extends object>({
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm">
-              Page {currentPage} of {totalPages}
+              {t('PaginatedTable.pageOf',{current:currentPage, total:totalPages})}
+              {/* Page {currentPage} of {totalPages} */}
             </span>
             <Button
               variant="outline"

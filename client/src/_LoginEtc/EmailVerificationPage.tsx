@@ -15,7 +15,7 @@ const EmailVerificationPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isVerified, setIsVerified] = useState<boolean>(false);
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
   // const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {

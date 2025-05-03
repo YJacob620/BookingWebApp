@@ -33,7 +33,7 @@ interface BookingManagementTabsCreateProps {
 const BookingManagementTabsCreate: React.FC<
   BookingManagementTabsCreateProps
 > = ({ selectedInfrastructure, onSuccess, onError, onDataChange }) => {
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   // Shared state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -241,10 +241,7 @@ const BookingManagementTabsCreate: React.FC<
     <div>
       <div className="mb-4">
         <p className="explanation-text1">
-          {t(
-            "bookingManagementTabsCreate.createSlotsExplain",
-            "Create new timeslots for this infrastructure."
-          )}
+          {t("bookingManagementTabsCreate.createSlotsExplain")}
         </p>
       </div>
 
@@ -278,7 +275,7 @@ const BookingManagementTabsCreate: React.FC<
                           <CalendarIcon className="h-4 w-4" />
                           {singleDate
                             ? format(singleDate, "PPP")
-                            : t("bookingManagementTabsCreate.selectDate", "Select date")}
+                            : t("bookingManagementTabsCreate.selectDate")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="calendar-popover">
@@ -299,7 +296,7 @@ const BookingManagementTabsCreate: React.FC<
                   {/* Start Time */}
                   <div className="space-y-2">
                     <p className="small-title">
-                      {t("bookingManagementTabsCreate.startTimeLabel", "Start Time (HH:MM)")}
+                      {t("bookingManagementTabsCreate.startTimeLabel")}
                     </p>
                     <Input
                       id="startTime"
@@ -313,7 +310,7 @@ const BookingManagementTabsCreate: React.FC<
                   {/* End Time */}
                   <div className="space-y-2">
                     <p className="small-title">
-                      {t("bookingManagementTabsCreate.endTimeLabel", "End Time (HH:MM)")}
+                      {t("bookingManagementTabsCreate.endTimeLabel")}
                     </p>
                     <Input
                       id="endTime"
@@ -332,6 +329,7 @@ const BookingManagementTabsCreate: React.FC<
                       isSubmitting || !singleDate || !startTime || !endTime
                     }
                     className="apply"
+                    dir={i18n.dir()}
                   >
                     {isSubmitting
                       ? t("bookingManagementTabsCreate.creatingSlot", "Creating...")
@@ -472,7 +470,7 @@ const BookingManagementTabsCreate: React.FC<
                   </div>
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end"  dir={i18n.dir()}>
                   <Button
                     type="submit"
                     disabled={

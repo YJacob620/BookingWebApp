@@ -100,7 +100,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
               placeholder={t("Search infrastructures")}
               className="border-none focus:ring-0 !bg-transparent px-1" />
             <CommandList>
-              <CommandEmpty>{t('InfSelector.noInfFound','No infrastructure found.')} </CommandEmpty>{/** todo */}
+              <CommandEmpty>{t('InfSelector.noInfFound','No infrastructure found.')} </CommandEmpty>
               <CommandGroup>
                 {infrastructures.map(infra => (
                   <CommandItem

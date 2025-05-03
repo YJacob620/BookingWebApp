@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
     FilterOption,
 } from '@/utils';
+import { useTranslation } from 'react-i18next';
 
 interface MultiSelectFilterProps {
     options: FilterOption<string>[];
@@ -48,6 +49,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
     disabled = false
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const {t,i18n} = useTranslation()
 
     // Toggle selection of an option
     const toggleOption = (value: string) => {
@@ -98,10 +100,11 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
-                        className={`!text-sm pl-2 justify-start h-10 ${triggerClassName} 
+                        className={`!text-sm ps-2 justify-start h-10 ${triggerClassName} 
                         bg-gray-700 border-gray-600 text-gray-200 text-md font-normal`}
                         aria-label={`Filter by ${label.toLowerCase()}`}
                         disabled={disabled}
+                        dir={i18n.dir()}
                     >
                         <span className="truncate">{getDisplayText()}</span>
                         {selectedValues.length > 0 && (
@@ -115,7 +118,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className={`${popoverWidth} p-0 bg-gray-900`} align="start">
-                    <div className="p-2 border-b border-gray-700 flex justify-between items-center">
+                    <div className="p-2 border-b border-gray-700 flex justify-between items-center" dir={i18n.dir()}>
                         <div className="flex space-x-1">
                             <Button
                                 variant="outline"
@@ -123,7 +126,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                                 className="h-8 px-2 text-xs"
                                 onClick={selectAll}
                             >
-                                Select All
+                                {t('Select All')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -132,7 +135,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                                 onClick={clearAll}
                                 disabled={selectedValues.length === 0}
                             >
-                                Clear
+                                {t('Clear')}
                             </Button>
                         </div>
                     </div>
@@ -149,12 +152,13 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                                         toggleOption(option.value);
                                     }}
                                 >
-                                    <div className="flex items-center">
+                                    <div className="flex items-center" dir={i18n.dir()}>
                                         <Checkbox
                                             id={`filter-${label}-${option.value}`}
                                             checked={isSelected}
-                                            className="mr-2 checkbox1 h-4 w-4"
-                                        />
+                                            className="me-2 checkbox1 h-4 w-4"
+                                        />{/** todo space between */}
+                                        
                                         {variant === 'badge' && option.color ? (
                                             <div className="flex-1">
                                                 <Badge className={option.color}>{option.label}</Badge>

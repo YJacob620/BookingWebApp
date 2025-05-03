@@ -20,6 +20,7 @@ i18n
       defaultVariables: [""],
     },
     saveMissing: isDev, // you should not use saveMissing in production
+    lng: "en",
     resources: {
       en: {
         translation: {
@@ -472,6 +473,7 @@ i18n
             QuestionType: "Question Type",
             SelectType: "Select type",
             QuestionOptions: "Options (one per line)",
+            QuestionOptionsEnter: "Enter options (one per line)",
           },
           bookingManagementTabsCreate: {
             msgErrSelectDate: "Please select a date",
@@ -517,6 +519,29 @@ i18n
             selectInf: "Select an infrastructure",
             noInfFound: "No infrastructure found.",
           },
+          Pending: "Pending",
+          Approved: "Approved",
+          Rejected: "Rejected",
+          Completed: "Completed",
+          Expired: "Expired",
+          Canceled: "Canceled",
+          Available: "Available",
+          blankMinutes: "{{amount}} minutes",
+          Manager: "Manager",
+          Guest: "Guest",
+          Description: "Description",
+          "Select All": "Select All",
+          Duration:"Duration",
+          Purpose:"Purpose",
+          Type:"Type",
+          Booking:"Booking",
+          Timeslot:"Timeslot",
+          minutesShort:"min",
+          PaginatedTable:{
+            pageOf:'Page {{current}} of {{total}}',
+            RowsPerPage:'Rows per page:',
+            RowsShown:"{{startItem}}-{{endItem}} of {{itemAmount}}"
+          }
         },
       },
       he: {
@@ -571,7 +596,7 @@ i18n
           "Passwords do not match": "הסיסמאות לא תואמות",
           "Please select a role": "נא בחר תפקיד",
           "Create an Account": "צור חשבון",
-          registraionPageExplaintion: "הרשם כדי לקבל גישה למערכת הזמנות",
+          registraionPageExplaintion: "הרשם כדי לקבל גישה למערכת ההזמנות",
           Name: "שם",
           "Create a password": "צור סיסמה",
           "Confirm Password": "חזור על הסיסמה",
@@ -582,7 +607,7 @@ i18n
           Faculty: "איש צוות",
           Registering: "בתהליך רישום",
           Register: "הרשם",
-          questHaveAcc: "ברשותך חשבון קיים",
+          questHaveAcc: "ברשותך חשבון קיים?",
           "Log in": "הכנס",
           "Enter your name": "הכנס את שמך",
           "Enter your email": 'הכנס כתובת דוא"ל',
@@ -685,7 +710,7 @@ i18n
           Active: "פעיל",
           Inactive: "לֹא פעיל",
           Admin: "מנהל",
-          "Infrastructure Manager": "מנהל תשתיות",
+          "Infrastructure Manager": "מנהל תשתית",
           Blacklisted: "ברשימה שחורה",
           Allowed: "מורשה",
           Actions: "פעולות",
@@ -861,13 +886,13 @@ i18n
             previousMonth: "חודש קודם",
             nextMonth: "חודש הבא",
             daysOfWeek: {
-              sun: "יום א'",
-              mon: "יום ב'",
-              tue: "יום ג'",
-              wed: "יום ד'",
-              thu: "יום ה'",
-              fri: "יום ו'",
-              sat: "יום ש'",
+              sun: "ראשון",
+              mon: "שני",
+              tue: "שלישי",
+              wed: "רביעי",
+              thu: "חמישי",
+              fri: "שישי",
+              sat: "שבת",
             },
           },
           bookingManagementTabsTimeslots: {
@@ -933,6 +958,7 @@ i18n
             QuestionType: "סוג שאלה",
             SelectType: "בחר סוג",
             QuestionOptions: "אפשרויות (אחת בכל שורה)",
+            QuestionOptionsEnter: "הכנס אפשרויות (אחת בכל שורה)",
           },
           bookingManagementTabsCreate: {
             msgErrSelectDate: "אנא בחר תאריך",
@@ -980,7 +1006,33 @@ i18n
             selectInf: "בחר תשתית",
             noInfFound: "לא נמצאה תשתית",
           },
+
+          Pending: "ממתין",
+          Approved: "מאושר",
+          Rejected: "נדחה",
+          Completed: "הושלם",
+          Expired: "פג-תוקף",
+          Canceled: "בוטל",
+          Available: "זמין",
+          blankMinutes: "{{amount}} דקות",
+          Manager: "מנהל",
+          Guest: "אורח",
+          Description: "תיאור",
+          "Select All": "בחר הכל",
+          Duration:"משך זמן",
+          Purpose:'מטרה',
+          Type:"סוג",
+          Booking:"הזמנה",
+          Timeslot:"תור פנוי",
+          minutesShort:"דק'",
+          PaginatedTable:{
+            pageOf:'עמוד {{current}} מתוך {{total}}\u200F',
+            RowsPerPage:'שורות לעמוד:\u200F',
+            // RowsShown:"{{startItem}}-{{endItem}} of {{itemAmount}}"
+            RowsShown:"{{startItem}}-{{endItem}} מתוך {{itemAmount}}"
+          }
         },
+        
       },
     },
   });

@@ -47,7 +47,7 @@
   "Passwords do not match": "הסיסמאות לא תואמות",
   "Please select a role": "נא בחר תפקיד",
   "Create an Account": "צור חשבון",
-  "registraionPageExplaintion": "הרשם כדי לקבל גישה למערכת הזמנות",
+  "registraionPageExplaintion": "הרשם כדי לקבל גישה למערכת ההזמנות",
   "Name": "שם",
   "Create a password": "צור סיסמה",
   "Confirm Password": "חזור על הסיסמה",
@@ -335,7 +335,8 @@
     "confirmCancelSelectedTimeslots_one": "האם אתה בטוח שברצונך לבטל את התור הנבחר?",
     "confirmCancelSelectedTimeslots_two": "האם אתה בטוח שברצונך לבטל את ה-{{count}} תורים הנבחרים?\u200F",
     "confirmCancelSelectedTimeslots_other": "האם אתה בטוח שברצונך לבטל את ה-{{count}} תורים הנבחרים?\u200F",
-    "cancelSelected": "בטל {{count}} תורים נבחרים"
+    "cancelSelected": "בטל {{count}} תורים נבחרים",
+    "confirmCancelThisTimeSlot":"האם אתה בטוח שברצונך לבטל את תור זה?"
   },
   "bookingManagementViews": {
     "calendarView": "תצוגת לוח שנה",
@@ -430,5 +431,16 @@
     "noInfAvailable": "לא קיים תשתיות פתותות",
     "selectInf": "בחר תשתית",
     "noInfFound": "לא נמצאה תשתית"
-  }
+  },
+  "Pending": "ממתין",
+  "Approved": "מאושר",
+  "Rejected": "נדחה",
+  "Completed": "הושלם",
+  "Expired": "פג-תוקף",
+  "Canceled": "בוטל",
+  "Available": "זמין",
+  "blankMinutes":"{{amount}} דקות",
+  "Manager": "מנהל",
+  "Guest": "אורח",
+  "Type:":"סוג: {{type}}\u200f"
 }

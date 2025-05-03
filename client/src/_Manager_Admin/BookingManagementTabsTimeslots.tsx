@@ -21,7 +21,8 @@ import {
   createFilterOptions,
   DATE_FILTER_OPTIONS,
   TIMESLOT_STATUSES,
-  TimeslotStatus
+  TimeslotStatus,
+  formatStatus
 } from '@/utils';
 import { FilterSortState } from './BookingManagement';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
@@ -51,7 +52,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   const [timeslots, setTimeslots] = useState<BookingEntry[]>([]);
   const [filteredTimeslots, setFilteredTimeslots] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   // Get relevant states from filterState
   const {
@@ -201,8 +202,8 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       header: 'Duration',
       cell: (slot: BookingEntry) => (
         <TableCell>
-          <div className="flex items-center justify-center gap-2">
-            {calculateDuration(slot.start_time, slot.end_time)} minutes
+          <div className="flex items-center justify-center gap-2" dir={i18n.dir(i18n.language)}>
+            {t('blankMinutes',{amount:calculateDuration(slot.start_time, slot.end_time)})}
           </div>
         </TableCell>
       ),
@@ -213,7 +214,8 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       cell: (slot: BookingEntry) => (
         <TableCell>
           <Badge className={getStatusColor(slot.status)}>
-            {slot.status.charAt(0).toUpperCase() + slot.status.slice(1)}
+            {/* {slot.status.charAt(0).toUpperCase() + slot.status.slice(1)} */}
+            {t(formatStatus(slot.booking_type,slot.status))}
           </Badge>
         </TableCell>
       ),
@@ -229,12 +231,12 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
               variant="custom2"
               className="px-2 py-1 discard"
               onClick={() => {
-                if (window.confirm('Are you sure you want to cancel this timeslot?')) {
+                if (window.confirm(t('bookingManagementTabsTimeslots.confirmCancelThisTimeSlot'))) {
                   handleDeleteTimeslots([slot.id]);
                 }
               }}
             >
-              Cancel
+              {t('Cancel')}
             </Button>
           )}
         </TableCell>
@@ -271,7 +273,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       {/* Filter controls */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-1">
-          <p>Filter by Date</p>
+          <p>{t('Filter by Date')}</p>
           <div className="flex space-x-2">
             <Input
               id="date-filter-input"
@@ -287,20 +289,20 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
                 onClick={handleClearDateFilter}
                 className="p-2"
               >
-                Clear
+                {t('Clear')}
               </Button>
             )}
           </div>
         </div>
 
         <MultiSelectFilter
-          label="Filter by Status"
+          label={t("Filter by Status")}
           options={createFilterOptions(TIMESLOT_STATUSES, getStatusColor)}
           selectedValues={selectedTimeslotStatusFilters}
           onSelectionChange={(values) =>
             onFilterStateChange({ selectedTimeslotStatusFilters: values as TimeslotStatus[] })}
           variant="badge"
-          placeholder="All Statuses"
+          placeholder={t("All Statuses")}
         />
 
         <MultiSelectFilter
@@ -309,7 +311,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           selectedValues={selectedTimeslotDateFilters}
           onSelectionChange={(values) =>
             onFilterStateChange({ selectedTimeslotDateFilters: values })}
-          placeholder="All Times"
+          placeholder={t("All Times")}
           disabled={!!timeslotDayFilter}
           triggerClassName={timeslotDayFilter ? 'opacity-50' : ''}
         />

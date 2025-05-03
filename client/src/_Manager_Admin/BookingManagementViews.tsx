@@ -27,7 +27,7 @@ const BookingManagementViews = ({
 }) => {
   const { viewsViewMode: viewMode, viewsTypeFilter: showOnly, viewsDayFilter } = filterState;
   const [isLoading, setIsLoading] = useState(true);
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   // Load data when component mounts or when refreshTrigger changes
   useEffect(() => {
@@ -118,7 +118,7 @@ const BookingManagementViews = ({
         {/* Date filter - only shown in list view */}
         {viewMode === 'list' && (
           <div className="flex items-center space-x-4">
-            <div className="flex-grow flex items-center justify-center pt-2 -mb-3 gap-2">
+            <div className="flex-grow flex items-center justify-center pt-2 -mb-3 gap-2" dir={i18n.dir()}>
             <Label>{t('bookingManagementViews.filterByDate')}</Label>
               <Input
                 id="dateFilter"
@@ -160,7 +160,7 @@ const BookingManagementViews = ({
           )}
 
           {!isLoading && bookingEntries.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-400" dir={i18n.dir()}>
                {t('bookingManagementViews.noBookingsOrTimeslots')}
             </div>
           )}

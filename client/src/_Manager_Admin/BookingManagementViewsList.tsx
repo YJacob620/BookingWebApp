@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: BookingEntry[] }) => {
   // Set default sorting to date in descending order
   const [sortConfig, setSortConfig] = useState<SortConfig<BookingEntry>>({ key: 'booking_date', direction: 'desc' });
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   // Handle sort change from PaginatedTable
   const handleSortChange = (newSortConfig: SortConfig<BookingEntry>) => {
@@ -33,18 +33,18 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
   const columns: PaginatedTableColumn<BookingEntry>[] = [
     {
       key: 'booking_type',
-      header: 'Type',
+      header: t('Type'),
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           {item.booking_type === 'timeslot' ? (
             <Badge className="bg-blue-700">
               <Calendar className="h-3 w-3 mr-1" />
-              Timeslot
+              {t('Timeslot')}
             </Badge>
           ) : (
             <Badge className="bg-purple-700">
               <Clock className="h-3 w-3 mr-1" />
-              Booking
+              {t('Booking')}
             </Badge>
           )}
         </TableCell>
@@ -54,7 +54,7 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
     },
     {
       key: 'booking_date',
-      header: 'Date',
+      header: t('Date'),
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           {formatDate(item.booking_date)}
@@ -65,7 +65,7 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
     },
     {
       key: 'start_time',
-      header: 'Time',
+      header: t('Time'),
       cell: (item: BookingEntry) => (
         <TableCell className="text-center whitespace-nowrap">
           {formatTimeString(item.start_time)} - {formatTimeString(item.end_time)}
@@ -76,17 +76,17 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
     },
     {
       key: 'duration',
-      header: 'Duration',
+      header: t('Duration'),
       cell: (item: BookingEntry) => (
-        <TableCell className="text-center">
-          {calculateDuration(item.start_time, item.end_time)} min
+        <TableCell className="text-center" dir={i18n.dir()}>
+          {calculateDuration(item.start_time, item.end_time)} {t('minutesShort')}
         </TableCell>
       ),
       className: 'text-center'
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('Status'),
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           <Badge className={getStatusColor(item.status)}>
@@ -99,7 +99,7 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
     },
     {
       key: 'user_email',
-      header: 'User',
+      header: t('User'),
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           {item.user_email || 'N/A'}
@@ -110,7 +110,7 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
     },
     {
       key: 'purpose',
-      header: 'Purpose',
+      header: t('Purpose'),
       cell: (item: BookingEntry) => (
         <TruncatedTextCell
           text={item.purpose}

@@ -32,7 +32,7 @@ const EmailActionHandler: React.FC = () => {
   // Check if user is logged in
   const user = getLocalUser();
 
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   useEffect(() => {
     const handleAction = async () => {

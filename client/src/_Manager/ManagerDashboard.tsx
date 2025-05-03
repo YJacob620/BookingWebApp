@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 
 const ManagerDashboard = () => {
   const [user, setUser] = useState<User | null>();
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
   useEffect(() => {
     setUser(getLocalUser());
   }, []);

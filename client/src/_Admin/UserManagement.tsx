@@ -58,7 +58,7 @@ const UserManagement: React.FC = () => {
     const [infraSearchQuery, setInfraSearchQuery] = useState('');
     const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
     const [pendingChanges, setPendingChanges] = useState<{ [key: number]: boolean }>({});
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
 
     useEffect(() => {
         loadUsers();
@@ -345,6 +345,7 @@ const UserManagement: React.FC = () => {
                         value={user.role}
                         onValueChange={(value: UserRole) => handleRoleChange(user.id, value)}
                         disabled={user.id === users.find(u => u.role === 'admin')?.id} // Prevent changing the first admin
+                        dir={i18n.dir()}
                     >
                         <SelectTrigger className="w-40 h-12 text-left text-sm">
                             <SelectValue />

@@ -22,7 +22,7 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({
     text: string;
   } | null>(null);
 
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   useEffect(() => {
     loadPreferences();

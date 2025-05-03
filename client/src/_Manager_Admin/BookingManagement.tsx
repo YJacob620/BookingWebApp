@@ -80,7 +80,7 @@ const BookingManagement: React.FC = () => {
     // Ref to store scroll position
     const scrollPositionRef = useRef<number>(0);
 
-    const { t } = useTranslation();
+    const { t,i18n } = useTranslation();
 
     // Check for refresh flag from email action completion
     useEffect(() => {
@@ -198,7 +198,7 @@ const BookingManagement: React.FC = () => {
             />
 
             {isLoadingEntries && selectedInfrastructure && (
-                <div className="flex justify-center my-8">
+                <div className="flex justify-center my-8" dir={i18n.dir()}>
                     <Loader className="h-8 w-8 animate-spin text-blue-500" />
                     <span className="ml-2">{t("loadingBookingData")}</span>
                 </div>
@@ -207,7 +207,7 @@ const BookingManagement: React.FC = () => {
             {!isLoadingEntries && selectedInfrastructure && (
                 <>
                     <p className="text-xl">{t("viewBookingsAndTimeSlots")}</p>
-                    <p className="explanation-text1 pb-1">
+                    <p className="explanation-text1 pb-1" dir={i18n.dir()}>
                         {t("viewBookingsAndTimeSlotsExplanation")}
                     </p>
                     <BookingManagementViews
@@ -217,7 +217,7 @@ const BookingManagement: React.FC = () => {
                     />
 
                     <p className="text-xl">{t("manageBookingsAndTimeSlots")}</p>
-                    <p className="explanation-text1 pb-1">
+                    <p className="explanation-text1 pb-1" dir={i18n.dir()}>
                         {t("manageBookingsAndTimeSlotsExplanation")}
                     </p>
                     <BookingManagementTabs

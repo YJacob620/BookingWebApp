@@ -43,7 +43,7 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
 
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   const handleForceUpdate = async () => {
     setIsUpdating(true);
@@ -63,14 +63,15 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
   return (
     <Card className="card1 mb-8 min-w-270">
       <div className="p-6">
-        <div className="flex flex-col items-center mb-4 mx-auto">
+        <div className="flex flex-col items-center mb-4 mx-auto" dir={i18n.dir()}>
           <Button
             onClick={handleForceUpdate}
             className="apply h-8 w-135"
             disabled={isUpdating}
+            // dir={i18n.dir()}
           >
             <RefreshCcw className="mr-2 h-4 w-4" />
-            {isUpdating ? t('Updating','Updating...') : t('ForceUpdatePastStatuses',"Force Update Past Bookings/Timeslots Statuses")}
+            {isUpdating ? t('Updating') : t('ForceUpdatePastStatuses',"Force Update Past Bookings/Timeslots Statuses")}
           </Button>
           <p className="explanation-text1 text-sm text-center">
             {t('forceUpdateExplanation')}
@@ -85,10 +86,10 @@ const BookingManagementTabs: React.FC<BookingManagementTabsProps> = ({
         >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="bookings">
-              {t('Manage Bookings','Manage Bookings')}
+              {t('Manage Bookings')}
             </TabsTrigger>
             <TabsTrigger value="timeslots">
-              {t('Manage Timeslots','Manage Timeslots')}
+              {t('Manage Timeslots')}
             </TabsTrigger>
             <TabsTrigger value="create">{t('Create Timeslots','Create Timeslots')}</TabsTrigger>
           </TabsList>
