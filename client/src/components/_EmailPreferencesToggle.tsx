@@ -104,7 +104,7 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({
               {t("Email Notifications", "Email Notifications")}
               {/*Email Notifications*/}
             </h3>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 text-center">
               {
                 enabled
                   ? t(
@@ -139,8 +139,9 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({
             className={`mt-4 ${
               message.type === "success" ? "alert-success" : "alert-error"
             }`}
+            dir={i18n.dir()}
           >
-            <AlertDescription>{message.text}</AlertDescription>
+            <AlertDescription className="flex-initial self-center text-center">{message.text}</AlertDescription>
           </Alert>
         )}
       </CardContent>

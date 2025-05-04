@@ -271,6 +271,7 @@ const BookingManagementTabsCreate: React.FC<
                           }`}
                           variant="outline"
                           id="date"
+                          dir={i18n.dir()}
                         >
                           <CalendarIcon className="h-4 w-4" />
                           {singleDate
@@ -304,6 +305,7 @@ const BookingManagementTabsCreate: React.FC<
                       placeholder="09:00"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
+                      dir={i18n.dir()}
                     />
                   </div>
 
@@ -318,6 +320,7 @@ const BookingManagementTabsCreate: React.FC<
                       placeholder="10:00"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
+                      dir={i18n.dir()}
                     />
                   </div>
                 </div>
@@ -358,6 +361,7 @@ const BookingManagementTabsCreate: React.FC<
                             !startDate || !endDate ? "text-gray-400" : ""
                           }`}
                           variant="outline"
+                          dir={i18n.dir()}
                         >
                           <CalendarRange className="mr-2 h-4 w-4" />
                           {startDate && endDate
@@ -365,10 +369,7 @@ const BookingManagementTabsCreate: React.FC<
                                 endDate,
                                 "PP"
                               )}`
-                            : t(
-                                "bookingManagementTabsCreate.selectDateRange",
-                                "Select date range"
-                              )}
+                            : t("bookingManagementTabsCreate.selectDateRange")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent
@@ -429,6 +430,7 @@ const BookingManagementTabsCreate: React.FC<
                       placeholder="09:00"
                       value={dailyStartTime}
                       onChange={(e) => setDailyStartTime(e.target.value)}
+                      dir={i18n.dir()}
                     />
                   </div>
                 </div>
@@ -450,13 +452,14 @@ const BookingManagementTabsCreate: React.FC<
                       placeholder="60"
                       value={slotDuration}
                       onChange={(e) => setSlotDuration(e.target.value)}
+                      dir={i18n.dir()}
                     />
                   </div>
 
                   {/* Slots Per Day */}
                   <div className="space-y-2">
                     <Label>
-                      {t("bookingManagementTabsCreate.slotsPerDayLabel", "Slots Per Day")}
+                      {t("bookingManagementTabsCreate.slotsPerDayLabel")}
                     </Label>
                     <Input
                       id="slotsPerDay"
@@ -466,6 +469,7 @@ const BookingManagementTabsCreate: React.FC<
                       placeholder="8"
                       value={slotsPerDay}
                       onChange={(e) => setSlotsPerDay(e.target.value)}
+                      dir={i18n.dir()}
                     />
                   </div>
                 </div>
@@ -484,11 +488,8 @@ const BookingManagementTabsCreate: React.FC<
                     className="apply"
                   >
                     {isSubmitting
-                      ? t("bookingManagementTabsCreate.creatingBatchSlots", "Creating...")
-                      : t(
-                          "bookingManagementTabsCreate.createBatchSlots",
-                          "Create Batch Slots"
-                        )}
+                      ? t("bookingManagementTabsCreate.creatingBatchSlots")
+                      : t("bookingManagementTabsCreate.createBatchSlots")}
                   </Button>
                 </div>
               </form>

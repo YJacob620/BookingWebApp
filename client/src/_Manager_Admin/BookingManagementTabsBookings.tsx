@@ -103,6 +103,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       filtered = filtered.filter(booking => {
         const bookingDate = new Date(booking.booking_date);
         const filterDate = new Date(bookingsDayFilter);
+        console.error('date change')
 
         return (
           bookingDate.getFullYear() === filterDate.getFullYear() &&
@@ -138,7 +139,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         bookingsDayFilter: date
       });
     } else {
-      onFilterStateChange({ bookingsDayFilter: date });
+      onFilterStateChange({ bookingsDayFilter: 'date' });
     }
   };
 
@@ -198,7 +199,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         <TableCell>
           <div className="font-medium">{booking.user_email}</div>
           {booking.user_role && (
-            <div className="text-xs text-gray-400">{/*todo options for user role?*/}
+            <div className="text-xs text-gray-400">
               {t(booking.user_role.charAt(0).toUpperCase() + booking.user_role.slice(1))}
             </div>
           )}
@@ -341,7 +342,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
               onChange={(e) => handleDateFilterChange(e.target.value)}
               disabled={selectedBookingDateFilters.length > 0}
               className='h-10'
-              dir={i18n.dir()}
             />
             {bookingsDayFilter && (
               <Button

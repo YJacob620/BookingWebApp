@@ -275,11 +275,9 @@ const PaginatedTable = <T extends object>({
               <TableRow>
                 <td colSpan={columns.length} className="h-24 text-center">
                   {noResults || (
-                    <div className="text-gray-400">
-                      {data.length > 0
-                        ? t('noItemsMatchFilter',{defaultValue:"No items match your current filters."})
-                        // ? 'No items match your current filters.'
-                        : t(emptyMessage,{defaultValue:emptyMessage})}
+                    <div className="text-gray-400" dir={i18n.dir()}>
+                      {data.length > 0 ? t('noItemsMatchFilter'): t(emptyMessage)}
+                        {/* // ? 'No items match your current filters.' */}
                     </div>
                   )}
                 </td>
@@ -296,7 +294,7 @@ const PaginatedTable = <T extends object>({
             <Label>{t('PaginatedTable.RowsPerPage')}</Label>
             <Select
               value={rowsPerPage.toString()}
-              onValueChange={(value) => handleRowsPerPageChange(Number(value))}
+              onValueChange={(value) => handleRowsPerPageChange(Number(value))} dir={i18n.dir()}
             >
               <SelectTrigger id="rows-per-page" className="w-[80px]">
                 <SelectValue placeholder={rowsPerPage.toString()} />

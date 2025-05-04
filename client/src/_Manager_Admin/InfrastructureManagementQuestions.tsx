@@ -509,6 +509,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                   onChange={(e) => setNewQuestion({ ...newQuestion, options: e.target.value })}
                   placeholder={t('infrastructureManagementQuestions.QuestionOptionsEnter')}
                   rows={4}
+                  dir={i18n.dir()}
                 />
               </div>
             )}

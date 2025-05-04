@@ -90,7 +90,7 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
           <Badge className={getStatusColor(item.status)}>
-            {formatStatus(item.booking_type, item.status)}
+            {t(formatStatus(item.booking_type, item.status))}
           </Badge>
         </TableCell>
       ),

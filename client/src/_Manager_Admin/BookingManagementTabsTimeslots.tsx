@@ -143,7 +143,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   const columns: PaginatedTableColumn<BookingEntry>[] = [
     {
       key: 'select',
-      header: 'Select',
+      header: t('Select'),
       cell: (booking: BookingEntry) => (
         <TableCell>
           <div className="pr-2">
@@ -170,7 +170,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     },
     {
       key: 'booking_date',
-      header: 'Date',
+      header: t('Date'),
       cell: (booking: BookingEntry) => (
         <TableCell>
           {formatDate(booking.booking_date)}
@@ -181,7 +181,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     },
     {
       key: 'start_time',
-      header: 'Start Time',
+      header: t('Start Time'),
       cell: (slot: BookingEntry) => (
         <TableCell>
           {formatTimeString(slot.start_time)}
@@ -190,7 +190,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     },
     {
       key: 'end_time',
-      header: 'End Time',
+      header: t('End Time'),
       cell: (slot: BookingEntry) => (
         <TableCell>
           {formatTimeString(slot.end_time)}
@@ -199,7 +199,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     },
     {
       key: 'duration',
-      header: 'Duration',
+      header: t('Duration'),
       cell: (slot: BookingEntry) => (
         <TableCell>
           <div className="flex items-center justify-center gap-2" dir={i18n.dir(i18n.language)}>
@@ -210,7 +210,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('Status'),
       cell: (slot: BookingEntry) => (
         <TableCell>
           <Badge className={getStatusColor(slot.status)}>
@@ -223,7 +223,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('Actions'),
       cell: (slot: BookingEntry) => (
         <TableCell className="text-center">
           {slot.status == 'available' && (
@@ -306,7 +306,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         />
 
         <MultiSelectFilter
-          label="Filter by Time-Period"
+          label={t("Filter by Time-Period")}
           options={createFilterOptions(DATE_FILTER_OPTIONS)}
           selectedValues={selectedTimeslotDateFilters}
           onSelectionChange={(values) =>

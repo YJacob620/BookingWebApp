@@ -20,7 +20,7 @@ i18n
       defaultVariables: [""],
     },
     saveMissing: isDev, // you should not use saveMissing in production
-    lng: "en",
+    lng: "he",
     resources: {
       en: {
         translation: {
@@ -47,6 +47,7 @@ i18n
           "Email Notifications": "Email Notifications",
           Logout: "Logout",
           noItemsMatchFilter: "No items match your current filters.",
+          "No data available":"No data available",
           msgReciveEmailNotif: {
             enabled:
               "You will receive email notifications about bookings and updates",
@@ -541,7 +542,10 @@ i18n
             pageOf:'Page {{current}} of {{total}}',
             RowsPerPage:'Rows per page:',
             RowsShown:"{{startItem}}-{{endItem}} of {{itemAmount}}"
-          }
+          },
+          "Start Time": "Start Time",
+          "End Time":"End Time",
+          Select:"Select"
         },
       },
       he: {
@@ -568,6 +572,7 @@ i18n
           "Email Notifications": 'הודעות דוא"ל',
           Logout: "יציאה",
           noItemsMatchFilter: "שום פריט תואם את הפילטר הנוכחי",
+          "No data available":"לא קיימים פריטים",
           msgReciveEmailNotif: {
             enabled: 'את/ה תקבל/י הודעות בדוא"ל על הזמנות ועדכונים',
             disabled: 'את/ה לא תקבל/י הודעות בדוא"ל על הזמנות ועדכונים',
@@ -814,7 +819,7 @@ i18n
           },
           noBookMatch: "אין הזמנות התואמות את המסננים הנוכחיים שלך.",
           Cancel: "בטל",
-          Date: "תַאֲרִיך",
+          Date: "תאריך",
           "All Dates": "כל התאריכים",
           userDashboard: {
             title: "תפריט משתמש",
@@ -1030,7 +1035,10 @@ i18n
             RowsPerPage:'שורות לעמוד:\u200F',
             // RowsShown:"{{startItem}}-{{endItem}} of {{itemAmount}}"
             RowsShown:"{{startItem}}-{{endItem}} מתוך {{itemAmount}}"
-          }
+          },
+          "Start Time": "שעת התחלה",
+          "End Time":"שעת סיום",
+          Select:"בחר"
         },
         
       },
