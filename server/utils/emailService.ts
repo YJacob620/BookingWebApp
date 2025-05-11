@@ -234,15 +234,15 @@ const sendBookingNotificationToManagers = async (
 };
 
 /**
- * Fetch booking answers with question details
+ * Fetch booking answers with question details. This function should wrapped in a try-catch block.
  * @param bookingId - ID of the booking
  * @param connection - Optional database connection for transactions
  * @returns Array of booking answers with question details
  */
 const fetchBookingAnswers = async (bookingId: number, connection = pool): Promise<BookingAnswer[]> => {
-    try {
-        const [answers] = await connection.execute<BookingAnswer[]>(
-            `SELECT 
+    console.log('Booking ID:', bookingId, 'Type:', typeof bookingId);
+    const [answers] = await connection.execute<BookingAnswer[]>(
+        `SELECT 
                 a.question_id,
                 q.question_text,
                 q.question_type,
@@ -252,20 +252,17 @@ const fetchBookingAnswers = async (bookingId: number, connection = pool): Promis
             JOIN infrastructure_questions q ON a.question_id = q.id
             WHERE a.booking_id = ?
             ORDER BY q.display_order`,
-            [bookingId]
-        );
+        [bookingId]
+    );
+    console.log("answers!! ", answers);
 
-        // Add document_url for file uploads
-        return answers.map(answer => {
-            if (answer.document_path) {
-                answer.document_url = `/bookings/download-file/${bookingId}/${answer.question_id}`;
-            }
-            return answer;
-        });
-    } catch (error) {
-        console.error('Error fetching booking answers:', error);
-        return [];
-    }
+    // Add document_url for file uploads
+    return answers.map(answer => {
+        if (answer.document_path) {
+            answer.document_url = `/bookings/download-file/${bookingId}/${answer.question_id}`;
+        }
+        return answer;
+    });
 };
 
 /**

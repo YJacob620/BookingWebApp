@@ -282,6 +282,19 @@ router.get('/confirm-booking/:token', async (req: Request, res: Response): Promi
 
         await connection.commit();
 
+        // Send notifications
+        if (bookingResult.infrastructure && bookingResult.managers.length > 0 && bookingResult.actionToken) {
+            try {
+                await emailService.sendBookingNotifications(
+                    bookingResult.booking,
+                    bookingResult.infrastructure,
+                    bookingResult.managers,
+                    bookingResult.actionToken);
+            } catch (emailError) {
+                console.error('Failed to send notification emails:', emailError);
+            }
+        }
+
         // Once the transaction is committed successfully, we can clear the tempFiles array
         // since we don't want to delete the files that have been properly moved
         tempFiles.length = 0;

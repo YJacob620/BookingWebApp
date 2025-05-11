@@ -194,14 +194,14 @@ export const processBookingRequest =
                 console.warn('Failed to generate action token:', tokenError);
             }
 
-            // Send notifications
-            if (infrastructures.length > 0 && managers.length > 0 && actionToken) {
-                try {
-                    await emailService.sendBookingNotifications(booking, infrastructures[0], managers, actionToken);
-                } catch (emailError) {
-                    console.error('Failed to send notification emails:', emailError);
-                }
-            }
+            // // Send notifications
+            // if (infrastructures.length > 0 && managers.length > 0 && actionToken) {
+            //     try {
+            //         await emailService.sendBookingNotifications(booking, infrastructures[0], managers, actionToken);
+            //     } catch (emailError) {
+            //         console.error('Failed to send notification emails:', emailError);
+            //     }
+            // }
 
             return {
                 success: true,

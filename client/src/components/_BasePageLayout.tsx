@@ -211,20 +211,19 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
 
       <Card className={`general-container ${className}`}>
         <div className="max-w-7xl mx-3">
-        <div
-            className={`grid ${
-              showDashboardButton && showLogoutButton
-                ? "grid-cols-3"
-                : "grid-cols-2"
-            }`}
+          <div
+            className={`grid ${showDashboardButton && showLogoutButton
+              ? "grid-cols-3"
+              : "grid-cols-2"
+              }`}
           >
             {showDashboardButton && (
               <div className="flex justify-start mb-7">
                 <BackToDashboardButton />
               </div>
             )}
-            <div className={`flex ${showDashboardButton?'justify-end':'justify-start'} mb-7`}>
-              <LanguageSelector/>
+            <div className={`flex ${showDashboardButton ? 'justify-end' : 'justify-start'} mb-7`}>
+              <LanguageSelector />
             </div>
             {showLogoutButton && (
               <div className="flex justify-end mb-7">

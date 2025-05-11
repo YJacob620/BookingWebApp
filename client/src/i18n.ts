@@ -30,7 +30,7 @@ i18n
           forgotPassword: "Forgot password",
           "logging in": "logging in",
           "cont guest": "Continue as Guest",
-          "no account?": "Don't have an account?",
+          "no account?": "Don't have an account? ",
           loginExplain: "Sign in to access the scheduling system.",
           sendingVerEmail: "Sending verification email",
           verEmailSent: "Verification email sent! Please check your inbox.",
@@ -47,7 +47,7 @@ i18n
           "Email Notifications": "Email Notifications",
           Logout: "Logout",
           noItemsMatchFilter: "No items match your current filters.",
-          "No data available":"No data available",
+          "No data available": "No data available",
           msgReciveEmailNotif: {
             enabled:
               "You will receive email notifications about bookings and updates",
@@ -63,7 +63,7 @@ i18n
             "No additional information was provided for this booking.",
           "No booking details available": "No booking details available",
           Close: "Close",
-          language: "language",
+          language: "Language",
           alert: {
             paswrdresetsuccses:
               "If an account exists with that email, we've sent password\nreset instructions. Please check your inbox.",
@@ -164,7 +164,7 @@ i18n
           Infrastructures: "Infrastructures",
           "Bookings & Timeslots": "Bookings & Timeslots",
           managerDash: {
-            InfrastructuresDesc: "'Manage your assigned infrastructures'",
+            InfrastructuresDesc: "Manage your assigned infrastructures",
             "Book&TimeDesc":
               "Manage booking requests and available time slots for your assigned infrastructures",
             title: "Infrastructure-Manager Dashboard",
@@ -532,20 +532,20 @@ i18n
           Guest: "Guest",
           Description: "Description",
           "Select All": "Select All",
-          Duration:"Duration",
-          Purpose:"Purpose",
-          Type:"Type",
-          Booking:"Booking",
-          Timeslot:"Timeslot",
-          minutesShort:"min",
-          PaginatedTable:{
-            pageOf:'Page {{current}} of {{total}}',
-            RowsPerPage:'Rows per page:',
-            RowsShown:"{{startItem}}-{{endItem}} of {{itemAmount}}"
+          Duration: "Duration",
+          Purpose: "Purpose",
+          Type: "Type",
+          Booking: "Booking",
+          Timeslot: "Timeslot",
+          minutesShort: "min",
+          PaginatedTable: {
+            pageOf: 'Page {{current}} of {{total}}',
+            RowsPerPage: 'Rows per page:',
+            RowsShown: "{{startItem}}-{{endItem}} of {{itemAmount}}"
           },
           "Start Time": "Start Time",
-          "End Time":"End Time",
-          Select:"Select"
+          "End Time": "End Time",
+          Select: "Select"
         },
       },
       he: {
@@ -570,9 +570,9 @@ i18n
           emailSubTogCheck: 'נרשמת לקבלת הודעות דרך דוא"ל',
           emailSubTogUnCheck: 'ביטלת רישום לקבלת הודעות דרך דוא"ל',
           "Email Notifications": 'הודעות דוא"ל',
-          Logout: "יציאה",
+          Logout: "התנתקות",
           noItemsMatchFilter: "שום פריט תואם את הפילטר הנוכחי",
-          "No data available":"לא קיימים פריטים",
+          "No data available": "לא קיימים פריטים",
           msgReciveEmailNotif: {
             enabled: 'את/ה תקבל/י הודעות בדוא"ל על הזמנות ועדכונים',
             disabled: 'את/ה לא תקבל/י הודעות בדוא"ל על הזמנות ועדכונים',
@@ -999,7 +999,7 @@ i18n
             msgCreateSlotsSuccess_two: "שני תורים נוצרו בהצלחה",
           },
           View: "הראה",
-          "Search by email or purpose": 'חפש לפי דוא"ל או כוונה',
+          "Search by email or purpose": 'חפש לפי דוא"ל או מטרה',
           Required: "חובה",
           Options_Lst: "אפשרויות:",
           "Free Text": "טקסט חופשי",
@@ -1024,23 +1024,23 @@ i18n
           Guest: "אורח",
           Description: "תיאור",
           "Select All": "בחר הכל",
-          Duration:"משך זמן",
-          Purpose:'מטרה',
-          Type:"סוג",
-          Booking:"הזמנה",
-          Timeslot:"תור פנוי",
-          minutesShort:"דק'",
-          PaginatedTable:{
-            pageOf:'עמוד {{current}} מתוך {{total}}\u200F',
-            RowsPerPage:'שורות לעמוד:\u200F',
+          Duration: "משך זמן",
+          Purpose: 'מטרה',
+          Type: "סוג",
+          Booking: "הזמנה",
+          Timeslot: "תור פנוי",
+          minutesShort: "דק'",
+          PaginatedTable: {
+            pageOf: 'עמוד {{current}} מתוך {{total}}\u200F',
+            RowsPerPage: 'שורות לעמוד:\u200F',
             // RowsShown:"{{startItem}}-{{endItem}} of {{itemAmount}}"
-            RowsShown:"{{startItem}}-{{endItem}} מתוך {{itemAmount}}"
+            RowsShown: "{{startItem}}-{{endItem}} מתוך {{itemAmount}}"
           },
           "Start Time": "שעת התחלה",
-          "End Time":"שעת סיום",
-          Select:"בחר"
+          "End Time": "שעת סיום",
+          Select: "בחר"
         },
-        
+
       },
     },
   });

@@ -55,7 +55,7 @@ const BookTimeslot = () => {
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
   const [answers, setAnswers] = useState<BookingReqAnswersMap>({});
   const [isFormValid, setIsFormValid] = useState(false);
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   // Guest-specific state
   const [searchParams] = useSearchParams();
@@ -172,7 +172,7 @@ const BookTimeslot = () => {
       setAllTimeslots(data);
     } catch (error) {
       console.error('Error fetching available timeslots:', error);
-      setMessage({ type: 'error', text: t('bookTimeslot.msgErrTsFetch','Error loading available timeslots') });
+      setMessage({ type: 'error', text: t('bookTimeslot.msgErrTsFetch', 'Error loading available timeslots') });
     } finally {
       setIsLoadingTimeslots(false);
     }
@@ -195,7 +195,7 @@ const BookTimeslot = () => {
     if (!selectedTimeslotId || !selectedInfrastructure) {
       setMessage({
         type: 'error',
-        text: t('bookTimeslot.msgErrInf&Ts','Please select a valid infrastructure and timeslot')
+        text: t('bookTimeslot.msgErrInf&Ts', 'Please select a valid infrastructure and timeslot')
       });
       return;
     }
@@ -203,7 +203,7 @@ const BookTimeslot = () => {
     if (!guestName.trim()) {
       setMessage({
         type: 'error',
-        text: t('bookTimeslot.msgErrName','Please enter your name')
+        text: t('bookTimeslot.msgErrName', 'Please enter your name')
       });
       return;
     }
@@ -211,7 +211,7 @@ const BookTimeslot = () => {
     if (!guestEmail.trim()) {
       setMessage({
         type: 'error',
-        text: t('bookTimeslot.msgErrEmailEmpt','Please enter your email address')
+        text: t('bookTimeslot.msgErrEmailEmpt', 'Please enter your email address')
       });
       return;
     }
@@ -221,7 +221,7 @@ const BookTimeslot = () => {
     if (!emailRegex.test(guestEmail)) {
       setMessage({
         type: 'error',
-        text: t('bookTimeslot.msgErrEmailInvalid','Please enter a valid email address')
+        text: t('bookTimeslot.msgErrEmailInvalid', 'Please enter a valid email address')
       });
       return;
     }
@@ -275,7 +275,7 @@ const BookTimeslot = () => {
     if (!selectedTimeslotId || !selectedInfrastructure) {
       setMessage({
         type: 'error',
-        text: t('bookTimeslot.msgErrInfTimeUnselected','Please select an infrastructure and timeslot')
+        text: t('bookTimeslot.msgErrInfTimeUnselected', 'Please select an infrastructure and timeslot')
       });
       return;
     }
@@ -299,7 +299,7 @@ const BookTimeslot = () => {
       if (result.success) {
         setMessage({
           type: 'success',
-          text: t('bookTimeslot.msgSucBookReqSubmit','Your booking request has been submitted successfully!')
+          text: t('bookTimeslot.msgSucBookReqSubmit', 'Your booking request has been submitted successfully!')
         });
 
         resetForm();
@@ -318,7 +318,7 @@ const BookTimeslot = () => {
       console.error('Error creating booking:', error);
       setMessage({
         type: 'error',
-        text: error instanceof Error ? error.message : t('bookTimeslot.msgErrBookCreate','An error occurred while creating your booking')
+        text: error instanceof Error ? error.message : t('bookTimeslot.msgErrBookCreate', 'An error occurred while creating your booking')
       });
     } finally {
       setIsLoading(false);
@@ -428,21 +428,22 @@ const BookTimeslot = () => {
 
   return (
     <BasePageLayout
-      pageTitle={t('bookTimeslot.Request a Booking',"Request a Booking")}
+      pageTitle={t('bookTimeslot.Request a Booking', "Request a Booking")}
       explanationText={isGuestMode
         ? t('bookTimeslot.bookReqGuestExplain')
         // "As a guest, you can request a booking without an account, but limited to one request per day."
-        : t('bookTimeslot.bookReqUserExplain',"Fill and submit the form to request a booking")}
+        : t('bookTimeslot.bookReqUserExplain', "Fill and submit the form to request a booking")}
       showDashboardButton={!isGuestMode}
       alertMessage={message}
       alertMessageTimer={ALERT_MESSAGE_TIME}
+      className={"min-w-150"}
     >
       {showGuestEmailForm ? (
         <Card className="card1 max-w-md mx-auto">
           <CardContent className="p-6">
             <div className="flex justify-center mb-4">
               <Mail className="h-8 w-8 text-blue-500 mr-3" />
-              <h2 className="text-xl font-bold">{t('bookTimeslot.Confirm Your Email','Confirm Your Email')}</h2>
+              <h2 className="text-xl font-bold">{t('bookTimeslot.Confirm Your Email', 'Confirm Your Email')}</h2>
             </div>
 
             <p className="mb-4 explanation-text1">
@@ -491,7 +492,7 @@ const BookTimeslot = () => {
                 >
                   {isProcessingGuestBooking ?
                     t('actProcessing') :
-                    t('bookTimeslot.Send',{what:t('Confirmation Email')})}
+                    t('bookTimeslot.Send', { what: t('Confirmation Email') })}
                 </Button>
               </div>
             </form>
@@ -537,7 +538,7 @@ const BookTimeslot = () => {
 
                   </PopoverContent>
                 </Popover>
-                {isLoadingTimeslots && <p className="text-sm text-gray-400">{t('bookTimeslot.Loading available dates','Loading available dates...')}</p>}
+                {isLoadingTimeslots && <p className="text-sm text-gray-400">{t('bookTimeslot.Loading available dates', 'Loading available dates...')}</p>}
                 {!isLoadingTimeslots && selectedInfrastructure && availableDates.length === 0 && (
                   <p className="text-sm text-amber-500">{t('bookTimeslot.noTimeSlots')}</p>
                   // No available timeslots for this infrastructure
@@ -546,7 +547,7 @@ const BookTimeslot = () => {
 
               {/* Timeslot Selection */}
               <div className="space-y-2">
-                <p className="small-title">{t('bookTimeslot.Select Timeslot','Select Timeslot')}</p>
+                <p className="small-title">{t('bookTimeslot.Select Timeslot', 'Select Timeslot')}</p>
                 <Select
                   onValueChange={(value) => setSelectedTimeslotId(Number(value))}
                   value={selectedTimeslotId?.toString() || ""}
@@ -554,10 +555,10 @@ const BookTimeslot = () => {
                 >
                   <SelectTrigger id="timeslot">
                     <SelectValue placeholder={
-                      !selectedInfrastructure 
+                      !selectedInfrastructure
                         ? t('bookTimeslot.Select infrastructure first') : !selectedDate
                           ? t('bookTimeslot.Select a date first') : selectedDateTimeslots.length === 0
-                            ? t('bookTimeslot.noTsForDate','No available timeslots for this date') : t("bookTimeslot.Select a timeslot")
+                            ? t('bookTimeslot.noTsForDate', 'No available timeslots for this date') : t("bookTimeslot.Select a timeslot")
                     } />
                   </SelectTrigger>
                   <SelectContent className="card1">
@@ -572,12 +573,12 @@ const BookTimeslot = () => {
 
               {/* Purpose */}
               <div className="space-y-2">
-                <p className="small-title">{t('bookTimeslot.bookPurposeTitle','Purpose of Booking (optional)')}</p>
+                <p className="small-title">{t('bookTimeslot.bookPurposeTitle', 'Purpose of Booking (optional)')}</p>
                 <Textarea
                   id="purpose"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
-                  placeholder={t('bookTimeslot.bookPurposeDesc',"Briefly describe the purpose of your booking")}
+                  placeholder={t('bookTimeslot.bookPurposeDesc', "Briefly describe the purpose of your booking")}
                   className="h-24"
                 />
               </div>
@@ -596,9 +597,9 @@ const BookTimeslot = () => {
                   <AlertDescription>
                     <p>{t('bookTimeslot.submmitionExplainstart')}</p>
                     {/* As a guest, after filling and submitting this form: */}
-                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain1',"1. You'll be asked for your email address.")}</p>
-                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain2',"2. We'll send you an email with a confirmation link.")}</p>
-                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain3','3. Click the link to finalize your booking request.')}</p>
+                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain1', "1. You'll be asked for your email address.")}</p>
+                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain2', "2. We'll send you an email with a confirmation link.")}</p>
+                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain3', '3. Click the link to finalize your booking request.')}</p>
                   </AlertDescription>
                 </Alert>
               )}

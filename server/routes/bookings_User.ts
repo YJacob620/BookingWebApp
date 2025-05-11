@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { upload } from '../middleware/fileUploadMiddleware';
 import pool from '../configuration/db';
+import emailService from '../utils/emailService'
 import {
     processBookingRequest,
     parseBookingRequest,
@@ -147,6 +148,19 @@ router.post('/request', authenticateToken, upload.any(), async (req: Request, re
         }
 
         await connection.commit();
+
+        // Send notifications
+        if (bookingResult.infrastructure && bookingResult.managers.length > 0 && bookingResult.actionToken) {
+            try {
+                await emailService.sendBookingNotifications(
+                    bookingResult.booking,
+                    bookingResult.infrastructure,
+                    bookingResult.managers,
+                    bookingResult.actionToken);
+            } catch (emailError) {
+                console.error('Failed to send notification emails:', emailError);
+            }
+        }
 
         // Once the transaction is committed successfully, we don't want to delete 
         // files that have been properly moved

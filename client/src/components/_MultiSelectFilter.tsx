@@ -49,7 +49,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
     disabled = false
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const {t,i18n} = useTranslation()
+    const { t, i18n } = useTranslation()
 
     // Toggle selection of an option
     const toggleOption = (value: string) => {
@@ -117,7 +117,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                         )}
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className={`${popoverWidth} p-0 bg-gray-900`} align="start">
+                <PopoverContent className={`${popoverWidth} p-0 bg-gray-900`} align="center">
                     <div className="p-2 border-b border-gray-700 flex justify-between items-center" dir={i18n.dir()}>
                         <div className="flex space-x-1">
                             <Button
@@ -158,7 +158,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                                             checked={isSelected}
                                             className="me-2 checkbox1 h-4 w-4"
                                         />{/** todo space between */}
-                                        
+
                                         {variant === 'badge' && option.color ? (
                                             <div className="flex-1">
                                                 <Badge className={option.color}>{option.label}</Badge>

@@ -32,7 +32,7 @@
   "noAddonInfo": "No additional information was provided for this booking.",
   "No booking details available": "No booking details available",
   "Close": "Close",
-  "language": "language",
+  "language": "Language",
   "alert": {
     "paswrdresetsuccses": "If an account exists with that email, we've sent password\nreset instructions. Please check your inbox."
   },
@@ -441,5 +441,5 @@
   "blankMinutes": "{{amount}} minutes",
   "Manager": "Manager",
   "Guest": "Guest",
-  "Type:":"Type: {{type}}"
+  "Type:": "Type: {{type}}"
 }
