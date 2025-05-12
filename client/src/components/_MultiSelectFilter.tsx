@@ -157,8 +157,8 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                                             id={`filter-${label}-${option.value}`}
                                             checked={isSelected}
                                             className="me-2 checkbox1 h-4 w-4"
-                                        />{/** todo space between */}
-
+                                        />
+                                        
                                         {variant === 'badge' && option.color ? (
                                             <div className="flex-1">
                                                 <Badge className={option.color}>{option.label}</Badge>

@@ -179,7 +179,7 @@ const sendBookingNotificationToManagers = async (
 
         // Prepare file attachments
         const fileAttachments = prepareFileAttachments(filterQuestionAnswers);
-
+        
         // Send email to each manager individually
         return Promise.all(activeManagers.map(manager => {
             const mailOptions = {
@@ -191,6 +191,50 @@ const sendBookingNotificationToManagers = async (
                     <h2 style="color: #333;">New Booking Request</h2>
                     <p>Hello ${manager.name || 'Infrastructure Manager'},</p>
                     <p>A new booking request has been submitted for <strong>${infrastructure.name}</strong>.</p>
+                    
+                    <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                        <p><strong>User:</strong> ${user.name} (${user.email})</p>
+                        <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
+                        <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
+                        <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
+                    </div>
+                    
+                    ${formatBookingAnswersHTML(filterQuestionAnswers)}
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${approveUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; font-weight: bold;">Approve Request</a>
+                        <a href="${rejectUrl}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reject Request</a>
+                    </div>
+                    
+                    <p>A calendar invitation for this pending request has been attached to this email. You can add it to your calendar application to keep track of it while you consider approval.</p>
+                    
+                    <p>You can also log in to the system to manage this request and view all the details.</p>
+                    <p>Best regards,<br>Scientific Infrastructure Team</p>
+                    
+                    <p style="font-size: 12px; color: #666; margin-top: 30px;">
+                        If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${manager.email}">unsubscribe</a>.
+                    </p>
+                </div>
+            `,
+                attachments: [
+                    {
+                        filename: 'pending_booking_request.ics',
+                        content: icsAttachment,
+                        contentType: 'text/calendar'
+                    },
+                    ...fileAttachments
+                ]
+            };
+
+            const mailOptions_he = {
+                from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+                to: manager.email,
+                subject: `הזמנה תור חדשה ל- ${infrastructure.name}\u200F`,
+                html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
+                    <h2 style="color: #333;">הזמנה חדשה</h2>
+                    <p>שלום, ${manager.name || 'מנהל התשתית'}</p>
+                    <p>בקשת הזמנה חדשה הוגשה עבור <strong>${infrastructure.name}</strong>.</p>
                     
                     <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
                         <p><strong>User:</strong> ${user.name} (${user.email})</p>
@@ -392,6 +436,33 @@ const sendBookingNotificationToUser = async (
         `
         };
 
+        const mailOptions_he = {
+            from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+            to: user.email,
+            subject: `בקשה להזמנת תור ל- ${infrastructure.name} התקבלה\u200F`,
+            html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir = "rtl">
+                <h2 style="color: #333;">הזמנת תור התקבלה</h2>
+                <p>שלום, ${user.name}</p>
+                <p>קיבלנו את הזמנתך ל- <strong>${infrastructure.name}</strong></p>
+                
+                <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                    <p><strong>תאריך:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
+                    <p><strong>בשעות:</strong> ${booking.start_time} - ${booking.end_time}</p>
+                    <p><strong>מטרה:</strong> ${booking.purpose || 'N/A'}</p>
+                    <p><strong>סטטוס:</strong> <span style="color: #FF9800;">ממתין</span></p>
+                </div>
+                
+                <p>מנהל התשתית יבחן את בקשתך בקרוב. תקבל/י אימייל נוסף כאשר בקשתך תאושר או תידחה.</p>
+                <p>בברכה, <br>צוות מנהל טכנולוגיות והנדסה</p>
+                
+                <p style="font-size: 12px; color: #666; margin-top: 30px;">
+                    אם אינך מעוניין/ת לקבל הודעות דוא"ל אלה יותר, באפשרותך לבטל את  <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${user.email}">הרישום</a>.
+                </p>
+            </div>
+        `
+        };
+
         return transporter.sendMail(mailOptions);
     } catch (error) {
         console.error('Error sending email to user:', error);
@@ -424,27 +495,35 @@ const sendBookingStatusUpdate = async (
                 }
 
                 // Create subject and message based on status
-                let subject: string, message: string, color: string;
+                let subject: string, message: string, color: string, subject_he: string, message_he: string
                 switch (status) {
                     case 'approved':
                         subject = `Your Booking Request for ${infrastructure.name} was Approved`;
                         message = 'Your booking request has been approved.';
                         color = '#4CAF50';
+                        subject_he = 'בקשת ההזמנה שלך עבור ${infrastructure.name} אושרה\u200F';
+                        message_he = 'בקשת ההזמנה שלך אושרה';
                         break;
                     case 'rejected':
                         subject = `Your Booking Request for ${infrastructure.name} was Rejected`;
                         message = 'Unfortunately, your booking request has been rejected.';
                         color = '#f44336';
+                        subject_he = 'בקשת ההזמנה שלך עבור ${infrastructure.name} נדחתה\u200F';
+                        message_he = 'למרבה הצער, בקשת ההזמנה שלך נדחתה';
                         break;
                     case 'canceled':
                         subject = `Your Booking for ${infrastructure.name} was Canceled`;
                         message = 'Your booking has been canceled by an administrator.';
                         color = '#ff9800';
+                        subject_he = ' ההזמנה שלך עבור ${infrastructure.name} בוטלה\u200F';
+                        message_he = 'ההזמנה שלך בוטלה ע"י מנהל מערכת';
                         break;
                     default:
                         subject = `Booking Status Update for ${infrastructure.name}`;
                         message = `The status of your booking has been updated to: ${status}.`;
                         color = '#2196F3';
+                        subject_he = 'עדכון סטטוס הזמנה עבור ${infrastructure.name}\u200F';
+                        message_he = 'סטטוס ההזמנה שלך עודכו להיות: ${status}\u200F';
                 }
 
                 // Generate calendar file for approved bookings
@@ -479,6 +558,44 @@ const sendBookingStatusUpdate = async (
                             
                             <p style="font-size: 12px; color: #666; margin-top: 30px;">
                                 If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${user.email}">unsubscribe</a>.
+                            </p>
+                        </div>
+                    `,
+                    attachments: icsAttachment ? [
+                        {
+                            filename: 'booking.ics',
+                            content: icsAttachment,
+                            contentType: 'text/calendar'
+                        }
+                    ] : []
+                };
+
+                const mailOptions_he = {
+                    from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+                    to: user.email,
+                    subject:subject_he,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
+                            <h2 style="color: ${color};">עדכון סטטוס ההזמנה</h2>
+                            <p>שלום, ${user.name}</p>
+                            <p>${message_he}</p>
+                            
+                            <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                                <p><strong>תאריך:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
+                                <p><strong>בשעות:</strong> ${booking.start_time} - ${booking.end_time}</p>
+                                <p><strong>מטרה:</strong> ${booking.purpose || 'N/A'}</p>
+                                <p><strong>סטטוס:</strong> <span style="color: #FF9800;">ממתין</span></p>
+                            </div>
+                            
+                            ${status === 'approved' ? `
+                            <p>הזמנה ליומן צורפה לאימייל זה. באפשרותך להוסיף אותה ליישום היומן שלך.</p>
+                            ` : ''}
+                            
+                            <p>אתה יכול ${user.role === "guest" ? "להירשם" : "להיכנס"} למערכת כדי לראות את כל ההזמנות שלך והסטטוס שלהם.</p>
+                            <p>בברכה, <br>צוות מנהל טכנולוגיות והנדסה</p>
+                            
+                            <p style="font-size: 12px; color: #666; margin-top: 30px;">
+                                אם אינך מעוניין/ת לקבל הודעות דוא"ל אלה יותר, באפשרותך לבטל את  <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${user.email}">הרישום</a>.
                             </p>
                         </div>
                     `,

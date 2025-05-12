@@ -47,7 +47,7 @@ const ManagerDashboard = () => {
       )}
       className={"w-170"}
     >
-      <h2 className="text-xl font-semibold mb-5">
+      <h2 className="text-xl font-semibold mb-5" dir={i18n.dir()}>
         {t("welcomeHeader", { name: user?.name || user?.email })}{" "}
       </h2>
       <EmailPreferencesToggle className="mb-6" />
