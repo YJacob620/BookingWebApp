@@ -307,7 +307,7 @@ const PaginatedTable = <T extends object>({
                 ))}
               </SelectContent>
             </Select>
-            <span className="text-sm text-gray-400">{/** todo? */}
+            <span className="text-sm text-gray-400">
               {t('PaginatedTable.RowsShown',{startItem:startItem,endItem:endItem, itemAmount:dataCount})}
               {/* {`${startItem}-${endItem} of ${dataCount}`} */}
             </span>
