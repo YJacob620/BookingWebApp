@@ -179,7 +179,7 @@ const sendBookingNotificationToManagers = async (
 
         // Prepare file attachments
         const fileAttachments = prepareFileAttachments(filterQuestionAnswers);
-        
+
         // Send email to each manager individually
         return Promise.all(activeManagers.map(manager => {
             const mailOptions = {
@@ -284,7 +284,6 @@ const sendBookingNotificationToManagers = async (
  * @returns Array of booking answers with question details
  */
 const fetchBookingAnswers = async (bookingId: number, connection = pool): Promise<BookingAnswer[]> => {
-    console.log('Booking ID:', bookingId, 'Type:', typeof bookingId);
     const [answers] = await connection.execute<BookingAnswer[]>(
         `SELECT 
                 a.question_id,
@@ -298,7 +297,6 @@ const fetchBookingAnswers = async (bookingId: number, connection = pool): Promis
             ORDER BY q.display_order`,
         [bookingId]
     );
-    console.log("answers!! ", answers);
 
     // Add document_url for file uploads
     return answers.map(answer => {
@@ -573,7 +571,7 @@ const sendBookingStatusUpdate = async (
                 const mailOptions_he = {
                     from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
                     to: user.email,
-                    subject:subject_he,
+                    subject: subject_he,
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
                             <h2 style="color: ${color};">עדכון סטטוס ההזמנה</h2>
@@ -649,8 +647,8 @@ const generateICSFile = (
     const summary = user
         ? `Pending Request: ${infrastructure.name} - ${user.name}`
         : `Booking: ${infrastructure.name}`;
-    
-     const summary_he = user
+
+    const summary_he = user
         ? `\u202Bממתין לבקשה: ${infrastructure.name} - ${user.name}\u202C`
         : `\u202Bהזמנה: ${infrastructure.name}\u202C`;
 
