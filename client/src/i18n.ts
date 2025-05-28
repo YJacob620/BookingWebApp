@@ -46,6 +46,7 @@ i18n
           emailSubTogUnCheck: "You have been subscribed to email notifications",
           "Email Notifications": "Email Notifications",
           Logout: "Logout",
+          BackToLogin: "Back to Login",
           noItemsMatchFilter: "No items match your current filters.",
           "No data available": "No data available",
           msgReciveEmailNotif: {
@@ -571,6 +572,7 @@ i18n
           emailSubTogUnCheck: 'ביטלת רישום לקבלת הודעות דרך דוא"ל',
           "Email Notifications": 'הודעות דוא"ל',
           Logout: "התנתקות",
+          BackToLogin: "בחזרה להתחברות",
           noItemsMatchFilter: "שום פריט תואם את הפילטר הנוכחי",
           "No data available": "לא קיימים פריטים",
           msgReciveEmailNotif: {

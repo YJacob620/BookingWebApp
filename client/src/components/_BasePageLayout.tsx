@@ -19,6 +19,7 @@ interface BasePageLayoutProps {
   pageTitle?: string;
   showDashboardButton?: boolean;
   showLogoutButton?: boolean;
+  isGuest?: boolean;
   alertMessage?: Message | null;
   explanationText?: String
   className?: String
@@ -175,6 +176,7 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
   pageTitle,
   showDashboardButton = false,
   showLogoutButton = false,
+  isGuest = false,
   alertMessage,
   explanationText,
   className,
@@ -227,7 +229,7 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
             </div>
             {showLogoutButton && (
               <div className="flex justify-end mb-7">
-                <LogoutButton />
+                <LogoutButton isGuest={isGuest}></LogoutButton>
               </div>
             )}
           </div>

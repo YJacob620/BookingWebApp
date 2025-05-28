@@ -434,9 +434,11 @@ const BookTimeslot = () => {
         // "As a guest, you can request a booking without an account, but limited to one request per day."
         : t('bookTimeslot.bookReqUserExplain', "Fill and submit the form to request a booking")}
       showDashboardButton={!isGuestMode}
+      showLogoutButton={isGuestMode}
+      isGuest={isGuestMode}
       alertMessage={message}
       alertMessageTimer={ALERT_MESSAGE_TIME}
-      className={"min-w-150"}
+      className={"w-150"}
     >
       {showGuestEmailForm ? (
         <Card className="card1 max-w-md mx-auto">

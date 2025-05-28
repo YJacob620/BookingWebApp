@@ -34,7 +34,7 @@ const UserDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>();
-  const {t} = useTranslation();
+  const { t, i18n } = useTranslation();
 
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const UserDashboard = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen general-container flex items-center justify-center">
-        <div className="text-xl">{t('Loading',{what:' '})}</div>
+        <div className="text-xl">{t('Loading', { what: ' ' })}</div>
       </div>
     );
   }
@@ -69,7 +69,7 @@ const UserDashboard = () => {
       explanationText={t('userDashboard.explaination')}
       showLogoutButton
     >
-      <h2 className="text-xl font-semibold mb-5">{t('welcomeHeader',{name:user?.name || user?.email})}</h2>
+      <h2 dir={i18n.dir()} className="text-xl font-semibold mb-5">{t('welcomeHeader', { name: user?.name || user?.email })}</h2>
 
       <EmailPreferencesToggle />
       <div className="my-8">
@@ -91,9 +91,9 @@ const UserDashboard = () => {
       {/* Bookings table */}
       <Card className="card1">
         <CardHeader>
-          <CardTitle>{t('userDashboard.recentBookTitle','Your Recent Bookings')}</CardTitle>
+          <CardTitle>{t('userDashboard.recentBookTitle', 'Your Recent Bookings')}</CardTitle>
           <CardDescription className="explanation-text1">
-          {t('userDashboard.recentBookDesc')}
+            {t('userDashboard.recentBookDesc')}
             {/* Here are your most recent booking requests and their current status */}
           </CardDescription>
         </CardHeader>
@@ -140,14 +140,14 @@ const UserDashboard = () => {
             </div>
           ) : (
             <p className="text-center py-8 explanation-text1">
-              {t('userDashboard.noBookExplain',"You don't have any bookings yet.")}
+              {t('userDashboard.noBookExplain', "You don't have any bookings yet.")}
             </p>
           )}
 
           {bookings.length > 0 && (
             <div className="mt-4 flex justify-center">
               <Link to={BOOKING_HISTORY}>
-                <Button>{t('userDashboard.bookHistLink','View And Manage All Bookings')}</Button>
+                <Button>{t('userDashboard.bookHistLink', 'View And Manage All Bookings')}</Button>
               </Link>
             </div>
           )}

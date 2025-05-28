@@ -22,7 +22,7 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({
     text: string;
   } | null>(null);
 
-  const { t,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     loadPreferences();
@@ -59,18 +59,18 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({
 
       if (result.success) {
         setEnabled(checked);
-        setMessage({
-          type: "success",
-          text: checked
-            ? t(
-                "emailSubTogCheck",
-                "You have been subscribed to email notifications"
-              )
-            : t(
-                "emailSubTogUnCheck",
-                "You have been subscribed to email notifications"
-              ),
-        });
+        // setMessage({
+        //   type: "success",
+        //   text: checked
+        //     ? t(
+        //         "emailSubTogCheck",
+        //         "You have been subscribed to email notifications"
+        //       )
+        //     : t(
+        //         "emailSubTogUnCheck",
+        //         "You have been subscribed to email notifications"
+        //       ),
+        // });
       } else {
         throw new Error(result.message || "Failed to update preferences");
       }
@@ -108,13 +108,13 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({
               {
                 enabled
                   ? t(
-                      "msgReciveEmailNotif.enabled",
-                      "You will receive email notifications about bookings and updates"
-                    )
+                    "msgReciveEmailNotif.enabled",
+                    "You will receive email notifications about bookings and updates"
+                  )
                   : t(
-                      "msgReciveEmailNotif.disabled",
-                      "You will not receive any email notifications from the system"
-                    )
+                    "msgReciveEmailNotif.disabled",
+                    "You will not receive any email notifications from the system"
+                  )
                 // ? 'You will receive email notifications about bookings and updates'
                 // : 'You will not receive any email notifications from the system'
               }
@@ -136,9 +136,8 @@ const EmailPreferencesToggle: React.FC<EmailPreferencesToggleProps> = ({
 
         {message && (
           <Alert
-            className={`mt-4 ${
-              message.type === "success" ? "alert-success" : "alert-error"
-            }`}
+            className={`mt-4 ${message.type === "success" ? "alert-success" : "alert-error"
+              }`}
             dir={i18n.dir()}
           >
             <AlertDescription className="flex-initial self-center text-center">{message.text}</AlertDescription>
