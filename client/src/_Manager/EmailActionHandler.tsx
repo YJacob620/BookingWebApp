@@ -114,10 +114,9 @@ const EmailActionHandler: React.FC = () => {
         ? t(
             "emailActHandler.statAppMsgStart",
             "The booking has been successfully approved. The user has been notified.\n"
-          ) + t("emailActHandler.statAppMsgEnd")
+          ).concat(t("emailActHandler.statAppMsgEnd"))
         : // "In Outlook, you can add it as a calendar event by " +
           //   "clicking on the attached ICS file in the email for this booking."
-
           t(
             "emailActHandler.rejMsg",
             "The booking has been rejected. The user has been notified."
@@ -151,7 +150,7 @@ const EmailActionHandler: React.FC = () => {
   if (isProcessing) {
     return (
       <BasePageLayout pageTitle="Processing Action">
-        <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex flex-col items-center justify-center py-12" dir={i18n.dir()}>
           <Loader className="h-12 w-12 animate-spin text-blue-500 mb-4" />
           <p className="text-lg">
             {action != undefined
@@ -170,7 +169,7 @@ const EmailActionHandler: React.FC = () => {
     <BasePageLayout pageTitle={getTitle()}>
       <div className="max-w-md mx-auto text-center">
         {getIcon()}
-        <p className="mb-6">{getMessage()}</p>
+        <p className="mb-6" dir={i18n.dir()}>{getMessage()}</p>
 
         <div className="flex justify-center mt-8">
           <Button onClick={handleNavigation} size="lg">

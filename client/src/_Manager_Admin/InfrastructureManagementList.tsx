@@ -33,7 +33,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     direction: "asc",
   });
   const isAdmin: boolean = getLocalUser()?.role === "admin";
-  const { t,i18n } = useTranslation();
+  const { t } = useTranslation();
 
   // Filter infrastructures based on search query
   const filteredInfrastructures = infrastructures.filter((infra) => {
@@ -51,7 +51,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
   const columns: PaginatedTableColumn<Infrastructure>[] = [
     {
       key: "name",
-      header:t('Name'),
+      header: t('Name'),
       cell: (infra: Infrastructure) => (
         <TableCell className="font-medium text-center">{infra.name}</TableCell>
       ),
@@ -83,11 +83,10 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
       cell: (infra: Infrastructure) => (
         <TableCell className="text-center">
           <span
-            className={`px-2 py-1 rounded ${
-              infra.is_active
+            className={`px-2 py-1 rounded ${infra.is_active
                 ? "bg-green-800 text-green-100"
                 : "bg-red-800 text-red-100"
-            }`}
+              }`}
           >
             {infra.is_active ? t("Active") : t("Inactive")}
           </span>
@@ -176,7 +175,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
             noResults={
               infrastructures.length > 0 ? (
                 <div className="text-gray-400">
-                 {t('infrastructureManagementList.noInfrastructuresMatchSearch')}
+                  {t('infrastructureManagementList.noInfrastructuresMatchSearch')}
                 </div>
               ) : null
             }

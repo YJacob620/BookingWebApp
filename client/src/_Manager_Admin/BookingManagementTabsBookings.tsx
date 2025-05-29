@@ -72,7 +72,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
-  const { t,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Load bookings when infrastructure changes or after actions
   useEffect(() => {
@@ -314,9 +314,9 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   return (
     <div className="space-y-4">
       <div className="mb-4">
-        <p className="explanation-text1">
+        <h2 className="explanation-text1" dir={i18n.dir()}>
           {t('manageBookingExplaintion', 'Manage booking requests and approvals.')}
-        </p>
+        </h2>
       </div>
 
       {/* Filter controls */}
@@ -337,11 +337,11 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
           <div className="flex space-x-2">{/**todo change unselected date value */}
             <Input
               id="date-filter-input"
-              type="date" 
+              type="date"
               value={bookingsDayFilter}
               onChange={(e) => handleDateFilterChange(e.target.value)}
               disabled={selectedBookingDateFilters.length > 0}
-              className='h-10'
+              className='h-10 justify-center'
             />
             {bookingsDayFilter && (
               <Button

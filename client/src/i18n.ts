@@ -46,7 +46,6 @@ i18n
           emailSubTogUnCheck: "You have been subscribed to email notifications",
           "Email Notifications": "Email Notifications",
           Logout: "Logout",
-          BackToLogin: "Back to Login",
           noItemsMatchFilter: "No items match your current filters.",
           "No data available": "No data available",
           msgReciveEmailNotif: {
@@ -291,6 +290,7 @@ i18n
             "Booking Confirmation Failed": "Booking Confirmation Failed",
             "Booking Confirmed": "Booking Confirmed",
             "Booking Confirmed!": "Booking Confirmed!",
+            "Booking Confirmed explain": "Your booking request has been submitted successfully.",
             managerReviewExplain:
               "You will receive an email notification when the infrastructure manager reviews your request.",
             registerSuggest: "Want to manage your bookings more easily?",
@@ -382,6 +382,7 @@ i18n
           "Filter by Time-Period": "Filter by Time-Period",
           "All Times": "All Times",
           "Loading bookings": "Loading bookings...",
+          "Return to Login": "Return to Login",
           noBookingExistForInf: "No bookings exist for this infrastructure.",
           common: {
             LoadingTimeslots: "Loading timeslots...",
@@ -572,7 +573,6 @@ i18n
           emailSubTogUnCheck: 'ביטלת רישום לקבלת הודעות דרך דוא"ל',
           "Email Notifications": 'הודעות דוא"ל',
           Logout: "התנתקות",
-          BackToLogin: "בחזרה להתחברות",
           noItemsMatchFilter: "שום פריט תואם את הפילטר הנוכחי",
           "No data available": "לא קיימים פריטים",
           msgReciveEmailNotif: {
@@ -653,6 +653,7 @@ i18n
           Resending: "נוהג ...",
           "Resend Verification Email": 'הודע בדוא"ל אימות מחדש',
           "Return to": "חזור ל {{where}}",
+          "Return to Login": "חזור לדף הכניסה",
           "Forgot password": "שכחתי סיסמה",
           forgotPassPgTitle: "איפוס סיסמה",
           forgotPassPgexplain:
@@ -667,7 +668,7 @@ i18n
             actFail: "הפעולה נכשלה",
             statAppMsgStart: "ההזמנה אושרה בהצלחה. \n",
             statAppMsgEnd:
-              'ב- Outlook, אתה יכול להוסיף אותו כאירוע לוח שנה על ידי לחיצה על קובץ ה- ICS המצורף בדוא"ל לצורך הזמנה זו.',
+              '\u202Bב- Outlook, אתה יכול להוסיף אותו כאירוע לוח שנה על ידי לחיצה על קובץ ה- ICS המצורף בדוא"ל לצורך הזמנה זו.\u202C',
             rejMsg: "ההזמנה נדחתה, הודעה נשלחה למשתמש",
             procMsg:
               "ההזמנה הזו כבר עובדה. הסטטוס הנוכחי שלה הוא: {{currentStatus}}",
@@ -701,7 +702,7 @@ i18n
             msgSuccsessInfAccessUpdate: "גישה לתשתיות עודכנה בהצלחה",
             msgErrUpdateInfStatus: "נכשל בעדכון כמה מטלות תשתית",
             title: "ניהול משתמשים",
-            searchBarPlaceholder: 'חפש משתמשים באמצעות שם, דוא"ל או תפקיד ...',
+            searchBarPlaceholder: 'חפש משתמשים באמצעות שם או דוא"ל...',
             "No users found": "לא נמצאו משתמשים.",
             searchNoResMsg: "אף משתמשים לא תואמים את קריטריוני החיפוש שלך.",
             manInfAccTitle: "נהל גישה לתשתיות",
@@ -794,8 +795,9 @@ i18n
             "Booking Confirmation Failed": "אישור ההזמנה נכשל",
             "Booking Confirmed": "ההזמנה אושרה",
             "Booking Confirmed!": "ההזמנה אושרה!",
+            "Booking Confirmed explain": "ההזמנה שלך אושרה בהצלחה.",
             managerReviewExplain:
-              'תקבל הודעת דוא"ל כאשר מנהל התשתית סקר את בקשתך.',
+              'תקבל/י הודעת דוא"ל כאשר מנהל התשתית סקר את בקשתך.',
             registerSuggest: "רוצה לנהל את ההזמנות שלך ביתר קלות?",
           },
           "Create Account": "צור חשבון",
@@ -856,7 +858,7 @@ i18n
           Updating: "מעדכן...",
           ForceUpdatePastStatuses: "עדכן סטטוסים של הזמנות/תורים קודמים",
           forceUpdateExplanation:
-            "בדרך כלל העדכון מתבצע אוטומטית כל כמה דקות, אך ניתן להפעיל עדכון בכפייה בכל עת.",
+            "בדרך כלל עדכון מתבצע אוטומטית כל כמה דקות, אך ניתן לעדכן ידנית בכל עת.",
           "Manage Bookings": "ניהול הזמנות",
           "Manage Timeslots": "ניהול תורים",
           "Create Timeslots": "יצירת תורים",

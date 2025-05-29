@@ -195,8 +195,8 @@ const sendBookingNotificationToManagers = async (
                     <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
                         <p><strong>User:</strong> ${user.name} (${user.email})</p>
                         <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
-                        <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
-                        <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
+                        <p><strong>Time:</strong> ${booking.start_time.slice(0, -3)} - ${booking.end_time.slice(0, -3)}</p>
+                        <p style="word-break: break-word;"><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
                     </div>
                     
                     ${formatBookingAnswersHTML(filterQuestionAnswers)}
@@ -229,35 +229,36 @@ const sendBookingNotificationToManagers = async (
             const mailOptions_he = {
                 from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
                 to: manager.email,
-                subject: `הזמנה תור חדשה ל- ${infrastructure.name}\u200F`,
+                subject: `\u202Bהזמנת תור חדשה ל- ${infrastructure.name}\u202C`,
                 html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
                     <h2 style="color: #333;">הזמנה חדשה</h2>
                     <p>שלום, ${manager.name || 'מנהל התשתית'}</p>
                     <p>בקשת הזמנה חדשה הוגשה עבור <strong>${infrastructure.name}</strong>.</p>
-                    
+
                     <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-                        <p><strong>User:</strong> ${user.name} (${user.email})</p>
-                        <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
-                        <p><strong>Time:</strong> ${booking.start_time} - ${booking.end_time}</p>
-                        <p><strong>Purpose:</strong> ${booking.purpose || 'N/A'}</p>
+                        <p><strong>משתמש:</strong> ${user.name} (${user.email})</p>
+                        <p><strong>תאריך:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
+                        <p><strong>בשעות:</strong> ${booking.start_time.slice(0, -3)} - ${booking.end_time.slice(0, -3)}</p>
+                        <p style="word-break: break-word;"><strong>מטרה:</strong> ${booking.purpose || 'N/A'}</p>
                     </div>
                     
-                    ${formatBookingAnswersHTML(filterQuestionAnswers)}
+                    ${formatBookingAnswersHTML(filterQuestionAnswers, 'he')}
                     
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="${approveUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; font-weight: bold;">Approve Request</a>
-                        <a href="${rejectUrl}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reject Request</a>
+                        <a href="${approveUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; font-weight: bold;">אשר בקשה</a>
+                        <a href="${rejectUrl}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">דחה בקשה</a>
                     </div>
+
+                    <p>הזמנה ליומן עבור בקשה זו הממתינה לאישור צורפה לדוא״ל זה. תוכל/י להוסיף אותה ליישום היומן שלך כדי לעקוב אחריה בזמן שאת/ה שוקל/ת את לאשר.</p>
                     
-                    <p>A calendar invitation for this pending request has been attached to this email. You can add it to your calendar application to keep track of it while you consider approval.</p>
-                    
-                    <p>You can also log in to the system to manage this request and view all the details.</p>
-                    <p>Best regards,<br>Scientific Infrastructure Team</p>
-                    
+                    <p>באפשרותך גם להתחבר למערכת כדי לנהל את הבקשה הזו ולצפות בכל הפרטים.</p>
+                    <p>בברכה, <br>צוות מנהל טכנולוגיות והנדסה</p>
+                
                     <p style="font-size: 12px; color: #666; margin-top: 30px;">
-                        If you no longer wish to receive these emails, you can <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${manager.email}">unsubscribe</a>.
+                        אם אינך מעוניין/ת לקבל הודעות דוא"ל אלה יותר, באפשרותך לבטל את  <a href="${process.env.FRONTEND_URL}/preferences/user-manager/unsubscribe/${user.email}">הרישום</a>.
                     </p>
+                    
                 </div>
             `,
                 attachments: [
@@ -270,7 +271,7 @@ const sendBookingNotificationToManagers = async (
                 ]
             };
 
-            return transporter.sendMail(mailOptions);
+            return transporter.sendMail(mailOptions_he);
         }));
     } catch (error) {
         console.error('Error sending email to managers:', error);
@@ -284,6 +285,7 @@ const sendBookingNotificationToManagers = async (
  * @returns Array of booking answers with question details
  */
 const fetchBookingAnswers = async (bookingId: number, connection = pool): Promise<BookingAnswer[]> => {
+    console.log('Booking ID:', bookingId, 'Type:', typeof bookingId);
     const [answers] = await connection.execute<BookingAnswer[]>(
         `SELECT 
                 a.question_id,
@@ -297,6 +299,7 @@ const fetchBookingAnswers = async (bookingId: number, connection = pool): Promis
             ORDER BY q.display_order`,
         [bookingId]
     );
+    console.log("answers!! ", answers);
 
     // Add document_url for file uploads
     return answers.map(answer => {
@@ -310,17 +313,17 @@ const fetchBookingAnswers = async (bookingId: number, connection = pool): Promis
 /**
  * Format booking answers for email display (for infrastructure managers)
  */
-const formatBookingAnswersHTML = (answers: BookingAnswer[]): string => {
+const formatBookingAnswersHTML = (answers: BookingAnswer[], language: string = 'en'): string => {
     if (!answers || answers.length === 0) {
         return '<p><em>No additional information provided.</em></p>';
     }
 
     let html = '<div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">';
-    html += '<h3 style="color: #333;">Additional Information</h3>';
+    html += `<h3 style="color: #333;">${language === 'he' ? "מידע נוסף" : "Additional Information"}</h3>`;
 
     answers.forEach(answer => {
         html += `<div style="margin-bottom: 15px;">`;
-        html += `<p style="font-weight: bold; margin-bottom: 5px;">${answer.question_text}</p>`;
+        html += `<p style="word-break: break-word; font-weight: bold; margin-bottom: 5px;">${answer.question_text}</p>`;
 
         if (answer.question_type === 'document' && answer.document_path) {
             // For file uploads, mention that the file is attached
@@ -328,7 +331,7 @@ const formatBookingAnswersHTML = (answers: BookingAnswer[]): string => {
             html += `<p style="font-size: 12px; color: #666;">The file has been attached to this email for your convenience.</p>`;
         } else {
             // For text answers
-            html += `<p style="background-color: #f5f5f5; padding: 10px; border-radius: 4px;">${answer.answer_text || 'No answer provided'}</p>`;
+            html += `<p style="word-break: break-word; background-color: #f5f5f5; padding: 10px; border-radius: 4px;">${answer.answer_text || 'No answer provided'}</p>`;
         }
 
         html += `</div>`;
@@ -446,8 +449,8 @@ const sendBookingNotificationToUser = async (
                 
                 <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
                     <p><strong>תאריך:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
-                    <p><strong>בשעות:</strong> ${booking.start_time} - ${booking.end_time}</p>
-                    <p><strong>מטרה:</strong> ${booking.purpose || 'N/A'}</p>
+                    <p><strong>בשעות:</strong> ${booking.start_time.slice(0, -3)} - ${booking.end_time.slice(0, -3)}</p>
+                    <p style="word-break: break-word;"><strong>מטרה:</strong> ${booking.purpose || 'N/A'}</p>
                     <p><strong>סטטוס:</strong> <span style="color: #FF9800;">ממתין</span></p>
                 </div>
                 
@@ -461,7 +464,7 @@ const sendBookingNotificationToUser = async (
         `
         };
 
-        return transporter.sendMail(mailOptions);
+        return transporter.sendMail(mailOptions_he);
     } catch (error) {
         console.error('Error sending email to user:', error);
     }
@@ -499,28 +502,28 @@ const sendBookingStatusUpdate = async (
                         subject = `Your Booking Request for ${infrastructure.name} was Approved`;
                         message = 'Your booking request has been approved.';
                         color = '#4CAF50';
-                        subject_he = 'בקשת ההזמנה שלך עבור ${infrastructure.name} אושרה\u200F';
+                        subject_he = `\u202Bבקשת ההזמנה שלך עבור ${infrastructure.name} אושרה\ו202C`;
                         message_he = 'בקשת ההזמנה שלך אושרה';
                         break;
                     case 'rejected':
                         subject = `Your Booking Request for ${infrastructure.name} was Rejected`;
                         message = 'Unfortunately, your booking request has been rejected.';
                         color = '#f44336';
-                        subject_he = 'בקשת ההזמנה שלך עבור ${infrastructure.name} נדחתה\u200F';
+                        subject_he = `בקשת ההזמנה שלך עבור ${infrastructure.name} נדחתה\u200F`;
                         message_he = 'למרבה הצער, בקשת ההזמנה שלך נדחתה';
                         break;
                     case 'canceled':
                         subject = `Your Booking for ${infrastructure.name} was Canceled`;
                         message = 'Your booking has been canceled by an administrator.';
                         color = '#ff9800';
-                        subject_he = ' ההזמנה שלך עבור ${infrastructure.name} בוטלה\u200F';
+                        subject_he = ` ההזמנה שלך עבור ${infrastructure.name} בוטלה\u200F`;
                         message_he = 'ההזמנה שלך בוטלה ע"י מנהל מערכת';
                         break;
                     default:
                         subject = `Booking Status Update for ${infrastructure.name}`;
                         message = `The status of your booking has been updated to: ${status}.`;
                         color = '#2196F3';
-                        subject_he = 'עדכון סטטוס הזמנה עבור ${infrastructure.name}\u200F';
+                        subject_he = `עדכון סטטוס הזמנה עבור ${infrastructure.name}\u200F`;
                         message_he = 'סטטוס ההזמנה שלך עודכו להיות: ${status}\u200F';
                 }
 
@@ -582,7 +585,8 @@ const sendBookingStatusUpdate = async (
                                 <p><strong>תאריך:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
                                 <p><strong>בשעות:</strong> ${booking.start_time} - ${booking.end_time}</p>
                                 <p><strong>מטרה:</strong> ${booking.purpose || 'N/A'}</p>
-                                <p><strong>סטטוס:</strong> <span style="color: #FF9800;">ממתין</span></p>
+                                <p><strong>סטטוס:</strong> <span style="color: ${color};">${status.charAt(0).toUpperCase() + status.slice(1)}</span></p>
+
                             </div>
                             
                             ${status === 'approved' ? `
@@ -606,7 +610,7 @@ const sendBookingStatusUpdate = async (
                     ] : []
                 };
 
-                await transporter.sendMail(mailOptions);
+                await transporter.sendMail(mailOptions_he);
                 resolve(true);
             } catch (error) {
                 console.error('Error sending booking status update:', error);
@@ -631,6 +635,7 @@ const generateICSFile = (
     user: User | null = null
 ): string => {
     const cal = ical({ name: 'Scientific Infrastructure Booking' });
+    const cal_he = ical({ name: 'הזמנת תשתית טכנולוגית' });
 
     // Parse date and times
     const bookingDate = new Date(booking.booking_date);
@@ -663,7 +668,17 @@ const generateICSFile = (
         status: booking.status === 'approved' ? ICalEventStatus.CONFIRMED : ICalEventStatus.TENTATIVE,
     });
 
-    return cal.toString();
+    cal_he.createEvent({
+        start: startDate,
+        end: endDate,
+        summary: summary_he,
+        description: (booking.purpose || '') +
+            (booking.status === 'pending' ? '\n\nסטטוס: ממתין לאישור' : ''),
+        location: infrastructure.location || '',
+        status: booking.status === 'approved' ? ICalEventStatus.CONFIRMED : ICalEventStatus.TENTATIVE,
+    });
+
+    return cal_he.toString();
 };
 
 /**
@@ -725,7 +740,29 @@ const sendGuestBookingVerificationEmail = async (
         `
     };
 
-    return transporter.sendMail(mailOptions);
+    const mailOptions_he = {
+        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'אשר את ההזמנה שלך',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
+                <h2 style="color: #333;">Confirm Your Booking</h2>
+                <p>שלום, ${name}</p>
+                <p>תודה על השימוש במערכת שלנו. אנא לחץ/י על הכפתור למטה כדי לאשר את בקשת ההזמנה שלך:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">אשר הזמנה</a>
+                </div>
+                <p>Or copy and paste this link into your browser:</p>
+                <p>או העתק והדבק קישור זה בדפדפן שלך</p>
+                <p style="word-break: break-all;"><a href="${verificationUrl}">${verificationUrl}</a></p>
+                <p>This link will expire in 24 hours. If you did not request this booking, you can safely ignore this email.</p>
+                <p>קישור זה יפוג תוקף עוד 24 שעות. אם לא אתה הזמנת את התור הזה, אתה יכול להתעלם בבטחה מדוא"ל זה</p>
+                <p>בברכה, <br>צוות מנהל טכנולוגיות והנדסה</p>
+            </div>
+        `
+    };
+
+    return transporter.sendMail(mailOptions_he);
 };
 
 

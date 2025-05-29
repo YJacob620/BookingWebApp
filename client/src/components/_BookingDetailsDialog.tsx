@@ -83,7 +83,7 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
-                className={className + " !max-w-2xl overflow-y-scroll max-h-[90vh] card1 "}
+                className={"!max-w-2xl !min-w-2xl overflow-y-scroll max-h-[90vh] card1 " + className}
                 aria-describedby={undefined}
             >
                 <DialogHeader>
@@ -107,7 +107,7 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                         </Button>
                     </div>
                 ) : details && details.booking ? (
-                    <div className="space-y-6">
+                    <div className="space-y-6 max-w-full overflow-hidden">
                         {/* Booking Summary */}
                         <div className="space-y-4 pb-5">
                             <h3 className="underlined-title">Information</h3>
@@ -153,11 +153,11 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                                         </Badge>
                                     </div>
                                     {details.booking.purpose && (
-                                        <div className=" items-start text-sm">
+                                        <div className="break-words items-start text-sm">
                                             <span className="text-gray-400 mr-2">Purpose:</span>
                                             <TruncatedText
                                                 text={details.booking.purpose}
-                                                maxLength={250}
+                                                maxLength={150}
                                             />
                                         </div>
                                     )}

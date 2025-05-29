@@ -1,16 +1,15 @@
 import * as React from "react"
-
 import { cn } from "@/components/ui/utils"
+import { useTranslation } from "react-i18next";
 
 function Input({ className, type, placeholder, ...props }: React.ComponentProps<"input">) {
-  const content = placeholder?.toString().trim() || "";
-  const isRTL = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(content);
+  const { i18n } = useTranslation();
 
   return (
     <input
       type={type}
       data-slot="input"
-      dir={isRTL ? "rtl" : "ltr"}
+      dir={i18n.dir()}
       placeholder={placeholder}
       className={
         cn(

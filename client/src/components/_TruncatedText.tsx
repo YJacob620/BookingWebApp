@@ -78,17 +78,17 @@ const TruncatedText: React.FC<TruncatedTextProps> = ({
       <Popover>
         <PopoverTrigger asChild>
           <div
-            className={`w-full cursor-pointer hover:text-blue-500 ${className}`}
+            className={`break-words cursor-pointer hover:text-blue-500 ${className}`}
             title={showTooltip ? "Click to view full text" : undefined}
           >
             {content.substring(0, maxLength) + "..."}
           </div>
         </PopoverTrigger>
         <PopoverContent
-          className={`w-100 max-h-60 overflow-auto bg-gray-900 ${contentClassName}`}
+          className={`w-100 overflow-auto bg-gray-900 ${contentClassName}`}
           dir={isRTL ? "rtl" : "ltr"}
         >
-          <div className="text-sm whitespace-pre-wrap">
+          <div className="break-words text-sm whitespace-pre-wrap">
             {formatText(content)}
           </div>
         </PopoverContent>

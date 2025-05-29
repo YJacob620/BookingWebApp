@@ -20,7 +20,7 @@ const GuestConfirmationPage: React.FC = () => {
 
     // Use a ref to track if the confirmation has been processed
     const hasProcessed = useRef(false);
-    const {t} = useTranslation();
+    const {t,i18n} = useTranslation();
 
 
     useEffect(() => {
@@ -74,7 +74,7 @@ const GuestConfirmationPage: React.FC = () => {
                     </CardContent>
                     <CardFooter className="flex justify-center">
                         <Link to={LOGIN}>
-                            <Button>{t('Return to',{where:t('Login')})}</Button>
+                            <Button>{t('Return to Login')}</Button>
                         </Link>
                     </CardFooter>
                 </Card>
@@ -84,12 +84,12 @@ const GuestConfirmationPage: React.FC = () => {
 
     return (
         <BasePageLayout pageTitle={t('guestConfPage.Booking Confirmed')}>
-            <Card className="max-w-md mx-auto">
+            <Card className="max-w-md mx-auto" dir={i18n.dir()}>
                 <CardContent className="flex flex-col items-center py-8">
                     <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
                     <h2 className="text-2xl font-bold mb-4">{t('guestConfPage.Booking Confirmed!')}</h2>
                     <p className="text-center mb-4">
-                       {t('','Your booking request has been submitted successfully.')} 
+                       {t('guestConfPage.Booking Confirmed explain','Your booking request has been submitted successfully.')} 
                     </p>
                     <p className="text-sm text-gray-400 text-center">
                         {t('guestConfPage.managerReviewExplain')}
@@ -110,7 +110,7 @@ const GuestConfirmationPage: React.FC = () => {
                         <Link to={LOGIN}>
                             <Button
                                 variant="custom5"
-                                className="w-full py-1"
+                                className="w-full py-1 max-w-30 min-w-30"
                             >
                                 {t('Go to Login')}
                             </Button>

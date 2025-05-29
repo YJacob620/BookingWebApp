@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useTranslation } from "react-i18next";
 
 function Command({
   className,
@@ -56,8 +57,7 @@ function CommandInput({
   placeholder,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
-  const content = placeholder?.toString().trim() || "";
-  const isRTL = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(content);
+  const { i18n } = useTranslation();
 
   return (
     <div
@@ -67,7 +67,8 @@ function CommandInput({
       <SearchIcon className="size-4 shrink-0 opacity-50" />
       <CommandPrimitive.Input
         data-slot="command-input"
-        dir={isRTL ? "rtl" : "ltr"}
+        // dir={isRTL ? "rtl" : "ltr"}
+        dir={i18n.dir()}
         placeholder={placeholder}
         className={cn(
           "placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
