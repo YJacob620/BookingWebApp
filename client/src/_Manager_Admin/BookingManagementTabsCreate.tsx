@@ -21,6 +21,7 @@ import {
   createTimeslots,
   BatchCreationPayload,
   Infrastructure,
+  formatDate,
 } from "@/utils";
 
 interface BookingManagementTabsCreateProps {
@@ -275,7 +276,7 @@ const BookingManagementTabsCreate: React.FC<
                         >
                           <CalendarIcon className="h-4 w-4" />
                           {singleDate
-                            ? format(singleDate, "PPP")
+                            ? formatDate(singleDate,i18n.language)
                             : t("bookingManagementTabsCreate.selectDate")}
                         </Button>
                       </PopoverTrigger>
@@ -365,10 +366,7 @@ const BookingManagementTabsCreate: React.FC<
                         >
                           <CalendarRange className="mr-2 h-4 w-4" />
                           {startDate && endDate
-                            ? `${format(startDate, "PP")} - ${format(
-                                endDate,
-                                "PP"
-                              )}`
+                            ? `${formatDate(startDate,i18n.language)} - ${formatDate(endDate,i18n.language)}`
                             : t("bookingManagementTabsCreate.selectDateRange")}
                         </Button>
                       </PopoverTrigger>

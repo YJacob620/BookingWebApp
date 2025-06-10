@@ -210,13 +210,17 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
         onClearAlert={clearAlert}
         messageTimer={alertMessageTimer}
       />
-
+      <div className='w-full flex-auto absolute top-0 left-0 p-2 mb-4'>
+        <div className='justify-start justify-items-start w-min flex ms-2 p-0.5'>
+          <LanguageSelector />
+        </div>
+      </div>
       <Card className={`general-container ${className}`}>
         <div className="max-w-7xl mx-3">
           <div
             className={`grid ${showDashboardButton && showLogoutButton
-              ? "grid-cols-3"
-              : "grid-cols-2"
+              ? "grid-cols-2"
+              : "grid-cols-1"
               }`}
           >
             {showDashboardButton && (
@@ -224,9 +228,6 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
                 <BackToDashboardButton />
               </div>
             )}
-            <div className={`flex ${showDashboardButton ? 'justify-end' : 'justify-start'} mb-7`}>
-              <LanguageSelector />
-            </div>
             {showLogoutButton && (
               <div className="flex justify-end mb-7">
                 <LogoutButton isGuest={isGuest}></LogoutButton>

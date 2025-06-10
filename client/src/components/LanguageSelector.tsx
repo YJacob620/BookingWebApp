@@ -10,15 +10,17 @@ import {
 import { Button } from "@/components/ui/button"
 import i18n from "i18next"
 import { useTranslation } from 'react-i18next';
+import icn_en from '@/components/icons/EnglishLanguage_Flag1_26107.png'
+import icn_he from './icons/israelflag_6498.png'
 
 type language = { [lng: string]: { icn: string, name: string } }
 const lngs: language = {
     'en': {
-        icn: '',
+        icn: icn_en,
         name: 'English'
     },
     'he': {
-        icn: '',
+        icn: icn_he,
         name: 'עברית'
     }
 }
@@ -28,9 +30,9 @@ const LanguageSelector: React.FC = () => {
     const { t } = useTranslation()
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger className='w-10 h-8 !ring-0' asChild>
-                <Button className="bg-gray-600 border-gray-500">
-                    {langpresent}
+            <DropdownMenuTrigger className='' asChild>
+                <Button className="p-0.5">
+                    <img src={lngs[langpresent].icn} title={lngs[langpresent].name} alt={langpresent} className='h-8 w-10 max-w-10'/>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className='w-8 text-center'>
