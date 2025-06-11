@@ -65,7 +65,28 @@ const sendVerificationEmail = async (email: string, name: string, token: string)
         `
     };
 
-    return transporter.sendMail(mailOptions);
+    const mailOptions_he = {
+        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'אמת את כתובת הדוא"ל שלך',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
+                <h2 style="color: #333;">אימות כתובת דוא"ל</h2>
+                <p>שלום ${name || 'רב'},</p>
+                <p>תודה שנרשמת למערכת הזמנת תורים, אנא אמת את כתובת הדוא"ל שלך ע"י לחיצת הכפתור הבא:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">אמת דוא"ל</a>
+                </div>
+                <p>או שהעתק והדבק את הלינק הבא:</p>
+                <p style="word-break: break-all;"><a href="${verificationUrl}">${verificationUrl}</a></p>
+                <p>יפוג תוקפו של הלינק בעוד ${process.env.VERIFICATION_TOKEN_EXPIRY_HOURS} שעות.</p>
+                <p>אם לא נרשמת לחשבון, את/ה יכול/ה להתעלם מהודעה זאת.</p>
+                <p>בברכה, <br>צוות מנהל טכנולוגיות והנדסה</p>
+            </div>
+        `
+    };
+
+    return transporter.sendMail(mailOptions_he);
 };
 
 /**
@@ -98,7 +119,28 @@ const sendPasswordResetEmail = async (user: User, token: string): Promise<any> =
         `
     };
 
-    return transporter.sendMail(mailOptions);
+    const mailOptions_he = {
+        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+        to: user.email,
+        subject: 'אתחל את סיסמתך',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
+                <h2 style="color: #333;">איפוס סיסמה</h2>
+                <p>שלום ${user.name || 'רב'},</p>
+                <p>ביקשת איפוס סיסמה עבור החשבון שלך במערכת הזמנת תשתיות מדעיות. לחץ על הכפתור למטה כדי להגדיר סיסמה חדשה:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetUrl}" style="background-color: #4285F4; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">איפוס סיסמה</a>
+                </div>
+                <p>או העתק והדבק את הקישור הזה בדפדפן שלך:</p>
+                <p style="word-break: break-all;"><a href="${resetUrl}">${resetUrl}</a></p>
+                <p>קישור זה יפוג בעוד ${process.env.PASSWORD_RESET_EXPIRY_HOURS} שעות.</p>
+                <p>אם לא ביקשת איפוס סיסמה, ניתן להתעלם מהודעה זו בבטחה.</p>
+                <p>בברכה, <br>צוות מנהל טכנולוגיות והנדסה</p>
+            </div>
+        `
+    };
+
+    return transporter.sendMail(mailOptions_he);
 };
 
 /**
@@ -746,7 +788,7 @@ const sendGuestBookingVerificationEmail = async (
         subject: 'אשר את ההזמנה שלך',
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
-                <h2 style="color: #333;">Confirm Your Booking</h2>
+                <h2 style="color: #333;">אשר את הזמנתך</h2>
                 <p>שלום, ${name}</p>
                 <p>תודה על השימוש במערכת שלנו. אנא לחץ/י על הכפתור למטה כדי לאשר את בקשת ההזמנה שלך:</p>
                 <div style="text-align: center; margin: 30px 0;">
@@ -755,7 +797,6 @@ const sendGuestBookingVerificationEmail = async (
                 <p>Or copy and paste this link into your browser:</p>
                 <p>או העתק והדבק קישור זה בדפדפן שלך</p>
                 <p style="word-break: break-all;"><a href="${verificationUrl}">${verificationUrl}</a></p>
-                <p>This link will expire in 24 hours. If you did not request this booking, you can safely ignore this email.</p>
                 <p>קישור זה יפוג תוקף עוד 24 שעות. אם לא אתה הזמנת את התור הזה, אתה יכול להתעלם בבטחה מדוא"ל זה</p>
                 <p>בברכה, <br>צוות מנהל טכנולוגיות והנדסה</p>
             </div>
