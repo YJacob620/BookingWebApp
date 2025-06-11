@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell } from "@/components/ui/table";
 import {
+  CalendarIcon,
   Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,8 @@ import { FilterSortState } from './BookingManagement';
 import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 import { useTranslation } from 'react-i18next';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 interface TimeslotListProps {
   selectedInfrastructure: Infrastructure | undefined;
@@ -53,6 +56,9 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   const [filteredTimeslots, setFilteredTimeslots] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { t,i18n } = useTranslation();
+
+  //state for date selector
+    const [t_timeslotDayFilter, set_t_timeslotDayFilter] = useState<Date | undefined>(undefined);
 
   // Get relevant states from filterState
   const {
@@ -103,17 +109,18 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   // Clear custom date filter and update date filters
   const handleClearDateFilter = () => {
     onFilterStateChange({ timeslotDayFilter: '' });
+    set_t_timeslotDayFilter(undefined)
   };
 
-  const handleDateFilterChange = (date: string) => {
+  const handleDateFilterChange = (date: Date|undefined) => {
     // Clear predefined date filters if custom date is set
     if (date) {
       onFilterStateChange({
         selectedTimeslotDateFilters: [],
-        timeslotDayFilter: date
+        timeslotDayFilter: date.toDateString()
       });
     } else {
-      onFilterStateChange({ timeslotDayFilter: date });
+      onFilterStateChange({ timeslotDayFilter: '' });
     }
   };
 
@@ -275,14 +282,37 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         <div className="md:col-span-1">
           <p>{t('Filter by Date')}</p>
           <div className="flex space-x-2">
-            <Input
-              id="date-filter-input"
-              type="date"
-              value={timeslotDayFilter}
-              onChange={(e) => handleDateFilterChange(e.target.value)}
-              disabled={selectedTimeslotDateFilters.length > 0}
-              className='h-10'
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  className={`px-2 w-full h-9 justify-start text-left flex min-w-0 ${!t_timeslotDayFilter && "text-gray-400"
+                    }`}
+                  variant="outline"
+                  id="date-filter-input"
+                dir={i18n.dir()}
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  {t_timeslotDayFilter
+                    ? formatDate(t_timeslotDayFilter, i18n.language)
+                    : t("bookingManagementTabsCreate.selectDate")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="calendar-popover">
+                <Calendar
+                  mode="single"
+                  selected={t_timeslotDayFilter}
+                  onSelect={(date) => {
+                    set_t_timeslotDayFilter(date)
+                    handleDateFilterChange(date)
+                  }}
+                // disabled={(date) => {
+                //   const today = new Date();
+                //   today.setHours(0, 0, 0, 0);
+                //   return date < today;
+                // }}
+                />
+              </PopoverContent>
+            </Popover>
             {timeslotDayFilter && (
               <Button
                 variant="custom5"

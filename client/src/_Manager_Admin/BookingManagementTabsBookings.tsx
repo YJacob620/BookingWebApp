@@ -8,7 +8,8 @@ import {
   Check,
   X,
   CalendarX,
-  FileText
+  FileText,
+  CalendarIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -34,6 +35,8 @@ import MultiSelectFilter from '@/components/_MultiSelectFilter';
 import PaginatedTable, { PaginatedTableColumn } from '@/components/_PaginatedTable';
 import { FilterSortState } from './BookingManagement';
 import { useTranslation } from 'react-i18next';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 interface BookingListProps {
   items: BookingEntry[];
@@ -73,6 +76,9 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   const { t, i18n } = useTranslation();
+
+  //state for date selector
+  const [t_bookingDayFilter, set_t_bookingDayFilter] = useState<Date | undefined>(undefined);
 
   // Load bookings when infrastructure changes or after actions
   useEffect(() => {
@@ -128,15 +134,16 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
   // Clear specific day filter
   const handleClearDateFilter = () => {
     onFilterStateChange({ bookingsDayFilter: '' });
+    set_t_bookingDayFilter(undefined);
   };
 
   // Handle specific day filter change
-  const handleDateFilterChange = (date: string) => {
+  const handleDateFilterChange = (date: Date | undefined) => {
     // Clear predefined date filters if specific date is set
     if (date) {
       onFilterStateChange({
         selectedBookingDateFilters: [],
-        bookingsDayFilter: date
+        bookingsDayFilter: date.toDateString()
       });
     } else {
       onFilterStateChange({ bookingsDayFilter: 'date' });
@@ -212,7 +219,7 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
       header: t('Date'),
       cell: (booking: BookingEntry) => (
         <TableCell>
-          {formatDate(booking.booking_date)}
+          {formatDate(booking.booking_date, i18n.language)}
         </TableCell>
       ),
       sortable: true,
@@ -335,14 +342,45 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         <div>
           <p>{t('Filter by Date')}</p>
           <div className="flex space-x-2">{/**todo change unselected date value */}
-            <Input
+            {/* <Input
               id="date-filter-input"
               type="date"
               value={bookingsDayFilter}
               onChange={(e) => handleDateFilterChange(e.target.value)}
               disabled={selectedBookingDateFilters.length > 0}
               className='h-10 justify-center'
-            />
+            /> */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  className={`px-2 w-full h-9 justify-start text-left flex min-w-0 ${!t_bookingDayFilter && "text-gray-400"
+                    }`}
+                  variant="outline"
+                  id="date"
+                dir={i18n.dir()}
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  {t_bookingDayFilter
+                    ? formatDate(t_bookingDayFilter, i18n.language)
+                    : t("bookingManagementTabsCreate.selectDate")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="calendar-popover">
+                <Calendar
+                  mode="single"
+                  selected={t_bookingDayFilter}
+                  onSelect={(date) => {
+                    set_t_bookingDayFilter(date)
+                    handleDateFilterChange(date)
+                  }}
+                // disabled={(date) => {
+                //   const today = new Date();
+                //   today.setHours(0, 0, 0, 0);
+                //   return date < today;
+                // }}
+                />
+              </PopoverContent>
+            </Popover>
             {bookingsDayFilter && (
               <Button
                 variant="custom5"

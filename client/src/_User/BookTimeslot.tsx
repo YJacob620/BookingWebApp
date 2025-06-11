@@ -18,7 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format, isBefore, startOfDay } from "date-fns";
+import { isBefore, startOfDay } from "date-fns";
 import { Input } from '@/components/ui/input';
 
 import {
@@ -30,7 +30,8 @@ import {
   BookingReqAnswersMap,
   Message,
   formatTimeString,
-  requestBooking
+  requestBooking,
+  formatDate
 } from '@/utils';
 import { LOGIN } from '@/RoutePaths';
 import BasePageLayout from '@/components/_BasePageLayout';
@@ -55,7 +56,7 @@ const BookTimeslot = () => {
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
   const [answers, setAnswers] = useState<BookingReqAnswersMap>({});
   const [isFormValid, setIsFormValid] = useState(false);
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
 
   // Guest-specific state
   const [searchParams] = useSearchParams();
@@ -524,7 +525,7 @@ const BookTimeslot = () => {
                       disabled={!selectedInfrastructure}
                     >
                       <CalendarCheck className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, 'PPP') : t("Select a date")}
+                      {selectedDate ? formatDate(selectedDate,i18n.language) : t("Select a date")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="calendar-popover">
