@@ -37,7 +37,7 @@ const BookingHistory = () => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedDateFilters, setSelectedDateFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
 
   // New state for booking details dialog
@@ -64,7 +64,7 @@ const BookingHistory = () => {
       console.error('Error fetching bookings:', err);
       setMessage({
         type: 'error',
-        text: t('userBookHist.msgErrBookFetch','Unable to load your bookings. Please try again later.')
+        text: t('userBookHist.msgErrBookFetch', 'Unable to load your bookings. Please try again later.')
       });
     } finally {
       setIsLoading(false);
@@ -95,8 +95,8 @@ const BookingHistory = () => {
 
   const handleCancelBooking = async (bookingId: number, status: string) => {
     const confirmMessage = status === 'pending'
-      ? t('userBookHist.cancelBookQuest','Are you sure you want to cancel this booking request?')
-      : t('userBookHist.cancelAppBookQuest','Are you sure you want to cancel this approved booking?');
+      ? t('userBookHist.cancelBookQuest', 'Are you sure you want to cancel this booking request?')
+      : t('userBookHist.cancelAppBookQuest', 'Are you sure you want to cancel this approved booking?');
 
     if (!confirm(confirmMessage)) {
       return;
@@ -117,7 +117,7 @@ const BookingHistory = () => {
       console.error('Error canceling booking:', err);
       setMessage({
         type: 'error',
-        text: t('userBookHist.msgErrBookCancel','Unable to cancel your booking. Please try again later.')
+        text: t('userBookHist.msgErrBookCancel', 'Unable to cancel your booking. Please try again later.')
       });
     }
   };
@@ -205,7 +205,7 @@ const BookingHistory = () => {
                   onClick={() => handleCancelBooking(booking.id, booking.status)}
                   className="discard"
                   disabled={isWithin24h}
-                  title={isWithin24h ? t('userBookHist.notWithin24h',"Cannot cancel bookings within 24 hours") : t('userBookHist.Cancel this booking')}
+                  title={isWithin24h ? t('userBookHist.notWithin24h', "Cannot cancel bookings within 24 hours") : t('userBookHist.Cancel this booking')}
                 >
                   {t('Cancel')}
                 </Button>
@@ -233,7 +233,7 @@ const BookingHistory = () => {
 
   return (
     <BasePageLayout
-      pageTitle={t('userBookHist.title',"Booking History & Management")}
+      pageTitle={t('userBookHist.title', "Booking History & Management")}
       showDashboardButton
       alertMessage={message}
       className={"w-250"}
@@ -246,7 +246,7 @@ const BookingHistory = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder={t('userBookHist.searchPlaceholder',"Search infrastructure, location, or purpose...")}
+                placeholder={t('userBookHist.searchPlaceholder', "Search infrastructure, location, or purpose...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 w-full"
@@ -278,7 +278,7 @@ const BookingHistory = () => {
         </CardContent>
 
         {/* Bookings table */}
-        <p className="explanation-text1 pb-2">{t('userBookHist.bookCancelExplain')}</p>
+        <p dir='auto' className="explanation-text1 pb-2">{t('userBookHist.bookCancelExplain')}</p>
         {/* You can only cancel bookings if they don't occur in the next 24 hours. */}
         <CardContent>
           {/* PaginatedTable with integrated pagination */}
@@ -287,11 +287,11 @@ const BookingHistory = () => {
             columns={columns}
             initialRowsPerPage={10}
             rowsPerPageOptions={[5, 10, 25, 50]}
-            emptyMessage={t('userBookHist.noBookHist',"You have no booking history.")}
+            emptyMessage={t('userBookHist.noBookHist', "You have no booking history.")}
             noResults={
               bookings.length > 0 ? (
                 <div className="text-center py-8 text-gray-400">
-                  {t('noBookMatch',"No bookings match your current filters.")}
+                  {t('noBookMatch', "No bookings match your current filters.")}
                 </div>
               ) : null
             }

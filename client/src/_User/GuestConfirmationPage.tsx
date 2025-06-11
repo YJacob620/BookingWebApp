@@ -20,7 +20,7 @@ const GuestConfirmationPage: React.FC = () => {
 
     // Use a ref to track if the confirmation has been processed
     const hasProcessed = useRef(false);
-    const {t,i18n} = useTranslation();
+    const { t, i18n } = useTranslation();
 
 
     useEffect(() => {
@@ -40,7 +40,7 @@ const GuestConfirmationPage: React.FC = () => {
                 // setIsSuccess(true);
             } catch (err) {
                 console.error('Error confirming booking:', err);
-                setError(err instanceof Error ? err.message : t('guestConfPage.msgErrBooking','An error occurred confirming your booking'));
+                setError(err instanceof Error ? err.message : t('guestConfPage.msgErrBooking', 'An error occurred confirming your booking'));
             } finally {
                 setIsLoading(false);
             }
@@ -55,8 +55,8 @@ const GuestConfirmationPage: React.FC = () => {
                 <Card className="max-w-md mx-auto">
                     <CardContent className="flex flex-col items-center py-8">
                         <Loader className="h-12 w-12 animate-spin text-blue-500 mb-4" />
-                        <p className="text-lg">{t('guestConfPage.ProccessingBookConf','Processing your booking confirmation...')}</p>
-                        <p className="text-sm text-gray-400 mt-2">{t('guestConfPage.waitWhileProc','Please wait while we confirm your booking.')}</p>
+                        <p dir='auto' className="text-lg">{t('guestConfPage.ProccessingBookConf', 'Processing your booking confirmation...')}</p>
+                        <p dir='auto' className="text-sm text-gray-400 mt-2">{t('guestConfPage.waitWhileProc', 'Please wait while we confirm your booking.')}</p>
                     </CardContent>
                 </Card>
             </BasePageLayout>
@@ -89,7 +89,7 @@ const GuestConfirmationPage: React.FC = () => {
                     <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
                     <h2 className="text-2xl font-bold mb-4">{t('guestConfPage.Booking Confirmed!')}</h2>
                     <p className="text-center mb-4">
-                       {t('guestConfPage.Booking Confirmed explain','Your booking request has been submitted successfully.')} 
+                        {t('guestConfPage.Booking Confirmed explain', 'Your booking request has been submitted successfully.')}
                     </p>
                     <p className="text-sm text-gray-400 text-center">
                         {t('guestConfPage.managerReviewExplain')}
@@ -98,7 +98,7 @@ const GuestConfirmationPage: React.FC = () => {
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
                     <p className="text-center">
-                    {t('guestConfPage.registerSuggest','Want to manage your bookings more easily?')}
+                        {t('guestConfPage.registerSuggest', 'Want to manage your bookings more easily?')}
                     </p>
                     <div className="flex flex-col gap-4">
                         <Link to={REGISTER}>

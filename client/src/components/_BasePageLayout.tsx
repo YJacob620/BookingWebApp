@@ -5,7 +5,7 @@ import LogoutButton from '@/components/_LogoutButton';
 import { Message } from '@/utils';
 import { Alert } from "@/components/ui/alert";
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
-import LanguageSelector from "@/components/LanguageSelector";
+import LanguageSelector from "@/components/_LanguageSelector";
 
 interface AlertManagerProps {
   alertMessage: Message | null;
@@ -210,49 +210,55 @@ const BasePageLayout: React.FC<BasePageLayoutProps> = ({
         onClearAlert={clearAlert}
         messageTimer={alertMessageTimer}
       />
-      <div className='w-full flex-auto absolute top-0 left-0 p-2 mb-4'>
-        <div className='justify-start justify-items-start w-min flex ms-2 p-0.5'>
+
+      {/* Top Panel with LanguageSelector */}
+      <div className='top-0 left-0 right-0 z-30 w-full'>
+        <div className='flex justify-start pt-0'>
           <LanguageSelector />
         </div>
       </div>
-      <Card className={`general-container ${className}`}>
-        <div className="max-w-7xl mx-3">
-          <div
-            className={`grid ${showDashboardButton && showLogoutButton
-              ? "grid-cols-2"
-              : "grid-cols-1"
-              }`}
-          >
-            {showDashboardButton && (
-              <div className="flex justify-start mb-7">
-                <BackToDashboardButton />
-              </div>
-            )}
-            {showLogoutButton && (
-              <div className="flex justify-end mb-7">
-                <LogoutButton isGuest={isGuest}></LogoutButton>
-              </div>
-            )}
-          </div>
 
-
-          {pageTitle && (
-            <div className="flex justify-center items-center">
-              <h1>{pageTitle}</h1>
+      {/* Main Content Area - positioned below the top panel */}
+      <div className="pt-5">
+        <Card className={`general-container ${className}`}>
+          <div className="max-w-7xl mx-3">
+            <div
+              className={`grid ${showDashboardButton && showLogoutButton
+                ? "grid-cols-2"
+                : "grid-cols-1"
+                }`}
+            >
+              {showDashboardButton && (
+                <div className="flex justify-start mb-7">
+                  <BackToDashboardButton />
+                </div>
+              )}
+              {showLogoutButton && (
+                <div className="flex justify-end mb-7">
+                  <LogoutButton isGuest={isGuest}></LogoutButton>
+                </div>
+              )}
             </div>
-          )}
 
 
-          {explanationText && (
-            <p className="explanation-text1 mt-2">
-              {explanationText}
-            </p>
-          )}
-          <br />
+            {pageTitle && (
+              <div className="flex justify-center items-center">
+                <h1>{pageTitle}</h1>
+              </div>
+            )}
 
-          {children}
-        </div>
-      </Card>
+
+            {explanationText && (
+              <p dir='auto' className="explanation-text1 mt-2">
+                {explanationText}
+              </p>
+            )}
+            <br />
+
+            {children}
+          </div>
+        </Card>
+      </div>
     </>
   );
 };

@@ -597,11 +597,11 @@ const BookTimeslot = () => {
               {isGuestMode && (
                 <Alert className="bg-gray-800 border border-gray-700">
                   <AlertDescription>
-                    <p>{t('bookTimeslot.submmitionExplainstart')}</p>
+                    <p dir='auto'>{t('bookTimeslot.submmitionExplainstart')}</p>
                     {/* As a guest, after filling and submitting this form: */}
-                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain1', "1. You'll be asked for your email address.")}</p>
-                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain2', "2. We'll send you an email with a confirmation link.")}</p>
-                    <p>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain3', '3. Click the link to finalize your booking request.')}</p>
+                    <p dir='auto'>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain1', "1. You'll be asked for your email address.")}</p>
+                    <p dir='auto'>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain2', "2. We'll send you an email with a confirmation link.")}</p>
+                    <p dir='auto'>&nbsp;&nbsp;&nbsp;{t('bookTimeslot.submmitionExplain3', '3. Click the link to finalize your booking request.')}</p>
                   </AlertDescription>
                 </Alert>
               )}
