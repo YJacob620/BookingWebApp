@@ -180,7 +180,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       header: t('Date'),
       cell: (booking: BookingEntry) => (
         <TableCell>
-          {formatDate(booking.booking_date)}
+          {formatDate(booking.booking_date,i18n.language)}
         </TableCell>
       ),
       sortable: true,

@@ -57,7 +57,7 @@ const BookingManagementViewsList = ({ bookingEntries }: { bookingEntries: Bookin
       header: t('Date'),
       cell: (item: BookingEntry) => (
         <TableCell className="text-center">
-          {formatDate(item.booking_date)}
+          {formatDate(item.booking_date,i18n.language)}
         </TableCell>
       ),
       className: 'text-center',
