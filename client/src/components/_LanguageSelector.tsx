@@ -63,7 +63,7 @@ const LanguageSelector: React.FC = () => {
                 align="end"
             >
                 <DropdownMenuLabel className="
-                    px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide
+                    text-center px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide
                     dark:text-gray-400
                 ">
                     {t('language')}

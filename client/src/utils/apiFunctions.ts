@@ -9,14 +9,13 @@ import {
   Infrastructure,
   User,
   BookingDetails,
-  BookingReqAnswerType,
   BookingReqAnswersMap
 } from './types';
 
 /**
  * Base URL for API calls
  */
-export const API_BASE_URL = 'http://localhost:3001/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 /**
  * Generic API request function with authentication

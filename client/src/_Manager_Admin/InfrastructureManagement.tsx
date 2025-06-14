@@ -8,13 +8,13 @@ import InfrastructureManagementList from './InfrastructureManagementList';
 import InfrastructureQuestionsManager from './InfrastructureManagementQuestions';
 
 import {
-    fetchInfrastructures,
-    createOrUpdateInfrastructure,
-    toggleInfrastructureStatus,
-    Infrastructure,
-    Message,
-    InfrastFormData,
-    getLocalUser
+  fetchInfrastructures,
+  createOrUpdateInfrastructure,
+  toggleInfrastructureStatus,
+  Infrastructure,
+  Message,
+  InfrastFormData,
+  getLocalUser
 } from '@/utils';
 import BasePageLayout from '@/components/_BasePageLayout';
 import { useTranslation } from 'react-i18next';
@@ -22,137 +22,137 @@ import { useTranslation } from 'react-i18next';
 
 const InfrastructureManagement: React.FC = () => {
 
-    const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [message, setMessage] = useState<Message | null>(null);
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [editingInfrastructure, setEditingInfrastructure] = useState<Infrastructure | null>(null);
-    const [activeTab, setActiveTab] = useState<string>("list");
-    const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState<Message | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingInfrastructure, setEditingInfrastructure] = useState<Infrastructure | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("list");
+  const [selectedInfrastructure, setSelectedInfrastructure] = useState<Infrastructure | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-    const { t,i18n } = useTranslation();
+  const { t } = useTranslation();
 
-    useEffect(() => {
-        setIsAdmin(getLocalUser()?.role === "admin");
-        getInfrastructures();
-    }, [refreshTrigger]);
+  useEffect(() => {
+    setIsAdmin(getLocalUser()?.role === "admin");
+    getInfrastructures();
+  }, [refreshTrigger]);
 
-    const getInfrastructures = async () => {
-        try {
-            setIsLoading(true);
-            const data = await fetchInfrastructures();
-            setInfrastructures(data);
-        } catch (error) {
-            console.error('Error fetching infrastructures:', error);
-            setMessage({ type: 'error', text: 'Failed to fetch infrastructures' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const getInfrastructures = async () => {
+    try {
+      setIsLoading(true);
+      const data = await fetchInfrastructures();
+      setInfrastructures(data);
+    } catch (error) {
+      console.error('Error fetching infrastructures:', error);
+      setMessage({ type: 'error', text: 'Failed to fetch infrastructures' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    // Create or update infrastructure (admin only)
-    const handleSubmit = async (formData: InfrastFormData) => {
-        // Only allow admins to create/update infrastructures
-        if (!isAdmin) {
-            setMessage({
-                type: 'error',
-                text: 'You do not have permission to perform this action'
-            });
-            return;
-        }
+  // Create or update infrastructure (admin only)
+  const handleSubmit = async (formData: InfrastFormData) => {
+    // Only allow admins to create/update infrastructures
+    if (!isAdmin) {
+      setMessage({
+        type: 'error',
+        text: 'You do not have permission to perform this action'
+      });
+      return;
+    }
 
-        try {
-            await createOrUpdateInfrastructure(
-                formData,
-                isEditMode && editingInfrastructure ? editingInfrastructure.id : undefined
-            );
+    try {
+      await createOrUpdateInfrastructure(
+        formData,
+        isEditMode && editingInfrastructure ? editingInfrastructure.id : undefined
+      );
 
-            setMessage({
-                type: 'success',
-                text: `Infrastructure ${isEditMode ? 'updated' : 'added'} successfully!`
-            });
+      setMessage({
+        type: 'success',
+        text: `Infrastructure ${isEditMode ? 'updated' : 'added'} successfully!`
+      });
 
-            if (isEditMode) {
-                handleCancelEdit();
-            }
+      if (isEditMode) {
+        handleCancelEdit();
+      }
 
-            // Refresh the list
-            setRefreshTrigger(prev => prev + 1);
-        } catch (error) {
-            console.error(`Error ${isEditMode ? 'updating' : 'adding'} infrastructure:`, error);
-            setMessage({
-                type: 'error',
-                text: error instanceof Error
-                    ? error.message
-                    : `An error occurred while ${isEditMode ? 'updating' : 'adding'} the infrastructure`
-            });
-        }
-    };
+      // Refresh the list
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error(`Error ${isEditMode ? 'updating' : 'adding'} infrastructure:`, error);
+      setMessage({
+        type: 'error',
+        text: error instanceof Error
+          ? error.message
+          : `An error occurred while ${isEditMode ? 'updating' : 'adding'} the infrastructure`
+      });
+    }
+  };
 
-    const handleEdit = (infrastructure: Infrastructure) => {
-        // Only allow admins to edit infrastructure details
-        if (!isAdmin && activeTab !== "questions") {
-            setMessage({
-                type: 'error',
-                text: 'You do not have permission to edit infrastructure details'
-            });
-            return;
-        }
+  const handleEdit = (infrastructure: Infrastructure) => {
+    // Only allow admins to edit infrastructure details
+    if (!isAdmin && activeTab !== "questions") {
+      setMessage({
+        type: 'error',
+        text: 'You do not have permission to edit infrastructure details'
+      });
+      return;
+    }
 
-        setIsEditMode(true);
-        setEditingInfrastructure(infrastructure);
-        setActiveTab("form");
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    setIsEditMode(true);
+    setEditingInfrastructure(infrastructure);
+    setActiveTab("form");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-    const handleCancelEdit = () => {
-        setIsEditMode(false);
-        setEditingInfrastructure(null);
-    };
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditingInfrastructure(null);
+  };
 
-    // Toggle infrastructure status (admin only)
-    const toggleStatus = async (id: number, currentStatus: boolean) => {
-        // Only allow admins to toggle infrastructure status
-        if (!isAdmin) {
-            setMessage({
-                type: 'error',
-                text: 'You do not have permission to change infrastructure status'
-            });
-            return;
-        }
+  // Toggle infrastructure status (admin only)
+  const toggleStatus = async (id: number, currentStatus: boolean) => {
+    // Only allow admins to toggle infrastructure status
+    if (!isAdmin) {
+      setMessage({
+        type: 'error',
+        text: 'You do not have permission to change infrastructure status'
+      });
+      return;
+    }
 
-        if (!confirm(currentStatus
-            ? 'Warning: Setting an infrastructure as inactive will not cancel existing bookings. Continue?'
-            : 'Set this infrastructure as active?')) {
-            return;
-        }
+    if (!confirm(currentStatus
+      ? 'Warning: Setting an infrastructure as inactive will not cancel existing bookings. Continue?'
+      : 'Set this infrastructure as active?')) {
+      return;
+    }
 
-        try {
-            await toggleInfrastructureStatus(id);
-            setMessage({ type: 'success', text: 'Status updated successfully!' });
-            setRefreshTrigger(prev => prev + 1);
-        } catch (error) {
-            console.error('Error toggling status:', error);
-            setMessage({
-                type: 'error',
-                text: error instanceof Error
-                    ? error.message
-                    : 'An error occurred while updating the status'
-            });
-        }
-    };
+    try {
+      await toggleInfrastructureStatus(id);
+      setMessage({ type: 'success', text: 'Status updated successfully!' });
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      setMessage({
+        type: 'error',
+        text: error instanceof Error
+          ? error.message
+          : 'An error occurred while updating the status'
+      });
+    }
+  };
 
-    // Handle infrastructure selection for questions management
-    const handleManageQuestions = (infrastructure: Infrastructure) => {
-        setSelectedInfrastructure(infrastructure);
-        setActiveTab("questions");
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+  // Handle infrastructure selection for questions management
+  const handleManageQuestions = (infrastructure: Infrastructure) => {
+    setSelectedInfrastructure(infrastructure);
+    setActiveTab("questions");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-    return (
-        <BasePageLayout
+  return (
+    <BasePageLayout
       pageTitle={t('infrastructureManagement.title')}
       showDashboardButton
       alertMessage={message}
@@ -175,7 +175,7 @@ const InfrastructureManagement: React.FC = () => {
             <TabsTrigger value="form">
               {isEditMode ? t('infrastructureManagement.editingInfrastructure') : (
                 <>
-                  <Plus className="mr-2 h-4 w-4" /> 
+                  <Plus className="mr-2 h-4 w-4" />
                   {t('infrastructureManagement.addInfrastructure')}
                 </>
               )}
@@ -224,7 +224,7 @@ const InfrastructureManagement: React.FC = () => {
         </TabsContent>
       </Tabs>
     </BasePageLayout>
-    );
+  );
 };
 
 export default InfrastructureManagement;

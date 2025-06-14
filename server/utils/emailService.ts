@@ -327,7 +327,6 @@ const sendBookingNotificationToManagers = async (
  * @returns Array of booking answers with question details
  */
 const fetchBookingAnswers = async (bookingId: number, connection = pool): Promise<BookingAnswer[]> => {
-    console.log('Booking ID:', bookingId, 'Type:', typeof bookingId);
     const [answers] = await connection.execute<BookingAnswer[]>(
         `SELECT 
                 a.question_id,
@@ -341,7 +340,6 @@ const fetchBookingAnswers = async (bookingId: number, connection = pool): Promis
             ORDER BY q.display_order`,
         [bookingId]
     );
-    console.log("answers!! ", answers);
 
     // Add document_url for file uploads
     return answers.map(answer => {

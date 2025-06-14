@@ -56,7 +56,7 @@ const SortableQuestionItem = ({ question, onEdit, onDelete }: {
     transform: CSS.Transform.toString(transform),
     transition,
   };
-  const { t,i18n } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <div
@@ -78,7 +78,7 @@ const SortableQuestionItem = ({ question, onEdit, onDelete }: {
             <div>
               <h3 className="text-lg font-medium">{question.question_text}</h3>
               <div className="flex items-center mt-1 text-sm text-gray-400">
-                <span className="mr-4">{t('Type:',{type:t(question.question_type)})}</span>
+                <span className="mr-4">{t('Type:', { type: t(question.question_type) })}</span>
                 {question.is_required == true && (
                   <span className="text-red-400">{t("Required")}</span>
                 )}
@@ -141,7 +141,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const { t,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Define question types
   const QuestionTypes = [
