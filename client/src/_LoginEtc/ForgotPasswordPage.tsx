@@ -21,7 +21,7 @@ const ForgotPasswordPage: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  const {t} = useTranslation()
+  const { t } = useTranslation()
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -58,7 +58,7 @@ const ForgotPasswordPage: React.FC = () => {
   return (
     <BasePageLayout
       pageTitle={t("forgotPassPgTitle")}
-      explanationText={t('forgotPassPgexplain',"Enter your email to receive a password reset link")}
+      explanationText={t('forgotPassPgexplain', "Enter your email to receive a password reset link")}
     >
       <Card className="pt-2">
         <CardContent>
@@ -94,10 +94,11 @@ const ForgotPasswordPage: React.FC = () => {
                   required
                   value={email}
                   onChange={handleEmailChange}
-                  placeholder={t("inputEmailPlcHldr", {
-                    defaultValue: "Enter your email",
-                  })}
-                  // placeholder="Enter your email address"
+                  dir='ltr'
+                  placeholder="example@mail.com"
+                // placeholder={t("inputEmailPlcHldr", {
+                //   defaultValue: "Enter your email",
+                // })}
                 />
               </div>
 
@@ -105,11 +106,11 @@ const ForgotPasswordPage: React.FC = () => {
                 {isLoading ? (
                   <>
                     <Loader className="mr-2 h-4 w-4 animate-spin" />
-                    {t("sending", {defaultValue: "Sending...", })}
+                    {t("sending", { defaultValue: "Sending...", })}
                     {/* Sending... */}
                   </>
                 ) : (
-                  t("Send Reset Link", {defaultValue: "Send Reset Link", })
+                  t("Send Reset Link", { defaultValue: "Send Reset Link", })
                   // "Send Reset Link"
                 )}
               </Button>
@@ -119,7 +120,7 @@ const ForgotPasswordPage: React.FC = () => {
       </Card>
       <CardFooter className="flex justify-center">
         <Link to={LOGIN} className="link mt-2 -mb-5">
-        {t("Back to Login", {defaultValue: "Back to Login", })}
+          {t("Back to Login", { defaultValue: "Back to Login", })}
           {/* Back to Login */}
         </Link>
       </CardFooter>
