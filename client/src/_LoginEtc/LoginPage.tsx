@@ -190,8 +190,9 @@ const LoginPage: React.FC = () => {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder={t("inputEmailPlcHldr")}
-              // placeholder="Enter your email"
+                // placeholder={t("inputEmailPlcHldr")}
+                // placeholder="example@mail.com"
+                dir="ltr"
               />
             </div>
 
@@ -204,10 +205,7 @@ const LoginPage: React.FC = () => {
                 required
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder={t("enterPassword", {
-                  defaultValue: "Enter your password",
-                })}
-              // placeholder="Enter your password"
+              // placeholder={t("enterPassword", { defaultValue: "Enter your password", })}
               />
               <Link to={FORGOT_PASSWORD} className="link text-sm" dir="auto">
                 {t("Forgot password", { defaultValue: "Forgot password" })}?

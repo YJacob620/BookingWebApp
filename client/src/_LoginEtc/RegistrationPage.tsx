@@ -40,7 +40,7 @@ const RegistrationPage: React.FC = () => {
   const [message, setMessage] = useState<Message | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const { t,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -168,12 +168,13 @@ const RegistrationPage: React.FC = () => {
       pageTitle={t("Create an Account")}
       explanationText={t('registraionPageExplaintion')}
       alertMessage={message}
+      className='min-w-120'
     >
       <Card className="card1 pt-4">
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('Name','Name')}</Label>
+              <Label>{t('Name', 'Name')}</Label>
               <Input
                 id="name"
                 name="name"
@@ -181,7 +182,7 @@ const RegistrationPage: React.FC = () => {
                 required
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder={t("Enter your name")}
+                // placeholder={t("Enter your name")}
                 className={errors.name ? "border-red-500" : ""}
               />
               {errors.name && (
@@ -198,7 +199,7 @@ const RegistrationPage: React.FC = () => {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder={t("Enter your email","Enter your email")}
+                // placeholder={t("Enter your email", "Enter your email")}
                 className={errors.email ? "border-red-500" : ""}
               />
               {errors.email && (
@@ -215,7 +216,7 @@ const RegistrationPage: React.FC = () => {
                 required
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder={t("Create a password","Create a password")}
+                // placeholder={t("Create a password", "Create a password")}
                 className={errors.password ? "border-red-500" : ""}
               />
               {errors.password && (
@@ -229,7 +230,7 @@ const RegistrationPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>{t("Confirm Password","Confirm Password")}</Label>
+              <Label>{t("Confirm Password", "Confirm Password")}</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -237,7 +238,7 @@ const RegistrationPage: React.FC = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                placeholder={t("Confirm your password")}
+                // placeholder={t("Confirm your password")}
                 className={errors.confirmPassword ? "border-red-500" : ""}
               />
               {errors.confirmPassword && (
@@ -248,18 +249,18 @@ const RegistrationPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>{t('Role','Role')}</Label>
+              <Label>{t('Role', 'Role')}</Label>
               <Select value={formData.role} onValueChange={handleSelectChange} dir={i18n.dir()}>
                 <SelectTrigger
                   id="role"
                   className={errors.role ? "border-red-500" : ""}
                 >
-                    
-                  <SelectValue placeholder= {t("Select your role")}/>
+
+                  <SelectValue placeholder={t("Select your role")} />
                 </SelectTrigger>
                 <SelectContent className="card1">
-                  <SelectItem value="student">{t('Student','Student')}</SelectItem>
-                  <SelectItem value="faculty">{t('Faculty','Faculty')}</SelectItem>
+                  <SelectItem value="student">{t('Student', 'Student')}</SelectItem>
+                  <SelectItem value="faculty">{t('Faculty', 'Faculty')}</SelectItem>
                 </SelectContent>
               </Select>
               {errors.role && (
@@ -268,7 +269,7 @@ const RegistrationPage: React.FC = () => {
             </div>
 
             <Button type="submit" disabled={isLoading} className="w-full apply" dir={i18n.dir()}>
-              {}
+              { }
               {isLoading
                 ? t("Registering") + "..."
                 : t("Register")}
