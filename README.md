@@ -350,6 +350,8 @@ The app primarily uses React's built-in state management:
 - **Local Storage** for authentication persistence
 - **No global state library** - keeps architecture simple and focused
 
+</br>
+
 ## Data Flow Patterns
 
 ### Login Authentication Flow
@@ -379,6 +381,8 @@ The app primarily uses React's built-in state management:
 - **Client-side optimistic updates**: UI updates immediately, syncs with server
 - **Automatic status updates**: MySQL events handle status transitions
 - **Email notifications**: Automatic emails for booking status changes
+
+</br>
 
 ## Development Guidelines
 
