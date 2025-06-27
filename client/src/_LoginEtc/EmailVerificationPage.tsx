@@ -67,7 +67,7 @@ const EmailVerificationPage: React.FC = () => {
         {isLoading ? (
           <div className="text-center p-8">
             <Loader className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
-            <p className="text-lg">
+            <p className="text-lg" dir='auto'>
               {t("emailVerPg.verifying", "Verifying your email address...")}
             </p>
           </div>

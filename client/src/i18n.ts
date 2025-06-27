@@ -654,7 +654,7 @@ i18n
           "Resend Verification Email": 'הודע בדוא"ל אימות מחדש',
           "Return to": "חזור ל {{where}}",
           "Return to Login": "חזור לדף הכניסה",
-          "Forgot password": "שכחתי סיסמה",
+          "Forgot password": "שכחת סיסמה",
           forgotPassPgTitle: "איפוס סיסמה",
           forgotPassPgexplain:
             'הכנס את כתובת הדוא"ל שלך כדי לקבל לינק לאיפוס הסיסמה',

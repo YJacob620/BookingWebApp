@@ -130,9 +130,7 @@ const LoginPage: React.FC = () => {
     <BasePageLayout
       pageTitle={t("Login")}
       //   explanationText={"Sign in to access the scheduling system"}
-      explanationText={t("loginExplain", {
-        defaultValue: "Sign in to access the scheduling system.",
-      })}
+      explanationText={t("loginExplain", { defaultValue: "Sign in to access the scheduling system.", })}
       alertMessage={message}
     >
       <Card className="card1 pt-1 min-w-100">
@@ -163,7 +161,7 @@ const LoginPage: React.FC = () => {
                     </Button>
                   )}
                   {isResendingVerification && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm" dir='auto'>
                       <Loader className="h-4 w-4 animate-spin" />
                       {t("sendingVerEmail")}
                       ...
@@ -220,11 +218,11 @@ const LoginPage: React.FC = () => {
                 className="w-full apply"
               >
                 {isLoading ? (
-                  <>
+                  <div dir='auto'>
                     <Loader className="mr-2 h-4 w-4 animate-spin" />
                     {t("logging in", { defaultValue: "logging in" })}...
                     {/* Logging in... */}
-                  </>
+                  </div>
                 ) : (
                   t("Login")
                 )}

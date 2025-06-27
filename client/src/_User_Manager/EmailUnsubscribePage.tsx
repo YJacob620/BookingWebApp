@@ -17,7 +17,7 @@ const EmailUnsubscribePage: React.FC = () => {
     const [status, setStatus] = useState<'success' | 'error' | null>(null);
     const [message, setMessage] = useState<Message | null>(null);
 
-    const {t} = useTranslation();
+    const { t } = useTranslation();
 
     // Use a ref to track if the action has been processed
     const hasProcessed = useRef(false);
@@ -32,7 +32,7 @@ const EmailUnsubscribePage: React.FC = () => {
                 setStatus('error');
                 setMessage({
                     type: 'error',
-                    text: t('emailUnsubPage.msgErrInvAddress','Invalid email address')
+                    text: t('emailUnsubPage.msgErrInvAddress', 'Invalid email address')
                 });
                 setIsProcessing(false);
                 return;
@@ -84,9 +84,9 @@ const EmailUnsubscribePage: React.FC = () => {
             <BasePageLayout pageTitle={t("emailUnsubPage.Unsubscribing from Emails")}>
                 <div className="flex flex-col items-center justify-center py-12">
                     <Loader className="h-12 w-12 animate-spin text-blue-500 mb-4" />
-                    <p className="text-lg">{t('emailUnsubPage.processingReq')}</p>
+                    <p className="text-lg" dir='auto'>{t('emailUnsubPage.processingReq')}</p>
                     {/* Processing your unsubscribe request... */}
-                    <p className="text-sm text-gray-400 mt-2">{t('Please wait',{context:'dot'})}</p>
+                    <p className="text-sm text-gray-400 mt-2">{t('Please wait', { context: 'dot' })}</p>
                 </div>
             </BasePageLayout>
         );
@@ -94,7 +94,7 @@ const EmailUnsubscribePage: React.FC = () => {
 
     return (
         <BasePageLayout
-        pageTitle={status === 'success' ? t('emailUnsubPage.Successfully Unsubscribed') : t('emailUnsubPage.Unsubscribe Failed')}
+            pageTitle={status === 'success' ? t('emailUnsubPage.Successfully Unsubscribed') : t('emailUnsubPage.Unsubscribe Failed')}
             alertMessage={message}
         >
             <div className="max-w-md mx-auto text-center">

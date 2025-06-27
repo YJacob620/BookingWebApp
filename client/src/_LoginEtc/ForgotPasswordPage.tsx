@@ -104,11 +104,11 @@ const ForgotPasswordPage: React.FC = () => {
 
               <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? (
-                  <>
+                  <div dir='auto'>
                     <Loader className="mr-2 h-4 w-4 animate-spin" />
                     {t("sending", { defaultValue: "Sending...", })}
                     {/* Sending... */}
-                  </>
+                  </div>
                 ) : (
                   t("Send Reset Link", { defaultValue: "Send Reset Link", })
                   // "Send Reset Link"

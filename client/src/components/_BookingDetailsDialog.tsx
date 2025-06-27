@@ -96,7 +96,7 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                     <div className="py-8 text-center">
                         <Loader className="h-8 w-8 animate-spin mx-auto mb-4" />
                         {/* <p>Loading booking details...</p> */}
-                        <p>{t('Loading', { what: t('booking details') })}</p>
+                        <p dir='auto'>{t('Loading', { what: t('booking details') })}</p>
                     </div>
                 ) : error ? (
                     <div className="py-8 text-center text-red-500">

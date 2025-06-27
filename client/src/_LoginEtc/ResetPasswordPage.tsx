@@ -155,10 +155,10 @@ const ResetPasswordPage: React.FC = () => {
               className="w-full"
             >
               {isLoading ? (
-                <>
+                <div dir='auto'>
                   <Loader className="mr-2 h-4 w-4 animate-spin" />
                   {t('Resetting', 'Resetting...')}
-                </>
+                </div>
               ) : (
                 t('Reset Password', 'Reset Password')
               )}

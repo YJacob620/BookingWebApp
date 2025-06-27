@@ -32,7 +32,7 @@ const EmailActionHandler: React.FC = () => {
   // Check if user is logged in
   const user = getLocalUser();
 
-  const { t,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const handleAction = async () => {
@@ -112,15 +112,15 @@ const EmailActionHandler: React.FC = () => {
     if (status === "success") {
       return action === "approve"
         ? t(
-            "emailActHandler.statAppMsgStart",
-            "The booking has been successfully approved. The user has been notified.\n"
-          ).concat(t("emailActHandler.statAppMsgEnd"))
+          "emailActHandler.statAppMsgStart",
+          "The booking has been successfully approved. The user has been notified.\n"
+        ).concat(t("emailActHandler.statAppMsgEnd"))
         : // "In Outlook, you can add it as a calendar event by " +
-          //   "clicking on the attached ICS file in the email for this booking."
-          t(
-            "emailActHandler.rejMsg",
-            "The booking has been rejected. The user has been notified."
-          );
+        //   "clicking on the attached ICS file in the email for this booking."
+        t(
+          "emailActHandler.rejMsg",
+          "The booking has been rejected. The user has been notified."
+        );
     } else if (status === "already-processed") {
       return t("emailActHandler.procMsg", { currentStatus: currentStatus });
       //   `This booking has already been processed. Its current status is: ${currentStatus}.`;
@@ -152,13 +152,13 @@ const EmailActionHandler: React.FC = () => {
       <BasePageLayout pageTitle="Processing Action">
         <div className="flex flex-col items-center justify-center py-12" dir={i18n.dir()}>
           <Loader className="h-12 w-12 animate-spin text-blue-500 mb-4" />
-          <p className="text-lg">
+          <p className="text-lg" dir='auto'>
             {action != undefined
               ? t(`emailActHandler.${action}`)
               : t("undefined")}
           </p>
           <p className="text-sm text-gray-400 mt-2">
-            {t("Please wait",{ context: "dot" })}
+            {t("Please wait", { context: "dot" })}
           </p>
         </div>
       </BasePageLayout>

@@ -26,7 +26,7 @@ const VerificationPendingPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [email] = useState<string>(state.email || '');
 
-  const {t} = useTranslation()
+  const { t } = useTranslation()
 
   useEffect(() => {
     // If there's no email (user might have navigated here directly without state)
@@ -66,21 +66,21 @@ const VerificationPendingPage: React.FC = () => {
 
   return (
     <BasePageLayout
-      pageTitle={t('verPendPg.title',"Verify Your Email")}
+      pageTitle={t('verPendPg.title', "Verify Your Email")}
     >
       <CardContent className="flex flex-col items-center justify-center -mt-8">
         <div className="text-center p-8">
           <Mail className="h-16 w-16 text-blue-500 mx-auto" />
-          <h2 className="text-2xl font-bold mb-2">{t('verPendPg.chkinbx','Check Your Inbox')}</h2>
+          <h2 className="text-2xl font-bold mb-2">{t('verPendPg.chkinbx', 'Check Your Inbox')}</h2>
 
           <p className="mb-6">
-            {t('verPendPg.sentMsg',"We've sent a verification email to:")}<br />
+            {t('verPendPg.sentMsg', "We've sent a verification email to:")}<br />
             <span className="font-medium text-blue-400">{email || t('your email address')}</span>
           </p>
 
           <div className="space-y-4">
             {/* Use the dynamic message here */}
-            <p className="text-sm explanation-text1">{t('verPendPg.spmchk',"If you don't see the email, check your spam folder.")}</p>
+            <p className="text-sm explanation-text1">{t('verPendPg.spmchk', "If you don't see the email, check your spam folder.")}</p>
           </div>
 
           {errorMessage && (
@@ -91,7 +91,7 @@ const VerificationPendingPage: React.FC = () => {
 
           {resendSuccess && (
             <Alert className="alert-success mt-6">
-              <AlertDescription>{t('verPendPg.succsesMsg','Verification email has been resent successfully!')}</AlertDescription>
+              <AlertDescription>{t('verPendPg.succsesMsg', 'Verification email has been resent successfully!')}</AlertDescription>
             </Alert>
           )}
         </div>
@@ -103,19 +103,19 @@ const VerificationPendingPage: React.FC = () => {
           className="w-full md:w-auto"
         >
           {isResending ? (
-            <>
+            <div dir='auto'>
               <Loader className="mr-2 h-4 w-4 animate-spin" />
-              {t('Resending','Resending...')}
-            </>
+              {t('Resending', 'Resending...')}
+            </div>
           ) : (
-            t('Resend Verification Email','Resend Verification Email')
+            t('Resend Verification Email', 'Resend Verification Email')
           )}
         </Button>
 
         <div className="flex justify-center w-full">
           <Link to={LOGIN}>
             <Button>
-              {t('Return to',{where:t('Login'),defaultValue:'Return to {{where}}'})}
+              {t('Return to', { where: t('Login'), defaultValue: 'Return to {{where}}' })}
             </Button>
           </Link>
         </div>
