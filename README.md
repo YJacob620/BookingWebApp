@@ -86,10 +86,7 @@ The entire application is organized around user roles:
 - **Server**: Role-specific route files and middleware
 - **Client**: Role-specific component directories and route protection
 
-### 4. Dual-Purpose Booking Database
-The `bookings` table serves both as a repository for available timeslots and actual bookings, unified through the `booking_type` field. This simplifies queries and ensures consistency.
-
-### 5. Token-Based Email Actions
+### 4. Token-Based Email Actions
 Critical operations (guest booking confirmations, password resets, etc.) use secure tokens derived from email links.
 
 </br>
