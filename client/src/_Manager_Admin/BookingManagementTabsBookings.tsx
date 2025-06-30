@@ -341,23 +341,15 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
         </div>
         <div>
           <p>{t('Filter by Date')}</p>
-          <div className="flex space-x-2">{/**todo change unselected date value */}
-            {/* <Input
-              id="date-filter-input"
-              type="date"
-              value={bookingsDayFilter}
-              onChange={(e) => handleDateFilterChange(e.target.value)}
-              disabled={selectedBookingDateFilters.length > 0}
-              className='h-10 justify-center'
-            /> */}
+          <div className="flex space-x-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  className={`px-2 w-full h-9 justify-start text-left flex min-w-0 ${!t_bookingDayFilter && "text-gray-400"
-                    }`}
+                  className=
+                  {`px-2 w-full h-9 justify-start text-left flex min-w-0 ${!t_bookingDayFilter && "text-gray-400"}`}
                   variant="outline"
                   id="date"
-                dir={i18n.dir()}
+                  dir={i18n.dir()}
                 >
                   <CalendarIcon className="h-4 w-4" />
                   {t_bookingDayFilter
@@ -373,11 +365,6 @@ const BookingManagementTabsBookings: React.FC<BookingListProps> = ({
                     set_t_bookingDayFilter(date)
                     handleDateFilterChange(date)
                   }}
-                // disabled={(date) => {
-                //   const today = new Date();
-                //   today.setHours(0, 0, 0, 0);
-                //   return date < today;
-                // }}
                 />
               </PopoverContent>
             </Popover>

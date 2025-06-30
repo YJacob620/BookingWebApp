@@ -79,18 +79,21 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
         }
 
         if (selectedValues.length === options.length) {
-            return "All";
+            return t("All");
         }
 
         if (selectedValues.length <= 2) {
             // Show the labels of selected options
             return selectedValues
-                .map(value => options.find(opt => opt.value === value)?.label || value)
+                .map(value => {
+                    const label = options.find(opt => opt.value === value)?.label;
+                    return label ? t(label) : value;
+                })
                 .join(", ");
         }
 
         // Show count if more than 2 items selected
-        return `${selectedValues.length} selected`;
+        return `${selectedValues.length} ${t("selected")}`;
     };
 
     return (
@@ -106,7 +109,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                         disabled={disabled}
                         dir={i18n.dir()}
                     >
-                        <span className="truncate">{getDisplayText()}</span>
+                        <span className="truncate" dir='auto'>{getDisplayText()}</span>
                         {selectedValues.length > 0 && (
                             <Badge
                                 variant="secondary"
@@ -117,7 +120,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                         )}
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className={`${popoverWidth} p-0 bg-gray-900`} align="center">
+                <PopoverContent className={`${popoverWidth} p-0 bg-gray-900 max-w-50`} align="center">
                     <div className="p-2 border-b border-gray-700 flex justify-between items-center" dir={i18n.dir()}>
                         <div className="flex space-x-1">
                             <Button
@@ -139,7 +142,7 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                             </Button>
                         </div>
                     </div>
-                    <div className="py-2 max-h-60 overflow-auto">
+                    <div className="py-2 overflow-auto">
                         {options.map((option) => {
                             const isSelected = selectedValues.includes(option.value);
                             return (
@@ -152,20 +155,20 @@ const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                                         toggleOption(option.value);
                                     }}
                                 >
-                                    <div className="flex items-center" dir={i18n.dir()}>
+                                    <div className="flex items-center">
                                         <Checkbox
                                             id={`filter-${label}-${option.value}`}
                                             checked={isSelected}
                                             className="me-2 checkbox1 h-4 w-4"
                                         />
-                                        
+
                                         {variant === 'badge' && option.color ? (
-                                            <div className="flex-1">
-                                                <Badge className={option.color}>{option.label}</Badge>
+                                            <div className="flex-1" dir='auto'>
+                                                <Badge className={option.color}>{t(option.label)}</Badge>
                                             </div>
                                         ) : (
-                                            <span className="flex-1 text-sm font-normal">
-                                                {option.label}
+                                            <span className="flex-1 text-sm font-normal" dir='auto'>
+                                                {t(option.label)}
                                             </span>
                                         )}
                                     </div>

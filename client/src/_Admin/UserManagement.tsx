@@ -58,7 +58,7 @@ const UserManagement: React.FC = () => {
     const [infraSearchQuery, setInfraSearchQuery] = useState('');
     const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
     const [pendingChanges, setPendingChanges] = useState<{ [key: number]: boolean }>({});
-    const {t, i18n} = useTranslation();
+    const { t, i18n } = useTranslation();
 
     useEffect(() => {
         loadUsers();
@@ -78,7 +78,7 @@ const UserManagement: React.FC = () => {
             console.error('Error loading users:', error);
             setMessage({
                 type: 'error',
-                text: t('userManagement.msgErrUserLoad','Failed to load users')
+                text: t('userManagement.msgErrUserLoad', 'Failed to load users')
             });
         } finally {
             setIsLoading(false);
@@ -123,7 +123,7 @@ const UserManagement: React.FC = () => {
 
             setMessage({
                 type: 'success',
-                text: t('userManagement.msgSuccessUpUserRole','User role updated successfully')
+                text: t('userManagement.msgSuccessUpUserRole', 'User role updated successfully')
             });
 
             // If changing to/from infrastructure_manager, reload user data to get assigned infrastructures
@@ -138,7 +138,7 @@ const UserManagement: React.FC = () => {
             console.error('Error updating user role:', error);
             setMessage({
                 type: 'error',
-                text: t('userManagement.msgErrUserUpdate','Failed to update user role')
+                text: t('userManagement.msgErrUserUpdate', 'Failed to update user role')
             });
 
             setTimeout(() => setMessage(null), 3000);
@@ -166,7 +166,7 @@ const UserManagement: React.FC = () => {
             console.error('Error toggling blacklist status:', error);
             setMessage({
                 type: 'error',
-                text: t('userManagement.msgErrUpdateBlklstStatus','Failed to update blacklist status')
+                text: t('userManagement.msgErrUpdateBlklstStatus', 'Failed to update blacklist status')
             });
 
             // Clear error message after 3 seconds
@@ -233,7 +233,7 @@ const UserManagement: React.FC = () => {
 
             setMessage({
                 type: 'success',
-                text: t('userManagement.msgSuccsessInfAccessUpdate','Infrastructure access updated successfully')
+                text: t('userManagement.msgSuccsessInfAccessUpdate', 'Infrastructure access updated successfully')
             });
 
             setTimeout(() => setMessage(null), 3000);
@@ -241,7 +241,7 @@ const UserManagement: React.FC = () => {
             console.error('Error updating infrastructure assignments:', error);
             setMessage({
                 type: 'error',
-                text: t('userManagement.msgErrUpdateInfStatus','Failed to update some infrastructure assignments')
+                text: t('userManagement.msgErrUpdateInfStatus', 'Failed to update some infrastructure assignments')
             });
 
             setTimeout(() => setMessage(null), 3000);
@@ -288,7 +288,7 @@ const UserManagement: React.FC = () => {
             sortable: false
         },
         {
-            key:  'name',
+            key: 'name',
             header: t('Name'),
             cell: (infra: Infrastructure) => (
                 <TableCell className="font-medium text-center">{infra.name}</TableCell>
@@ -378,7 +378,7 @@ const UserManagement: React.FC = () => {
             header: t('Actions'),
             cell: (user: User) => (
                 <TableCell>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 justify-center">
                         <Button
                             size="sm"
                             variant="ghost"
@@ -417,19 +417,21 @@ const UserManagement: React.FC = () => {
 
     return (
         <BasePageLayout
-            pageTitle={t('userManagement.title',"User Management")}
+            pageTitle={t('userManagement.title', "User Management")}
             showDashboardButton
             alertMessage={message}
+            className='w-270'
         >
             {/* Search bar */}
             <div className="mb-6">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                        placeholder={t('userManagement.searchBarPlaceholder',"Search users by name, email, or role...")}
+                        placeholder={t('userManagement.searchBarPlaceholder', "Search users by name, email, or role...")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10"
+                        dir={searchQuery.trim() !== '' ? 'auto' : i18n.dir()}
                     />
                 </div>
             </div>
@@ -438,20 +440,20 @@ const UserManagement: React.FC = () => {
             <Card className="card1">
                 <CardContent className="p-6">
                     {isLoading ? (
-                        <div className="text-center py-10">{t('Loading',{what:t('users')})}</div>
+                        <div className="text-center py-10">{t('Loading', { what: t('users') })}</div>
                     ) : (
                         <PaginatedTable
                             data={filteredUsers}
                             columns={columns}
                             initialRowsPerPage={10}
                             rowsPerPageOptions={[5, 10, 25, 50]}
-                            emptyMessage={t('userManagement.No users found','No users found.')}
+                            emptyMessage={t('userManagement.No users found', 'No users found.')}
                             onSortChange={handleSortChange}
                             sortConfig={sortConfig}
                             noResults={
                                 users.length > 0 ? (
                                     <div className="text-gray-400">
-                                        {t('userManagement.searchNoResMsg','No users match your search criteria.')}
+                                        {t('userManagement.searchNoResMsg', 'No users match your search criteria.')}
                                     </div>
                                 ) : null
                             }
@@ -460,7 +462,6 @@ const UserManagement: React.FC = () => {
                 </CardContent>
             </Card>
 
-            {/* Improved infrastructure assignment dialog */}
             {selectedUser && (
                 <Dialog open={isManagerDialogOpen} onOpenChange={(open) => {
                     if (!open) {
@@ -474,24 +475,33 @@ const UserManagement: React.FC = () => {
                         setIsManagerDialogOpen(open);
                     }
                 }}>
-                    <DialogContent className="!max-w-3xl">
-                        <DialogHeader>
-                            <DialogTitle>{t('userManagement.manInfAccTitle','Manage Infrastructure Access')}</DialogTitle>
-                            <DialogDescription>
-                                {t('userManagement.manInfAccDesc',{who:selectedUser.name})}
-                                {/* Assign or remove infrastructure access for {{who}} */}
+                    <DialogContent
+                        className="!max-w-3xl"
+                        onInteractOutside={(e) => {
+                            e.preventDefault();
+                        }}
+                    >
+                        <DialogHeader className="flex flex-col items-center">
+                            <DialogTitle dir="auto" className="text-center">
+                                {t('userManagement.manInfAccTitle', 'Manage Infrastructure Access')}
+                            </DialogTitle>
+                            <DialogDescription dir="auto" className="text-center">
+                                {t('userManagement.manInfAccDesc', { who: selectedUser.name })}
                             </DialogDescription>
                         </DialogHeader>
+
 
                         <div className="py-2">
                             {/* Search bar for infrastructures */}
                             <div className="relative mb-4">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input
-                                    placeholder={t("Search infrastructures","Search infrastructures...")}
+                                    placeholder={t("Search infrastructures", "Search infrastructures...")}
                                     value={infraSearchQuery}
                                     onChange={(e) => setInfraSearchQuery(e.target.value)}
                                     className="pl-10"
+                                    dir={infraSearchQuery.trim() !== '' ? 'auto' : i18n.dir()}
+
                                 />
                             </div>
 
@@ -502,11 +512,11 @@ const UserManagement: React.FC = () => {
                                     columns={infrastructureColumns}
                                     initialRowsPerPage={5}
                                     rowsPerPageOptions={[3, 5, 10, 25]}
-                                    emptyMessage={t('userManagement.noInfAbleMsg',"No infrastructures available")}
+                                    emptyMessage={t('userManagement.noInfAbleMsg', "No infrastructures available")}
                                     noResults={
                                         infrastructures.length > 0 ? (
                                             <div className="text-gray-400">
-                                                {t('userManagement.noInfResMsg','No infrastructures match your search criteria.')}
+                                                {t('userManagement.noInfResMsg', 'No infrastructures match your search criteria.')}
                                             </div>
                                         ) : null
                                     }
@@ -519,7 +529,7 @@ const UserManagement: React.FC = () => {
                             <div className="flex justify-between w-full">
                                 <div>
                                     {Object.keys(pendingChanges).length > 0 && (
-                                        <span className="text-sm text-amber-400">
+                                        <span className="text-sm text-amber-400" dir='auto'>
                                             {Object.keys(pendingChanges).length} {t('pending changes')}
                                         </span>
                                     )}
@@ -539,7 +549,7 @@ const UserManagement: React.FC = () => {
                                         disabled={isUpdatingAccess || Object.keys(pendingChanges).length === 0}
                                         className='apply'
                                     >
-                                        {isUpdatingAccess ? t('Saving','Saving...') : t('Save Changes')}
+                                        {isUpdatingAccess ? t('Saving', 'Saving...') : t('Save Changes')}
                                     </Button>
                                 </div>
                             </div>

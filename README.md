@@ -223,7 +223,7 @@ The app uses Nodemailer for email functionality (booking notifications, password
 ```
 EMAIL_HOST=smtp.yourprovider.com
 EMAIL_PORT=587
-EMAIL_SECURE=true   # set false if mailbox is fot tests (i.e. mailtrap)
+EMAIL_SECURE=true   # set false if mailbox is for tests (i.e. Mailtrap)
 EMAIL_USERNAME=your_username
 EMAIL_PASSWORD=your_password
 EMAIL_FROM=booking-system@yourdomain.com

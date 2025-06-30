@@ -271,7 +271,7 @@ const sendBookingNotificationToManagers = async (
             const mailOptions_he = {
                 from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
                 to: manager.email,
-                subject: `\u202Bהזמנת תור חדשה ל- ${infrastructure.name}\u202C`,
+                subject: `הזמנת תור חדשה ל ${infrastructure.name}`,
                 html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
                     <h2 style="color: #333;">הזמנה חדשה</h2>
@@ -292,7 +292,7 @@ const sendBookingNotificationToManagers = async (
                         <a href="${rejectUrl}" style="background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">דחה בקשה</a>
                     </div>
 
-                    <p>הזמנה ליומן עבור בקשה זו הממתינה לאישור צורפה לדוא״ל זה. תוכל/י להוסיף אותה ליישום היומן שלך כדי לעקוב אחריה בזמן שאת/ה שוקל/ת את לאשר.</p>
+                    <p>הזמנה ליומן עבור בקשה זו הממתינה לאישור צורפה לדוא״ל זה. תוכל/י להוסיף אותה ליישום היומן שלך כדי לעקוב אחריה בזמן שאת/ה שוקל/ת אם לאשר.</p>
                     
                     <p>באפשרותך גם להתחבר למערכת כדי לנהל את הבקשה הזו ולצפות בכל הפרטים.</p>
                     <p>בברכה, <br>צוות מנהל טכנולוגיות והנדסה</p>
@@ -542,7 +542,7 @@ const sendBookingStatusUpdate = async (
                         subject = `Your Booking Request for ${infrastructure.name} was Approved`;
                         message = 'Your booking request has been approved.';
                         color = '#4CAF50';
-                        subject_he = `\u202Bבקשת ההזמנה שלך עבור ${infrastructure.name} אושרה\ו202C`;
+                        subject_he = `בקשת ההזמנה שלך עבור ${infrastructure.name} אושרה`;
                         message_he = 'בקשת ההזמנה שלך אושרה';
                         break;
                     case 'rejected':

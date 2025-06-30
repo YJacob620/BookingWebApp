@@ -124,8 +124,8 @@ const InfrastructureManagement: React.FC = () => {
     }
 
     if (!confirm(currentStatus
-      ? 'Warning: Setting an infrastructure as inactive will not cancel existing bookings. Continue?'
-      : 'Set this infrastructure as active?')) {
+      ? t("setInfrastInactiveWarning")
+      : t("setInfrastActive?"))) {
       return;
     }
 
@@ -215,6 +215,7 @@ const InfrastructureManagement: React.FC = () => {
           {selectedInfrastructure ? (
             <InfrastructureQuestionsManager
               infrastructureId={selectedInfrastructure.id}
+              infrastructureName={selectedInfrastructure.name}
             />
           ) : (
             <Card className="card1 p-6">

@@ -64,36 +64,36 @@ const SortableQuestionItem = ({ question, onEdit, onDelete }: {
       style={style}
       className="mb-4 p-4 border border-gray-700 rounded-md bg-gray-800"
     >
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <div className="flex items-center">
-            <div
-              {...attributes}
-              {...listeners}
-              className="cursor-grab mr-2 p-1 rounded hover:bg-gray-700"
-            >
-              <GripVertical className="h-5 w-5 text-gray-400" />
-            </div>
+      <div className="flex justify-between items-stretch">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab mr-2 p-1 rounded hover:bg-gray-700 flex items-center"
+        >
+          <GripVertical className="h-full w-5 text-gray-400" />
+        </div>
 
-            <div>
-              <h3 className="text-lg font-medium">{question.question_text}</h3>
-              <div className="flex items-center mt-1 text-sm text-gray-400">
-                <span className="mr-4">{t('Type:', { type: t(question.question_type) })}</span>
-                {question.is_required == true && (
-                  <span className="text-red-400">{t("Required")}</span>
-                )}
-              </div>
-            </div>
+        <div className="flex-1" dir='auto'>
+          <div className="flex items-center">
+            <h3 className="text-lg font-medium px-1">{question.question_text}</h3>
+            {question.is_required ?
+              <span className="text-red-400 text-sm px-1 pt-1">({t("Required")})</span> : ''}
+            <span className="flex items-center text-sm px-2 pt-1 text-gray-400">
+              {t(question.question_type)}
+            </span>
           </div>
 
           {question.question_type === 'dropdown' && question.options && (
             <div className="mt-2 pl-8">
-              <p className="text-sm text-gray-400 mb-1">{t("Options_Lst", "Options:")}</p>
-              <ul className="list-disc pl-5 text-sm text-gray-300">
-                {question.options.split('\n').map((option, i) => (
-                  <li key={i}>{option}</li>
-                ))}
-              </ul>
+              <p dir="auto" className="text-sm text-gray-400 mb-1">
+                {t("Options_Lst", "Options:")}
+              </p>
+              <p className="text-sm text-gray-300">
+                {question.options
+                  .split('\n')
+                  .filter(opt => opt.trim() !== '')
+                  .join(', ')}
+              </p>
             </div>
           )}
         </div>
@@ -104,6 +104,7 @@ const SortableQuestionItem = ({ question, onEdit, onDelete }: {
             size="sm"
             onClick={() => onEdit(question.id)}
             className="mr-1 text-blue-400"
+            title={t("Edit")}
           >
             <Edit className="h-4 w-4" />
           </Button>
@@ -112,6 +113,7 @@ const SortableQuestionItem = ({ question, onEdit, onDelete }: {
             size="sm"
             onClick={() => onDelete(question.id)}
             className="text-red-400"
+            title={t("Delete")}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -124,10 +126,12 @@ const SortableQuestionItem = ({ question, onEdit, onDelete }: {
 // Main component
 interface InfrastructureQuestionsManagerProps {
   infrastructureId: number;
+  infrastructureName: string;
 }
 
 const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerProps> = ({
-  infrastructureId
+  infrastructureId,
+  infrastructureName
 }) => {
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
   const [newQuestion, setNewQuestion] = useState({
@@ -338,7 +342,9 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
   return (
     <Card className="card1">
       <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-4">{t('infrastructureManagementQuestions.title')}</h2>
+        <h2 className="text-2xl font-semibold mb-4">
+          {t('infrastructureManagementQuestions.title', { infrast_name: infrastructureName })}
+        </h2>
 
         {errorMessage && (
           <Alert className="alert-error mb-4">
@@ -354,14 +360,16 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
 
         {/* Questions List with Drag and Drop */}
         {isLoading ? (
-          <div className="text-center py-10">{t('common.LoadingQuestions')}</div>
+          <div className="text-center py-10" dir='auto'>{t('common.LoadingQuestions')}</div>
         ) : (
           <div className="mb-8">
             <h3 className="text-lg font-medium mb-4">{t('infrastructureManagementQuestions.currentQuestions')}</h3>
 
             {questions.length === 0 ? (
               <div className="text-center py-6 border border-dashed border-gray-700 rounded-md">
-                <p className="text-gray-400">{t('infrastructureManagementQuestions.noQuestionsAdded')}</p>
+                <p className="text-gray-400" dir='auto'>
+                  {t('infrastructureManagementQuestions.noQuestionsAdded')}
+                </p>
               </div>
             ) : (
               <DndContext
@@ -400,6 +408,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                   value={editingQuestion.question_text}
                   onChange={(e) => setEditingQuestion({ ...editingQuestion, question_text: e.target.value })}
                   placeholder={t('infrastructureManagementQuestions.QuestionTextplaceholder')}
+                  dir={editingQuestion.question_text.trim() !== '' ? 'auto' : i18n.dir()}
                 />
               </div>
 
@@ -410,8 +419,9 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                   onValueChange={(value: 'text' | 'number' | 'dropdown' | 'document') =>
                     setEditingQuestion({ ...editingQuestion, question_type: value })
                   }
+                  dir={i18n.dir()}
                 >
-                  <SelectTrigger id="edit-question-type">
+                  <SelectTrigger id="edit-question-type" className='border-1 border-gray-700'>
                     <SelectValue placeholder={t('infrastructureManagementQuestions.SelectType', "Select type")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -477,6 +487,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                 value={newQuestion.question_text}
                 onChange={(e) => setNewQuestion({ ...newQuestion, question_text: e.target.value })}
                 placeholder={t('infrastructureManagementQuestions.QuestionTextplaceholder')}
+                dir={newQuestion.question_text.trim() !== '' ? 'auto' : i18n.dir()}
               />
             </div>
 
@@ -489,7 +500,7 @@ const InfrastructureQuestionsManager: React.FC<InfrastructureQuestionsManagerPro
                 }
                 dir={i18n.dir()}
               >
-                <SelectTrigger id="question-type">
+                <SelectTrigger id="question-type" className='border-1 border-gray-700'>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>

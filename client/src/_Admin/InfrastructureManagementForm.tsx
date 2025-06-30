@@ -25,7 +25,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
     onCancelEdit,
     // onDataChange
 }) => {
-    const {t} = useTranslation()
+    const { t } = useTranslation()
 
     const [formData, setFormData] = useState<InfrastFormData>({
         name: '',
@@ -88,7 +88,7 @@ const InfrastructureManagementForm: React.FC<InfrastructureFormProps> = ({
                             onClick={onCancelEdit}
                             className="discard h-8"
                         >
-                           {t('infManageForm.Cancel Edit')}
+                            {t('infManageForm.Cancel Edit')}
                         </Button>
                     )}
                 </div>

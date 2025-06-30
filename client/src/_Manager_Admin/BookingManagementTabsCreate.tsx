@@ -34,7 +34,7 @@ interface BookingManagementTabsCreateProps {
 const BookingManagementTabsCreate: React.FC<
   BookingManagementTabsCreateProps
 > = ({ selectedInfrastructure, onSuccess, onError, onDataChange }) => {
-  const { t,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Shared state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -241,7 +241,7 @@ const BookingManagementTabsCreate: React.FC<
   return (
     <div>
       <div className="mb-4">
-        <p className="explanation-text1">
+        <p className="explanation-text1" dir="auto">
           {t("bookingManagementTabsCreate.createSlotsExplain")}
         </p>
       </div>
@@ -267,16 +267,15 @@ const BookingManagementTabsCreate: React.FC<
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          className={`px-2 w-full h-9 justify-start text-left ${
-                            !singleDate && "text-gray-400"
-                          }`}
+                          className={`px-2 w-full h-9 justify-start text-left ${!singleDate && "text-gray-400"
+                            }`}
                           variant="outline"
                           id="date"
                           dir={i18n.dir()}
                         >
                           <CalendarIcon className="h-4 w-4" />
                           {singleDate
-                            ? formatDate(singleDate,i18n.language)
+                            ? formatDate(singleDate, i18n.language)
                             : t("bookingManagementTabsCreate.selectDate")}
                         </Button>
                       </PopoverTrigger>
@@ -358,15 +357,14 @@ const BookingManagementTabsCreate: React.FC<
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          className={`px-2 w-full h-9 justify-start text-left ${
-                            !startDate || !endDate ? "text-gray-400" : ""
-                          }`}
+                          className={`px-2 w-full h-9 justify-start text-left ${!startDate || !endDate ? "text-gray-400" : ""
+                            }`}
                           variant="outline"
                           dir={i18n.dir()}
                         >
                           <CalendarRange className="mr-2 h-4 w-4" />
                           {startDate && endDate
-                            ? `${formatDate(startDate,i18n.language)} - ${formatDate(endDate,i18n.language)}`
+                            ? `${formatDate(startDate, i18n.language)} - ${formatDate(endDate, i18n.language)}`
                             : t("bookingManagementTabsCreate.selectDateRange")}
                         </Button>
                       </PopoverTrigger>
@@ -472,7 +470,7 @@ const BookingManagementTabsCreate: React.FC<
                   </div>
                 </div>
 
-                <div className="flex justify-end"  dir={i18n.dir()}>
+                <div className="flex justify-end" dir={i18n.dir()}>
                   <Button
                     type="submit"
                     disabled={

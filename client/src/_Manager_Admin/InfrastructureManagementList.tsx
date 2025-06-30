@@ -33,7 +33,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
     direction: "asc",
   });
   const isAdmin: boolean = getLocalUser()?.role === "admin";
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Filter infrastructures based on search query
   const filteredInfrastructures = infrastructures.filter((infra) => {
@@ -84,8 +84,8 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
         <TableCell className="text-center">
           <span
             className={`px-2 py-1 rounded ${infra.is_active
-                ? "bg-green-800 text-green-100"
-                : "bg-red-800 text-red-100"
+              ? "bg-green-800 text-green-100"
+              : "bg-red-800 text-red-100"
               }`}
           >
             {infra.is_active ? t("Active") : t("Inactive")}
@@ -107,7 +107,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
                 size="sm"
                 onClick={() => onEdit(infra)}
                 className="text-blue-400"
-                title="Edit Infrastructure"
+                title={t("infManageForm.Edit Infrastructure")}
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -119,7 +119,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
               size="sm"
               onClick={() => onManageQuestions(infra)}
               className="text-purple-400"
-              title="Manage Filter Questions"
+              title={t("infrastructureManagement.manageFilterQuestions")}
             >
               <Filter className="h-4 w-4" />
             </Button>
@@ -130,7 +130,9 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
               size="sm"
               onClick={() => onToggleStatus(infra.id, infra.is_active ?? false)}
               className={infra.is_active ? "text-red-400" : "text-green-400"}
-              title={infra.is_active ? "Set Inactive" : "Set Active"}
+              // title={infra.is_active ? "Set Inactive" : "Set Active"}
+              title={infra.is_active ?
+                t("SetInactive") : t("SetActive")}
             >
               <Power className="h-4 w-4" />
             </Button>
@@ -157,6 +159,7 @@ const InfrastructureManagementList: React.FC<InfrastructureListProps> = ({
         <div className="mb-4">
           <Input
             placeholder={t("common.searchInfrastructures")}
+            dir={searchQuery.trim() !== '' ? 'auto' : i18n.dir()}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

@@ -7,7 +7,8 @@ import pool from '../configuration/db';
 import {
     JWT_SECRET,
     VERIFICATION_TOKEN_EXPIRY,
-    PASSWORD_RESET_EXPIRY
+    PASSWORD_RESET_EXPIRY,
+    LOGIN_EXPIRY
 } from '../configuration/env';
 import {
     authenticateToken,
@@ -74,7 +75,7 @@ router.post('/login', async (req: Request<{}, {}, LoginRequestBody>, res: Respon
                 role: user.role
             },
             JWT_SECRET,
-            { expiresIn: '4h' }
+            { expiresIn: `${process.env.LOGIN_EXPIRY_HOURS}h` }
         );
 
         // Send response with user data and token
@@ -253,7 +254,7 @@ router.get('/verify-email/:token', async (req: Request<{ token: string }>, res: 
                 role: user.role
             },
             JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: `${process.env.LOGIN_EXPIRY_HOURS || '24'}h` }
         );
 
         res.json({

@@ -6,6 +6,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea
       data-slot="textarea"
+      dir='auto'
       className={cn(
         "border-input placeholder:text-muted-foreground ring-ring/10 dark:ring-ring/20 "
         + "dark:outline-ring/40 outline-ring/50 aria-invalid:outline-destructive/60 "

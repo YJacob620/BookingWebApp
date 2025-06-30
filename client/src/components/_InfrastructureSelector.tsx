@@ -34,7 +34,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   const [selectedInfrast, setSelectedInfrast] = useState<Infrastructure | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     getInfrastructures();
@@ -73,7 +73,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
   if (infrastructures.length === 0) {
     return (
       <div className="text-center py-4 text-amber-500">
-       {t('InfSelector.noInfAvailable','No infrastructures available.')} 
+        {t('InfSelector.noInfAvailable', 'No infrastructures available.')}
       </div>
     );
   }
@@ -90,7 +90,7 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
             aria-expanded={open}
             className="w-[calc(100%-5rem)] h-10 cursor-pointer text-gray-200 text-lg bg-slate-950 border-1 border-gray-500"
           >
-            {selectedInfrast ? selectedInfrast.name : t('InfSelector.selectInf',"Select an infrastructure")}
+            {selectedInfrast ? selectedInfrast.name : t('InfSelector.selectInf', "Select an infrastructure")}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="p-0 card1 min-w-80">
@@ -98,9 +98,10 @@ const InfrastructureSelector: React.FC<InfrastructureSelectorProps> = ({
             {/* <CommandInput placeholder="Search infrastructure..." className="border-none focus:ring-0 !bg-transparent px-1" /> */}
             <CommandInput
               placeholder={t("Search infrastructures")}
-              className="border-none focus:ring-0 !bg-transparent px-1" />
-            <CommandList>
-              <CommandEmpty>{t('InfSelector.noInfFound','No infrastructure found.')} </CommandEmpty>
+              className="border-none focus:ring-0 !bg-transparent px-1"
+            />
+            <CommandList dir='auto'>
+              <CommandEmpty>{t('InfSelector.noInfFound', 'No infrastructure found.')} </CommandEmpty>
               <CommandGroup>
                 {infrastructures.map(infra => (
                   <CommandItem

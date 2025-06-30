@@ -1,15 +1,13 @@
 import * as React from "react"
 import { cn } from "@/components/ui/utils"
-import { useTranslation } from "react-i18next";
 
 function Input({ className, type, placeholder, ...props }: React.ComponentProps<"input">) {
-  const { i18n } = useTranslation();
 
   return (
     <input
       type={type}
       data-slot="input"
-      dir={i18n.dir()}
+      dir='auto'
       placeholder={placeholder}
       className={
         cn(

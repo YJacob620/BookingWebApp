@@ -48,7 +48,7 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [details, setDetails] = useState<BookingDetails | null>(null);
 
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
 
     // Fetch booking details when the dialog opens and bookingId changes
     useEffect(() => {
@@ -109,52 +109,52 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                 ) : details && details.booking ? (
                     <div className="space-y-6 max-w-full overflow-hidden">
                         {/* Booking Summary */}
-                        <div className="space-y-4 pb-5">
-                            <h3 className="underlined-title">Information</h3>
+                        <div className="space-y-4 pb-5 text-center">
+                            <h3 className="underlined-title">{t("General Information")}</h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-3">
 
-                                    <div className="flex items-start text-sm">
-                                        <Briefcase className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
-                                        <span>{details.booking.infrastructure_name}</span>
+                                    <div className="flex items-start text-sm" dir={i18n.dir()}>
+                                        <Briefcase className="h-4 w-4 mx-2 text-gray-400 mt-0.5" />
+                                        <span dir='auto'>{details.booking.infrastructure_name}</span>
                                     </div>
 
-                                    <div className="flex items-start text-sm">
-                                        <MapPin className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
-                                        <span>{details.booking.infrastructure_location || 'N/A'}</span>
+                                    <div className="flex items-start text-sm" dir={i18n.dir()}>
+                                        <MapPin className="h-4 w-4 mx-2 text-gray-400 mt-0.5" />
+                                        <span dir='auto'>{details.booking.infrastructure_location || 'N/A'}</span>
                                     </div>
-                                    <div className="flex items-center text-sm">
-                                        <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                                        <span>{formatDate(details.booking.booking_date)}</span>
+                                    <div className="flex items-center text-sm" dir={i18n.dir()}>
+                                        <Calendar className="h-4 w-4 mx-2 text-gray-400" />
+                                        <span dir='auto'>{formatDate(details.booking.booking_date, i18n.language)}</span>
                                     </div>
 
-                                    <div className="flex items-center text-sm">
-                                        <Clock className="h-4 w-4 mr-2 text-gray-400" />
-                                        <span>
+                                    <div className="flex items-center text-sm" dir={i18n.dir()}>
+                                        <Clock className="h-4 w-4 mx-2 text-gray-400" />
+                                        <span dir='auto'>
                                             {formatTimeString(details.booking.start_time)} - {formatTimeString(details.booking.end_time)}
                                         </span>
-                                        <span>&nbsp;&nbsp;({calculateDuration(details.booking.start_time, details.booking.end_time)} minutes)</span>
+                                        <span>
+                                            &nbsp;({calculateDuration(details.booking.start_time, details.booking.end_time)}&nbsp;{t("minutes", "minutes")})&nbsp;
+                                        </span>
                                     </div>
 
-                                    <div className="flex items-center text-sm">
-                                        <User className="h-4 w-4 mr-2 text-gray-400" />
-                                        <span>
-                                            {details.booking.user_email}
-                                        </span>
+                                    <div className="flex items-center text-sm" dir={i18n.dir()}>
+                                        <User className="h-4 w-4 mx-2 text-gray-400" />
+                                        <span dir='auto'>{details.booking.user_email}</span>
                                     </div>
                                 </div>
 
-                                <div className="space-y-3">
+                                <div className="space-y-3" dir='auto'>
                                     <div className="flex items-center text-sm">
-                                        <span className="text-gray-400 mr-2">Status:</span>
+                                        <span className="text-gray-400 mx-2">{t("Status", "Status")}:</span>
                                         <Badge className={getStatusColor(details.booking.status)}>
-                                            {details.booking.status.charAt(0).toUpperCase() + details.booking.status.slice(1)}
+                                            {t(details.booking.status.charAt(0).toUpperCase() + details.booking.status.slice(1))}
                                         </Badge>
                                     </div>
                                     {details.booking.purpose && (
-                                        <div className="break-words items-start text-sm">
-                                            <span className="text-gray-400 mr-2">Purpose:</span>
+                                        <div className="break-words flex items-center text-sm" dir='auto'>
+                                            <span className="text-gray-400 mx-2">{t("Purpose", "Purpose")}:</span>
                                             <TruncatedText
                                                 text={details.booking.purpose}
                                                 maxLength={150}
@@ -176,8 +176,10 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                                     {details.answers.map((answer, index) => (
                                         <div
                                             key={answer.question_id}
-                                            className={`pb-4 ${index < details.answers.length ? ' border-b border-gray-700/60' : ''}`}>
-                                            <p className="font-medium text-lg text-center">{answer.question_text}</p>
+                                            className={`pb-4 ${index < details.answers.length ? ' border-b border-gray-700/60' : ''}`}
+                                            dir='auto'
+                                        >
+                                            <p dir='auto' className="font-medium text-lg text-center">{answer.question_text}</p>
 
                                             {answer.question_type === 'document' ? (
                                                 answer.document_url ? (
@@ -204,12 +206,11 @@ const BookingDetailsDialog: React.FC<BookingDetailsDialogProps> = ({
                                                 <TruncatedText
                                                     text={answer.answer_text}
                                                     maxLength={100}
-                                                    placeholder="No answer provided"
+                                                    placeholder={t("No answer provided")}
                                                     className="text-gray-200 text-sm mt-1"
                                                     contentClassName="max-w-md"
                                                     preserveNewlines={true}
                                                 />
-
                                             )}
                                         </div>
                                     ))}

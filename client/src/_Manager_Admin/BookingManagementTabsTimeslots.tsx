@@ -55,10 +55,10 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   const [timeslots, setTimeslots] = useState<BookingEntry[]>([]);
   const [filteredTimeslots, setFilteredTimeslots] = useState<BookingEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { t,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   //state for date selector
-    const [t_timeslotDayFilter, set_t_timeslotDayFilter] = useState<Date | undefined>(undefined);
+  const [t_timeslotDayFilter, set_t_timeslotDayFilter] = useState<Date | undefined>(undefined);
 
   // Get relevant states from filterState
   const {
@@ -112,7 +112,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
     set_t_timeslotDayFilter(undefined)
   };
 
-  const handleDateFilterChange = (date: Date|undefined) => {
+  const handleDateFilterChange = (date: Date | undefined) => {
     // Clear predefined date filters if custom date is set
     if (date) {
       onFilterStateChange({
@@ -180,7 +180,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       header: t('Date'),
       cell: (booking: BookingEntry) => (
         <TableCell>
-          {formatDate(booking.booking_date,i18n.language)}
+          {formatDate(booking.booking_date, i18n.language)}
         </TableCell>
       ),
       sortable: true,
@@ -210,7 +210,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
       cell: (slot: BookingEntry) => (
         <TableCell>
           <div className="flex items-center justify-center gap-2" dir={i18n.dir(i18n.language)}>
-            {t('blankMinutes',{amount:calculateDuration(slot.start_time, slot.end_time)})}
+            {t('blankMinutes', { amount: calculateDuration(slot.start_time, slot.end_time) })}
           </div>
         </TableCell>
       ),
@@ -222,7 +222,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
         <TableCell>
           <Badge className={getStatusColor(slot.status)}>
             {/* {slot.status.charAt(0).toUpperCase() + slot.status.slice(1)} */}
-            {t(formatStatus(slot.booking_type,slot.status))}
+            {t(formatStatus(slot.booking_type, slot.status))}
           </Badge>
         </TableCell>
       ),
@@ -253,10 +253,10 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
   ];
 
   return (
-     <div className="space-y-4">
+    <div className="space-y-4">
       {/* Description section */}
       <div className="flex-row justify-center">
-        <p className="explanation-text1">
+        <p className="explanation-text1" dir='auto'>
           {t('bookingManagementTabsTimeslots.description')}
         </p>
         <div className="flex-row">
@@ -289,7 +289,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
                     }`}
                   variant="outline"
                   id="date-filter-input"
-                dir={i18n.dir()}
+                  dir={i18n.dir()}
                 >
                   <CalendarIcon className="h-4 w-4" />
                   {t_timeslotDayFilter
@@ -362,7 +362,7 @@ const BookingManagementTabsTimeslots: React.FC<TimeslotListProps> = ({
           noResults={
             timeslots.length > 0 ? (
               <div className="text-gray-400">
-                 {t('bookingManagementTabsTimeslots.noTimeslotsMatchFilter')}
+                {t('bookingManagementTabsTimeslots.noTimeslotsMatchFilter')}
               </div>
             ) : null
           }

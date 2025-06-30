@@ -8,6 +8,7 @@ interface EnvConfig {
     JWT_SECRET: string;
     VERIFICATION_TOKEN_EXPIRY: number;
     PASSWORD_RESET_EXPIRY: number;
+    LOGIN_EXPIRY: number;
 }
 
 // Ensure all required environment variables are present
@@ -27,7 +28,8 @@ const requiredEnvVars: string[] = [
     'EMAIL_FROM',
     'EMAIL_FROM_NAME',
     'VERIFICATION_TOKEN_EXPIRY_HOURS',
-    'PASSWORD_RESET_EXPIRY_HOURS'
+    'PASSWORD_RESET_EXPIRY_HOURS',
+    'LOGIN_EXPIRY_HOURS'
 ];
 
 requiredEnvVars.forEach(varName => {
@@ -41,8 +43,9 @@ requiredEnvVars.forEach(varName => {
 const config: EnvConfig = {
     JWT_SECRET: process.env.JWT_SECRET as string,
     VERIFICATION_TOKEN_EXPIRY: parseInt(process.env.VERIFICATION_TOKEN_EXPIRY_HOURS as string) * 60 * 60 * 1000, // Convert to milliseconds
-    PASSWORD_RESET_EXPIRY: parseInt(process.env.PASSWORD_RESET_EXPIRY_HOURS as string) * 60 * 60 * 1000 // Convert to milliseconds
+    PASSWORD_RESET_EXPIRY: parseInt(process.env.PASSWORD_RESET_EXPIRY_HOURS as string) * 60 * 60 * 1000,
+    LOGIN_EXPIRY: parseInt(process.env.LOGIN_EXPIRY_HOURS as string) * 60 * 60 * 1000,
 };
 
-export const { JWT_SECRET, VERIFICATION_TOKEN_EXPIRY, PASSWORD_RESET_EXPIRY } = config;
+export const { JWT_SECRET, VERIFICATION_TOKEN_EXPIRY, PASSWORD_RESET_EXPIRY, LOGIN_EXPIRY } = config;
 export default config;

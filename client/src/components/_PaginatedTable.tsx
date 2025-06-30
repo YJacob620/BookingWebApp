@@ -109,7 +109,7 @@ const PaginatedTable = <T extends object>({
   const totalPages = serverTotalPages || clientTotalPages;
   const dataCount = totalItems || data.length;
 
-  const {t,i18n} = useTranslation()
+  const { t, i18n } = useTranslation()
 
   // Calculate total pages when data or rows per page changes
   useEffect(() => {
@@ -276,8 +276,8 @@ const PaginatedTable = <T extends object>({
                 <td colSpan={columns.length} className="h-24 text-center">
                   {noResults || (
                     <div className="text-gray-400" dir={i18n.dir()}>
-                      {data.length > 0 ? t('noItemsMatchFilter'): t(emptyMessage)}
-                        {/* // ? 'No items match your current filters.' */}
+                      {data.length > 0 ? t('noItemsMatchFilter') : t(emptyMessage)}
+                      {/* // ? 'No items match your current filters.' */}
                     </div>
                   )}
                 </td>
@@ -290,7 +290,7 @@ const PaginatedTable = <T extends object>({
       {/* Pagination Controls */}
       {data.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
-          <div className="flex items-center space-x-2" dir={i18n.dir()}> 
+          <div className="flex items-center space-x-2" dir={i18n.dir()}>
             <Label>{t('PaginatedTable.RowsPerPage')}</Label>
             <Select
               value={rowsPerPage.toString()}
@@ -308,7 +308,7 @@ const PaginatedTable = <T extends object>({
               </SelectContent>
             </Select>
             <span className="text-sm text-gray-400">
-              {t('PaginatedTable.RowsShown',{startItem:startItem,endItem:endItem, itemAmount:dataCount})}
+              {t('PaginatedTable.RowsShown', { startItem: startItem, endItem: endItem, itemAmount: dataCount })}
               {/* {`${startItem}-${endItem} of ${dataCount}`} */}
             </span>
           </div>
@@ -331,7 +331,7 @@ const PaginatedTable = <T extends object>({
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm">
-              {t('PaginatedTable.pageOf',{current:currentPage, total:totalPages})}
+              {t('PaginatedTable.pageOf', { current: currentPage, total: totalPages })}
               {/* Page {currentPage} of {totalPages} */}
             </span>
             <Button

@@ -56,7 +56,7 @@ const BookTimeslot = () => {
   const [questions, setQuestions] = useState<FilterQuestionData[]>([]);
   const [answers, setAnswers] = useState<BookingReqAnswersMap>({});
   const [isFormValid, setIsFormValid] = useState(false);
-  const { t,i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Guest-specific state
   const [searchParams] = useSearchParams();
@@ -381,7 +381,7 @@ const BookTimeslot = () => {
             value={answers[q.id]?.toString() || ''}
             onValueChange={value => setAnswers({ ...answers, [q.id]: value })}
           >
-            <SelectTrigger>
+            <SelectTrigger dir='auto'>
               <SelectValue placeholder={t('bookTimeslot.Select an option')} />
             </SelectTrigger>
             <SelectContent>
@@ -514,7 +514,7 @@ const BookTimeslot = () => {
               />
 
               {/* Date Selection */}
-              <div className="space-y-2">
+              <div className="space-y-2" dir='auto'>
                 <p className="small-title">{t('Select Date')}</p>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -525,7 +525,7 @@ const BookTimeslot = () => {
                       disabled={!selectedInfrastructure}
                     >
                       <CalendarCheck className="mr-2 h-4 w-4" />
-                      {selectedDate ? formatDate(selectedDate,i18n.language) : t("Select a date")}
+                      {selectedDate ? formatDate(selectedDate, i18n.language) : t("Select a date")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="calendar-popover">
@@ -556,12 +556,13 @@ const BookTimeslot = () => {
                   value={selectedTimeslotId?.toString() || ""}
                   disabled={selectedDateTimeslots.length === 0 || !selectedDate}
                 >
-                  <SelectTrigger id="timeslot">
+                  <SelectTrigger id="timeslot" dir='auto'>
                     <SelectValue placeholder={
                       !selectedInfrastructure
                         ? t('bookTimeslot.Select infrastructure first') : !selectedDate
                           ? t('bookTimeslot.Select a date first') : selectedDateTimeslots.length === 0
-                            ? t('bookTimeslot.noTsForDate', 'No available timeslots for this date') : t("bookTimeslot.Select a timeslot")
+                            ? t('bookTimeslot.noTsForDate', 'No available timeslots for this date') :
+                            t("bookTimeslot.Select a timeslot")
                     } />
                   </SelectTrigger>
                   <SelectContent className="card1">
@@ -583,6 +584,7 @@ const BookTimeslot = () => {
                   onChange={(e) => setPurpose(e.target.value)}
                   placeholder={t('bookTimeslot.bookPurposeDesc', "Briefly describe the purpose of your booking")}
                   className="h-24"
+                  dir={purpose.trim() !== '' ? 'auto' : i18n.dir()}
                 />
               </div>
 
