@@ -182,10 +182,16 @@ const BookTimeslot = () => {
   // Calculate the list of dates that have available timeslots
   const availableDates = useMemo(() => {
     if (!allTimeslots.length) return [];
-
-    // Extract unique dates as Date objects
-    const uniqueDates = [...new Set(allTimeslots.map(slot => new Date(slot.booking_date)))];
-
+    console.log("Fetched timeslots:", allTimeslots.length);
+    // // Extract unique dates as Date objects
+    // const uniqueDates = [...new Set(allTimeslots.map(slot => new Date(slot.booking_date)))];
+    const uniqueDates = Array.from(
+      new Set(
+        // Force every slot.date to *local* midnight
+        allTimeslots.map(slot => startOfDay(new Date(slot.booking_date)).getTime())
+      )
+    ).map(ts => new Date(ts));
+    console.log("Unique dates:", uniqueDates.length);
     return uniqueDates;
   }, [allTimeslots]);
 
@@ -337,7 +343,6 @@ const BookTimeslot = () => {
 
     // If we're still loading timeslots, disable future dates
     if (isLoadingTimeslots) return true;
-
     const isAvailable = availableDates.some(d => d.getTime() === date.getTime());
     return !isAvailable;
   };
@@ -354,7 +359,7 @@ const BookTimeslot = () => {
   const renderQuestionFields = () => {
     return questions.map(q => (
       <div key={q.id} className="space-y-2">
-        <p className="small-title">
+        <p dir='auto' className="small-title">
           {q.question_text}
           {q.is_required == true && <span className="text-red-500 ml-1">*</span>}
         </p>
@@ -364,6 +369,7 @@ const BookTimeslot = () => {
             value={answers[q.id]?.toString() || ''}
             onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
             required={q.is_required}
+            dir='auto'
           />
         )}
 
@@ -386,7 +392,7 @@ const BookTimeslot = () => {
             </SelectTrigger>
             <SelectContent>
               {q.options.split('\n').map((option, i) => (
-                <SelectItem key={i} value={option}>{option}</SelectItem>
+                <SelectItem dir='auto' key={i} value={option}>{option}</SelectItem>
               ))}
             </SelectContent>
           </Select>

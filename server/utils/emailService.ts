@@ -271,7 +271,7 @@ const sendBookingNotificationToManagers = async (
             const mailOptions_he = {
                 from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
                 to: manager.email,
-                subject: `הזמנת תור חדשה ל ${infrastructure.name}`,
+                subject: `הזמנת תור חדשה ל${infrastructure.name}`,
                 html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir="rtl">
                     <h2 style="color: #333;">הזמנה חדשה</h2>
@@ -355,7 +355,7 @@ const fetchBookingAnswers = async (bookingId: number, connection = pool): Promis
  */
 const formatBookingAnswersHTML = (answers: BookingAnswer[], language: string = 'en'): string => {
     if (!answers || answers.length === 0) {
-        return '<p><em>No additional information provided.</em></p>';
+        return '';
     }
 
     let html = '<div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">';
@@ -367,11 +367,16 @@ const formatBookingAnswersHTML = (answers: BookingAnswer[], language: string = '
 
         if (answer.question_type === 'document' && answer.document_path) {
             // For file uploads, mention that the file is attached
-            html += `<p>File uploaded: ${answer.answer_text || 'Unnamed file'}</p>`;
-            html += `<p style="font-size: 12px; color: #666;">The file has been attached to this email for your convenience.</p>`;
+            const file_uploaded = language !== 'he' ? "File uploaded:" : "הועלה קובץ:";
+            const file_explain = language !== 'he' ?
+                "The file has been attached to this email for your convenience." : "הקובץ צורף למייל זה לנוחיותך.";
+            html += `<p dir='auto'>${file_uploaded} ${answer.answer_text || 'Unnamed file'}</p>`;
+            html += `<p dir='auto' style="font-size: 12px; color: #666;">${file_explain}</p>`;
         } else {
             // For text answers
-            html += `<p style="word-break: break-word; background-color: #f5f5f5; padding: 10px; border-radius: 4px;">${answer.answer_text || 'No answer provided'}</p>`;
+            html += `<p dir='auto' style="word-break: break-word; background-color: #f5f5f5; padding: 10px; border-radius: 4px;">
+            ${answer.answer_text || 'No answer provided'}
+            </p>`;
         }
 
         html += `</div>`;
@@ -480,12 +485,12 @@ const sendBookingNotificationToUser = async (
         const mailOptions_he = {
             from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
             to: user.email,
-            subject: `בקשה להזמנת תור ל- ${infrastructure.name} התקבלה\u200F`,
+            subject: `בקשה להזמנת תור ל${infrastructure.name} התקבלה\u200F`,
             html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;" dir = "rtl">
                 <h2 style="color: #333;">הזמנת תור התקבלה</h2>
                 <p>שלום, ${user.name}</p>
-                <p>קיבלנו את הזמנתך ל- <strong>${infrastructure.name}</strong></p>
+                <p>קיבלנו את הזמנתך ל<strong>${infrastructure.name}</strong></p>
                 
                 <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
                     <p><strong>תאריך:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>

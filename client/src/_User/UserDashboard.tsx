@@ -139,7 +139,7 @@ const UserDashboard = () => {
               </Table>
             </div>
           ) : (
-            <p className="text-center py-8 explanation-text1">
+            <p className="text-center py-8 explanation-text1" dir='auto'>
               {t('userDashboard.noBookExplain', "You don't have any bookings yet.")}
             </p>
           )}
