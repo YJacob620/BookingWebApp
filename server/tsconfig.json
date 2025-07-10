@@ -4,6 +4,8 @@
       "node"
     ],
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist",
+    "rootDir": "./"
   }
 }
