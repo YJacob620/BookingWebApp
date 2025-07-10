@@ -11,11 +11,4 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // future https support? or is this only for development?
-  // server: {
-  //   https: {
-  //     key: fs.readFileSync('./path/to/server.key'),
-  //     cert: fs.readFileSync('./path/to/server.cert')
-  //   }
-  // }
 });
